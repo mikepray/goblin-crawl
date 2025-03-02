@@ -1,5 +1,5 @@
 {
-  "name": "roguelike",
+  "name": "goblin-crawl",
   "version": "1.0.0",
   "main": "game.ts",
   "scripts": {
@@ -10,7 +10,7 @@
   },
   "author": "mike pray",
   "license": "ISC",
-  "description": "making a fun roguelike",
+  "description": "GoblinCrawl",
   "keywords": [],
   "devDependencies": {
     "@types/node": "^22.13.5",

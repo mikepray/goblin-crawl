@@ -1,8 +1,11 @@
-# Snake Game
+# GoblinCrawl
 
-I wrote this JavaScript snake game as a programming exercise. It took me about two hours. The snake starts with three segments in a random direction. The player's goal is to eat apples `a` without colliding with the walls or the snake segments. The game will get faster every 4th apple
+After [Dungeon Crawl Stone Soup](https://github.com/crawl/crawl), Caves of Qud(https://www.cavesofqud.com). 
 
-## TODO
+Written in TypeScript and Node.js
 
-- Don't allow colliding with the snake by moving in the opposite direction
-- Eventually the board will run out of apples because the code is naive and will only attempt to place a new apple once
+You play as a goblin. Explore the world, talk to its inhabitants, eat skrunt eggs, and wage war upon the treacherous kobolds.
+
+## Running
+
+`npm run start`

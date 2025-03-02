@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Game",
+      "name": "Debug GoblinCrawl",
       "type": "node",
       "request": "launch",
       "args": [
@@ -16,10 +16,9 @@
         "ts-node/register"
       ],
       "cwd": "${workspaceRoot}",
-      "protocol": "inspector",
-      "internalConsoleOptions": "openOnSessionStart",
-      "sourceMaps": true,
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+  
+      "sourceMaps": true
     }
   ]
 }
