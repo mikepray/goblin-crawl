@@ -7,11 +7,29 @@ export type Player = Actor & {
 
 };
 
+// Define status and movement types as string literals for type safety
+export type CreatureStatusType = 'AWAKE' | 'ASLEEP' | 'DEAD';
+export type MovementTypeValue = 'CANNOT_MOVE' | 'GUARDING' | 'WANDERING' | 'FLEEING';
+
+// Maps to store status and movement type data
+export const CreatureStatusMap = new Map<CreatureStatusType, any>([
+  ['AWAKE', { id: 0, description: 'Creature is awake and active' }],
+  ['ASLEEP', { id: 1, description: 'Creature is sleeping and will not move unless disturbed' }],
+  ['DEAD', { id: 2, description: 'Creature is dead' }]
+]);
+
+export const MovementTypeMap = new Map<MovementTypeValue, any>([
+  ['CANNOT_MOVE', { id: 0, description: 'Creature cannot move' }],
+  ['GUARDING', { id: 1, description: 'Creature guards a specific area' }],
+  ['WANDERING', { id: 2, description: 'Creature wanders randomly' }],
+  ['FLEEING', { id: 3, description: 'Creature flees from threats' }]
+]);
+
 export type Creature = Actor & {
   isHostile: boolean;
-  status: CreatureStatus;
+  status: CreatureStatusType;
   dialog?: Array<CreatureDialogNode>;
-  movementType: MovementType;
+  movementType: MovementTypeValue;
   wanderingDirection?: MovementDirection;
 }
 
@@ -21,13 +39,6 @@ export enum MovementDirection {
   S,
   E,
   W,
-}
-
-export enum MovementType {
-  CANNOT_MOVE,
-  GUARDING,
-  WANDERING,
-  FLEEING
 }
 
 export type Coords = { 
@@ -80,12 +91,6 @@ export type CreatureDialogNode = {
 
 
 */
-
-export enum CreatureStatus {
-  AWAKE,
-  ASLEEP,
-  DEAD,
-}
 
 export enum InputKey {
   UP = "\u001b[A",

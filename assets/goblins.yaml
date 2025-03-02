@@ -1,0 +1,52 @@
+---
+goblins:
+  - name: Jark
+    glyph: g
+    isHostile: false
+    status: AWAKE
+    movementType: WANDERING
+    dialog:
+      - dialog: "Me Jark! What you want?"
+        creatureResponses:
+          - dialog: "Me sell shiny things!"
+            playerResponse: "What do you have for sale?"
+          - dialog: "Me no like you. Go away!"
+            playerResponse: "Nothing, just looking around."
+  
+  - name: Gruk
+    glyph: g
+    isHostile: true
+    status: AWAKE
+    movementType: WANDERING
+    
+  - name: Snivel
+    glyph: g
+    isHostile: false
+    status: AWAKE
+    movementType: GUARDING
+    dialog:
+      - dialog: "Snivel guard treasure! No touch!"
+        creatureResponses:
+          - dialog: "Maybe Snivel share... for price."
+            playerResponse: "Can I see the treasure?"
+          - dialog: "Snivel angry now! Go!"
+            playerResponse: "I'll just be on my way."
+            
+  - name: Zot
+    glyph: g
+    isHostile: false
+    status: ASLEEP
+    movementType: CANNOT_MOVE
+    
+  - name: Blurp
+    glyph: g
+    isHostile: false
+    status: AWAKE
+    movementType: WANDERING
+    dialog:
+      - dialog: "Blurp hungry. You food?"
+        creatureResponses:
+          - dialog: "Blurp like human food. You bring?"
+            playerResponse: "I can find you some food."
+          - dialog: "Blurp sad. Blurp hungry."
+            playerResponse: "No, I'm not food and I don't have any."

@@ -6,11 +6,10 @@ import {
   Game,
   InputKey,
   Creature,
-  CreatureStatus,
   CreatureDialogNode,
-  MovementType,
 } from "./types";
-import { coordsToKey, CoordsUtil } from "./utils";
+import { coordsToKey, CoordsUtil, loadGoblinsFromYaml } from "./utils";
+import * as path from 'path';
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -21,35 +20,24 @@ function initGame(): Game {
     .fill(new Array(dungeonWidth))
     .map(() => Array(dungeonWidth).fill("."));
 
-  // randomly place the player 4 spaces away from the sides
+
   let placedActors = new Map<string, Actor>();
-  const x = Math.floor(Math.random() * dungeonWidth - 8) + 4;
-  const y = Math.floor(Math.random() * dungeonHeight - 8) + 4;
+  const x = Math.floor(Math.random() * dungeonWidth);
+  const y = Math.floor(Math.random() * dungeonHeight);
   const player = { glyph: "@", name: "player", x: x, y: y };
   placedActors.set(coordsToKey({ x, y }), player as Player);
 
-  let dialog = new Array<CreatureDialogNode>();
-
-  dialog.push({
-    dialog: "zig?",
-    creatureResponses: [
-      {
-        dialog: "zug!",
-        playerResponse: "zug",
-        creatureResponses: [
-          {
-            playerResponse: "Excuse me sir do you have some grey poupon",
-            dialog: "No!",
-          },
-        ],
-      },
-      { dialog: "wug!", playerResponse: "wug" },
-    ],
-  });
-
-  // put eight goblins in the board randomly
-  for (let i = 0; i < 8; i++) {
-    while (true) {
+  // Load goblins from YAML file
+  const goblinFilePath = path.join(__dirname, '../assets/goblins.yaml');
+  const goblins = loadGoblinsFromYaml(goblinFilePath);
+  
+  // Place goblins randomly on the map
+  for (const goblin of goblins) {
+    let placed = false;
+    let attempts = 0;
+    
+    while (!placed && attempts < 100) {
+      attempts++;
       let goblinCoords: Coords = {
         x: Math.floor(Math.random() * dungeonWidth),
         y: Math.floor(Math.random() * dungeonHeight),
@@ -57,19 +45,14 @@ function initGame(): Game {
 
       // keep iterating if there's a collision in placement
       if (!placedActors.has(coordsToKey(goblinCoords))) {
-        placedActors.set(coordsToKey(goblinCoords), {
-          glyph: "g",
-          name: "Goblin",
-          ...goblinCoords,
-          isHostile: false,
-          status: CreatureStatus.AWAKE,
-          dialog: dialog,
-          movementType: MovementType.WANDERING,
-        } as Creature);
-        break; // Exit the while loop after successfully placing a goblin
+        goblin.x = goblinCoords.x;
+        goblin.y = goblinCoords.y;
+        placedActors.set(coordsToKey(goblinCoords), goblin);
+        placed = true;
       }
     }
   }
+  
   return {
     screen: screen,
     actorsByCoords: placedActors,
@@ -87,7 +70,7 @@ function printScreen(game: Game) {
     if (game.activeDialog) {
       // active dialog
       out = out.concat(
-        `${game.interactingActor?.name} says: \n\n${game.activeDialog.dialog}\n\nYour answer:\n`
+        `\n${game.interactingActor?.name} says: \n\n> ${game.activeDialog.dialog}\n\n`
       );
       if (game.activeDialog.creatureResponses) {
         for (let i = 0; i < game.activeDialog.creatureResponses?.length; i++) {
@@ -149,7 +132,7 @@ function movePlayer(game: Game) {
         } else {
           if ("movementType" in actor) {
             const creature = actor as Creature;
-            if (creature.movementType === MovementType.WANDERING) 
+            if (creature.movementType === 'WANDERING') 
               moveDelta = getWanderingMoveDelta(creature);
           }
         }

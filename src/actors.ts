@@ -65,10 +65,17 @@ function interact(game: Game, object: Actor, subject: Actor): Game {
 
 export const getWanderingMoveDelta = (creature: Creature): Coords => {
   const moveDelta: Coords = { x: 0, y: 0 };
+  
+  // Only wandering creatures should move randomly
+  if (creature.movementType !== 'WANDERING') {
+    return moveDelta;
+  }
+  
   if (!creature.wanderingDirection || Math.random() < 0.2) {
     const randomDirection = Math.floor(Math.random() * 5);
     creature.wanderingDirection = randomDirection as MovementDirection;
   }
+  
   switch (creature.wanderingDirection) {
     case MovementDirection.N:
       moveDelta.y--;
