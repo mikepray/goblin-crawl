@@ -51,13 +51,33 @@ function descendLevel(game: Game, branch: Branch) {
     );
   });
 
+  let spawnedActorNums = new Map<string, number>();
+  let attemptedSpawnedActorNums = new Map<string, number>();
   // Place creatures randomly on the map
-  for (const creature of possibleLevelCreatures) {
+  for (let i = 0; i < possibleLevelCreatures.length; i++) {
+    let creature = possibleLevelCreatures[i];
     // determine if the creature should spawn
     const branchSpawnRate = creature.branchSpawnRates?.find(
-      rate => rate.branchName === branch.branchName
+      rate => rate.branchName === branch.branchName && rate.level === branch.level
     );
     
+    // if there's not more than the max allowable spawned already
+    // use a frequency map of spawned creatures by their creature name
+    let spawnedCreature = (spawnedActorNums.get(creature.name) || 0) + 1;
+    if (spawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
+      continue;
+    }
+    spawnedActorNums.set(creature.name, spawnedCreature);
+
+    // try to spawn as many times as maxSpawnNum (even if it doesn't spawn)
+    let attempedSpawnedCreature = (attemptedSpawnedActorNums.get(creature.name) || 0) + 1;
+    if (attempedSpawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
+      continue;
+    }
+    attemptedSpawnedActorNums.set(creature.name, attempedSpawnedCreature);
+    // spawn this creature again until it hits the max spawn rate
+    i--;
+    // and if the RNG says it should spawn
     if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
       let placed = false;
       let attempts = 0;
@@ -73,12 +93,10 @@ function descendLevel(game: Game, branch: Branch) {
         if (!game.actorsByCoords.has(coordsToKey(creatureCoords))) {
           creature.x = creatureCoords.x;
           creature.y = creatureCoords.y;
-          game.actorsByCoords.set(coordsToKey(creatureCoords), creature);
+          game.actorsByCoords.set(coordsToKey(creatureCoords), {...creature});
           placed = true;
         }
       }
-
-      
     }
   }
   return game;
