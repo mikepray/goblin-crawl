@@ -17,15 +17,16 @@ export const moveActor = (
     whatsAtNextPosition !== undefined &&
     game.actorsByCoords.has(nextPositionKey)
   ) {
+    // TODO prevent actors from interacting with themselves
     return interact(game, actor, whatsAtNextPosition!);
   }
 
   if (
     // prevent move on boundary collision
     !(
-      nextPosition.x > 48 - 1 ||
+      nextPosition.x > dungeonWidth - 1 ||
       nextPosition.x < 0 ||
-      nextPosition.y > 24 - 1 ||
+      nextPosition.y > dungeonHeight - 1 ||
       nextPosition.y < 0
     )
   ) {
@@ -48,10 +49,7 @@ function interact(game: Game, object: Actor, subject: Actor): Game {
       // dialog with player
       if (object.name === "player" && subjectCreature.dialog) {
         const dialogNode =
-          // creature.dialog[
-          //   Math.max(0, Math.floor(Math.random() * creature.dialog?.length))
-          // ];
-          subjectCreature.dialog[0];
+        subjectCreature.dialog[Math.floor(Math.random() * subjectCreature.dialog.length)];
         game.activeDialog = dialogNode;
         game.interactingActor = subjectCreature;
         game.isScreenDirty = true;

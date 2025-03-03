@@ -1,6 +1,7 @@
 export type Actor = Coords & {
   glyph: string;
   name: string;
+  description?: string;
 }
 
 export type Player = Actor & {
@@ -31,6 +32,13 @@ export type Creature = Actor & {
   dialog?: Array<CreatureDialogNode>;
   movementType: MovementTypeValue;
   wanderingDirection?: MovementDirection;
+  branchSpawnRates?: Array<BranchSpawnRate>;
+}
+
+export type BranchSpawnRate = Branch & {
+  // 0 - 100, where 100 means it will spawn 100% of the time in allowed spawn boundaries
+  spawnChance: number;
+  maxSpawnNum: number;
 }
 
 export enum MovementDirection {
@@ -46,7 +54,6 @@ export type Coords = {
   y: number;
 }
 
-
 export type Game = {
   screen: Array<Array<string>>;
   isScreenDirty: boolean;
@@ -56,16 +63,22 @@ export type Game = {
   activeDialog?: CreatureDialogNode;
   interactingActor?: Actor;
   dialogPointer: number;
-};
+  currentBranch: Branch;
+  creatures: Array<Creature>;
+}
+
+export type Branch = 
+  { branchName: string; level: number };
+
 
 export type Level = {
 
 }
 
 export type CreatureDialogNode = {
-  creatureResponses?: Array<CreatureDialogNode>; 
-  dialog: string;
   playerResponse?: string;
+  dialog: string;
+  creatureResponses?: Array<CreatureDialogNode>; 
 }
 /*
 

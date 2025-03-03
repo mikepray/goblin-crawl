@@ -1,4 +1,5 @@
 import { getWanderingMoveDelta, moveActor } from "./actors";
+import { loadCreatures } from "./loader";
 import {
   Player,
   Actor,
@@ -6,10 +7,10 @@ import {
   Game,
   InputKey,
   Creature,
-  CreatureDialogNode,
+  Branch,
 } from "./types";
-import { coordsToKey, CoordsUtil, loadGoblinsFromYaml } from "./utils";
-import * as path from 'path';
+import { coordsToKey } from "./utils";
+import * as path from "path";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -20,47 +21,67 @@ function initGame(): Game {
     .fill(new Array(dungeonWidth))
     .map(() => Array(dungeonWidth).fill("."));
 
-
   let placedActors = new Map<string, Actor>();
   const x = Math.floor(Math.random() * dungeonWidth);
   const y = Math.floor(Math.random() * dungeonHeight);
   const player = { glyph: "@", name: "player", x: x, y: y };
   placedActors.set(coordsToKey({ x, y }), player as Player);
 
-  // Load goblins from YAML file
-  const goblinFilePath = path.join(__dirname, '../assets/goblins.yaml');
-  const goblins = loadGoblinsFromYaml(goblinFilePath);
-  
-  // Place goblins randomly on the map
-  for (const goblin of goblins) {
-    let placed = false;
-    let attempts = 0;
-    
-    while (!placed && attempts < 100) {
-      attempts++;
-      let goblinCoords: Coords = {
-        x: Math.floor(Math.random() * dungeonWidth),
-        y: Math.floor(Math.random() * dungeonHeight),
-      };
+  // Load creatures from YAML file
+  const creatures = loadCreatures();
 
-      // keep iterating if there's a collision in placement
-      if (!placedActors.has(coordsToKey(goblinCoords))) {
-        goblin.x = goblinCoords.x;
-        goblin.y = goblinCoords.y;
-        placedActors.set(coordsToKey(goblinCoords), goblin);
-        placed = true;
-      }
-    }
-  }
-  
-  return {
+  let game = {
     screen: screen,
     actorsByCoords: placedActors,
     player: player,
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
+    currentBranch: { branchName: "D", level: 1 },
+    creatures: creatures,
   };
+
+  return descendLevel(game, { branchName: "D", level: 1 });
+}
+
+function descendLevel(game: Game, branch: Branch) {
+  let possibleLevelCreatures = game.creatures.filter((creature) => {
+    return creature.branchSpawnRates?.some(
+      (rate) => rate.branchName === branch.branchName
+    );
+  });
+
+  // Place creatures randomly on the map
+  for (const creature of possibleLevelCreatures) {
+    // determine if the creature should spawn
+    const branchSpawnRate = creature.branchSpawnRates?.find(
+      rate => rate.branchName === branch.branchName
+    );
+    
+    if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
+      let placed = false;
+      let attempts = 0;
+
+      while (!placed && attempts < 100) {
+        attempts++;
+        let creatureCoords: Coords = {
+          x: Math.floor(Math.random() * dungeonWidth),
+          y: Math.floor(Math.random() * dungeonHeight),
+        };
+
+        // keep iterating if there's a collision in placement
+        if (!game.actorsByCoords.has(coordsToKey(creatureCoords))) {
+          creature.x = creatureCoords.x;
+          creature.y = creatureCoords.y;
+          game.actorsByCoords.set(coordsToKey(creatureCoords), creature);
+          placed = true;
+        }
+      }
+
+      
+    }
+  }
+  return game;
 }
 
 function printScreen(game: Game) {
@@ -84,7 +105,7 @@ function printScreen(game: Game) {
           "\nPress Number keys to answer or Escape to exit dialog..."
         );
       } else {
-        out = out.concat("...\nPress any key to exit dialog...");
+        out = out.concat("...\n\nPress any key to exit dialog...");
       }
     } else {
       // dungeon screen
@@ -122,24 +143,24 @@ function movePlayer(game: Game) {
         // do nothing
       }
 
+      // move player first
+      game = moveActor(game, game.player, playerMove);
+
       // copy list to prevent concurrent modification
       const previousActorList = new Map(game.actorsByCoords);
 
-      previousActorList.forEach(actor => {
-        let moveDelta = {x: 0, y: 0};
-        if (actor.name === "player") {
-          moveDelta = playerMove;
-        } else {
+      previousActorList.forEach((actor) => {
+        let moveDelta = { x: 0, y: 0 };
+        if (actor.name !== "player") {
           if ("movementType" in actor) {
             const creature = actor as Creature;
-            if (creature.movementType === 'WANDERING') 
+            if (creature.movementType === "WANDERING")
               moveDelta = getWanderingMoveDelta(creature);
           }
         }
 
         game = moveActor(game, actor, moveDelta);
       });
-
     }
   } else {
     // active dialog

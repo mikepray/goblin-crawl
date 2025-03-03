@@ -1,0 +1,20 @@
+---
+creatures: 
+- name: Jark
+  glyph: g
+  isHostile: false
+  status: AWAKE
+  movementType: WANDERING
+  branchSpawnRates: 
+    - branchName: D
+      level: 1
+      spawnChance: 100
+      maxSpawnNum: 1
+  dialog:
+    - dialog: What you want?
+      creatureResponses:
+        - playerResponse: "What do you have for sale?"
+          dialog: "Give me a skrunt egg for my cloak"
+        - playerResponse: "Nothing, just looking around."
+          dialog: "Then go away!"
+  

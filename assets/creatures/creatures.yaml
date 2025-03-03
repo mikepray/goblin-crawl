@@ -1,0 +1,80 @@
+---
+creatures:
+  - name: goblin
+    glyph: g
+    description: >
+      a small greenish humanoid with long ears and large eyes. 
+      it is cowardly but cunning and well adapted to privation and darkness
+    isHostile: false
+    status: AWAKE
+    movementType: WANDERING
+    branchSpawnRates: 
+      - branchName: D
+        level: 1
+        spawnChance: 100
+        maxSpawnNum: 8
+      - branchName: D
+        level: 2
+        spawnChance: 100
+        maxSpawnNum: 3
+    dialog:
+      - dialog: go away!
+      - dialog: urgh...
+      - dialog: have you seen my skrunt?
+        creatureResponses:
+          - playerResponse: No
+      - dialog: out of my way!
+      - dialog: yeek!
+      - dialog: watch out for those evil kobolds...
+      - dialog: yough...
+  
+  - name: skrunt
+    glyph: s
+    description: >
+      a tame featherless bird favored by goblinkind for its flesh and eggs 
+    isHostile: false
+    status: AWAKE
+    movementType: WANDERING
+    branchSpawnRates: 
+      - branchName: D
+        level: 1
+        spawnChance: 100
+        maxSpawnNum: 3
+      - branchName: D
+        level: 2
+        spawnChance: 80
+        maxSpawnNum: 5
+    dialog: 
+      - dialog: skrunt skrunt skrunt
+      - dialog: skrunt?
+      - dialog: skrunt skrunt
+      - dialog: SKRUUUUUNT!!
+
+  - name: kobold
+    glyph: k
+    isHostile: true
+    status: AWAKE
+    movementType: WANDERING
+    spawnChance: 100
+    description: >
+      a small intelligent dragonlike creature with grey scaly skin. 
+      it is detested by goblinkind for its base treachery and villainy
+    branchSpawnRates: 
+      - branchName: D
+        level: 3
+        spawnChance: 20
+        maxSpawnNum: 3
+      - branchName: D
+        level: 4
+        spawnChance: 40
+        maxSpawnNum: 5
+      - branchName: D
+        level: 5
+        spawnChance: 60
+        maxSpawnNum: 6
+      - branchName: D
+        level: 6
+        spawnChance: 80
+        maxSpawnNum: 8
+
+ 
