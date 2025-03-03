@@ -1,5 +1,5 @@
 import { getWanderingMoveDelta, moveActor } from "./actors";
-import { loadCreatures } from "./loader";
+import { loadCreatures } from "./loadCreatures";
 import {
   Player,
   Actor,
@@ -8,43 +8,80 @@ import {
   InputKey,
   Creature,
   Branch,
+  Upstairs,
+  Downstairs,
 } from "./types";
-import { coordsToKey } from "./utils";
-import * as path from "path";
+import { coordsToKey, getRandomValidTile } from "./utils";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
 function initGame(): Game {
-  // init screen
-  let screen = Array(dungeonHeight)
-    .fill(new Array(dungeonWidth))
-    .map(() => Array(dungeonWidth).fill("."));
 
-  let placedActors = new Map<string, Actor>();
-  const x = Math.floor(Math.random() * dungeonWidth);
-  const y = Math.floor(Math.random() * dungeonHeight);
-  const player = { glyph: "@", name: "player", x: x, y: y };
-  placedActors.set(coordsToKey({ x, y }), player as Player);
-
-  // Load creatures from YAML file
   const creatures = loadCreatures();
-
+  let placedActors = new Map<string, Actor>();
   let game = {
-    screen: screen,
     actorsByCoords: placedActors,
-    player: player,
+    player: {  x: 0, y: 0, } as Player,
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
     currentBranch: { branchName: "D", level: 1 },
     creatures: creatures,
+    levelTiles: new Map<string, Coords>(),
   };
 
   return descendLevel(game, { branchName: "D", level: 1 });
 }
 
+function buildRoomsAndHallways(game: Game, branch: Branch): Map<string, Coords> {
+  // a level consists of an unordered Map of (coordKey => coords) which represents the empty tiles
+  let tiles = new Map<string, Coords>();
+  // create 2-5 rooms of min 4x4 max 10x10 size
+  // place them by adding their coords to the set
+  let w = Math.floor(Math.random() * 7) + 4;
+  let h =  Math.floor(Math.random() * 7) + 4;
+
+  // randomly generate origin point of room (top left)
+  let x = Math.floor(Math.random() * (dungeonWidth - w));
+  let y = Math.floor(Math.random() * (dungeonHeight - h));
+
+  // add room to tile set
+  for (let i = 0; i < h; i++) {
+    for (let j = 0; j < w; j++) {
+      tiles.set(coordsToKey({x: x + j, y: y + i}), {x: x + j, y: y + i});
+    }
+  }
+
+  return tiles;
+}
+
 function descendLevel(game: Game, branch: Branch) {
+  game.levelTiles = buildRoomsAndHallways(game, branch);
+
+  // set the upstairs tile
+  let upstairsTile = getRandomValidTile(game.levelTiles);
+  const upstairs = {
+    ...upstairsTile,
+    glyph: "<",
+    name: "Upstairs",
+  } as Upstairs;
+  game.actorsByCoords.set(coordsToKey(upstairsTile), upstairs);
+
+  // set the downstairs tile
+  let downstairsTile = getRandomValidTile(game.levelTiles, game.actorsByCoords);
+  const downstairs = {
+    ...upstairsTile,
+    glyph: ">",
+    name: "Downstairs",
+  } as Downstairs;
+  game.actorsByCoords.set(coordsToKey(downstairsTile), downstairs);
+
+  // set the 
+  let playerTile = getRandomValidTile(game.levelTiles, game.actorsByCoords);
+  const player = {...playerTile, glyph: "@", name: "player"} as Player;
+  game.actorsByCoords.set(coordsToKey(playerTile), player);
+
   let possibleLevelCreatures = game.creatures.filter((creature) => {
     return creature.branchSpawnRates?.some(
       (rate) => rate.branchName === branch.branchName
@@ -70,39 +107,23 @@ function descendLevel(game: Game, branch: Branch) {
     spawnedActorNums.set(creature.name, spawnedCreature);
 
     // try to spawn as many times as maxSpawnNum (even if it doesn't spawn)
-    let attempedSpawnedCreature = (attemptedSpawnedActorNums.get(creature.name) || 0) + 1;
-    if (attempedSpawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
+    let attemptedSpawnedCreature = (attemptedSpawnedActorNums.get(creature.name) || 0) + 1;
+    if (attemptedSpawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
       continue;
     }
-    attemptedSpawnedActorNums.set(creature.name, attempedSpawnedCreature);
+    attemptedSpawnedActorNums.set(creature.name, attemptedSpawnedCreature);
     // spawn this creature again until it hits the max spawn rate
     i--;
     // and if the RNG says it should spawn
     if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
-      let placed = false;
-      let attempts = 0;
-
-      while (!placed && attempts < 100) {
-        attempts++;
-        let creatureCoords: Coords = {
-          x: Math.floor(Math.random() * dungeonWidth),
-          y: Math.floor(Math.random() * dungeonHeight),
-        };
-
-        // keep iterating if there's a collision in placement
-        if (!game.actorsByCoords.has(coordsToKey(creatureCoords))) {
-          creature.x = creatureCoords.x;
-          creature.y = creatureCoords.y;
-          game.actorsByCoords.set(coordsToKey(creatureCoords), {...creature});
-          placed = true;
-        }
-      }
+      let creatureCoords = getRandomValidTile(game.levelTiles, game.actorsByCoords);
+      game.actorsByCoords.set(coordsToKey(creatureCoords), creature);
     }
   }
   return game;
 }
 
-function printScreen(game: Game) {
+function printScreen(game: Game): Game {
   if (game.isScreenDirty) {
     console.clear();
     let out = "GoblinCrawl \n";
@@ -123,18 +144,22 @@ function printScreen(game: Game) {
           "\nPress Number keys to answer or Escape to exit dialog..."
         );
       } else {
-        out = out.concat("...\n\nPress any key to exit dialog...");
+        out = out.concat("\n\nPress any key to exit dialog...");
       }
     } else {
       // dungeon screen
-      for (let y = 0; y < game.screen.length; y++) {
-        for (let x = 0; x < game.screen[y].length; x++) {
+      for (let y = 0; y < dungeonHeight; y++) {
+        for (let x = 0; x < dungeonWidth; x++) {
           const actor = game.actorsByCoords.get(coordsToKey({ x: x, y: y }));
           if (actor) {
             out = out.concat(actor.glyph);
           } else {
-            out = out.concat(game.screen[y][x]);
+            if(game.levelTiles.has(coordsToKey({x: x, y: y}))) {
+              out = out.concat('.');
+            } else 
+            out = out.concat('#');
           }
+
         }
         out = out.concat("\n");
       }
@@ -142,6 +167,7 @@ function printScreen(game: Game) {
     console.log(out);
     game.isScreenDirty = false;
   }
+  return game;
 }
 
 function movePlayer(game: Game) {
@@ -203,11 +229,11 @@ function movePlayer(game: Game) {
       }
     }
   }
-
   return game;
 }
 
 function gameLoop(game: Game) {
+
   printScreen(game);
   game = movePlayer(game);
   if (!game.gameOver) {

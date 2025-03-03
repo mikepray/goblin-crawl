@@ -48,7 +48,7 @@ export function loadCreaturesFromFile(file: string): Creature[] {
         name: "goblin",
         isHostile: false,
         status: "AWAKE" as CreatureStatusType,
-        movementType: "CANNOT_MOVE" as MovementTypeValue,
+        movementType: "WANDERING" as MovementTypeValue,
         branchSpawnRates: [],
       };
 

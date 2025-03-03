@@ -4,7 +4,7 @@ creatures:
     glyph: g
     description: >
       a small greenish humanoid with long ears and large eyes. 
-      it is cowardly but cunning and well adapted to privation and darkness
+      it is fragile but cunning and well adapted to privation and darkness
     isHostile: false
     status: AWAKE
     movementType: WANDERING

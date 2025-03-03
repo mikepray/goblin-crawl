@@ -5,7 +5,9 @@ export type Actor = Coords & {
 }
 
 export type Player = Actor & {
-
+  glyph: "@";
+  name: "player";
+  description: "It's you";
 };
 
 // Define status and movement types as string literals for type safety
@@ -55,7 +57,6 @@ export type Coords = {
 }
 
 export type Game = {
-  screen: Array<Array<string>>;
   isScreenDirty: boolean;
   actorsByCoords: Map<string, Actor>;
   player: Player;
@@ -65,6 +66,19 @@ export type Game = {
   dialogPointer: number;
   currentBranch: Branch;
   creatures: Array<Creature>;
+  levelTiles: Map<string, Coords>;
+}
+
+export type Upstairs = Actor & {
+  glyph: "<";
+  name: "Upstairs";
+  description: "Stairs going up to the next level";
+}
+
+export type Downstairs = Actor & {
+  glyph: ">";
+  name: "Downstairs";
+  description: "Stairs going down to the next level";
 }
 
 export type Branch = 
@@ -80,30 +94,6 @@ export type CreatureDialogNode = {
   dialog: string;
   creatureResponses?: Array<CreatureDialogNode>; 
 }
-/*
-
-  { dialog: "how can i help you?",
-    creatureResponses: [
-      {
-        creatureResponses: "what do you have for sale?",
-        dialog: "Here are my wares",
-        creatureResponses: [
-          {
-            playerResponse: "(buy a wooden knife for 40gp)",
-          },
-          {
-            playerResponse: "(buy a skrunt egg for 30gp)",
-          }
-        ]
-      },
-      {
-        playerResponse: "nevermind",
-        dialog: "goodbye"
-      }
-    ],
-
-
-*/
 
 export enum InputKey {
   UP = "\u001b[A",
@@ -113,4 +103,14 @@ export enum InputKey {
   ESCAPE = "\u001b",
   PERIOD = ".",
   
+}
+
+/* A vault is a hardcoded predefined dungeon layout */
+export type Vault = {
+  getVault: () => Set<Coords>;
+}
+
+/* A level generator procedurally creates levels */
+export type LevelGenerator = {
+  generate: () => Set<Coords>;
 }

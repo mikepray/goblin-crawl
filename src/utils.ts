@@ -15,3 +15,27 @@ export const CoordsUtil = {
     return a.x === b.x && a.y === b.y;
   },
 };
+
+export function getRandomValidTile(
+  tiles: Map<string, Coords>,
+  actors?: Map<string, Coords>
+): Coords {
+  let tileCoords = { x: 0, y: 0 };
+
+  for (let attempts = 0; attempts < tiles.size; attempts++) {
+    // get a random tile using an index of the tile array (the valid empty tiles for a given level)
+    const coords = Math.floor(Math.random() * tiles.size);
+    const key = Array.from(tiles.keys()).at(coords);
+    tileCoords = {
+      x: tiles.get(key!)!.x,
+      y: tiles.get(key!)!.y,
+    };
+
+    // deconflict with placed actors
+    // keep iterating if there's a collision in placement
+    if (!actors || !actors.has(coordsToKey(tileCoords))) {
+      break;
+    }
+  }
+  return tileCoords;
+}
