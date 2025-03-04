@@ -1,11 +1,10 @@
 import { Coords } from "./types";
 
-// Helper function to convert coordinates to a string key
+// converts coordinates to a string key for O(1) lookups in Maps
 export function coordsToKey(coords: Coords): string {
   return `${coords.x},${coords.y}`;
 }
 
-// Utility functions for working with coordinates
 export const CoordsUtil = {
   add: (a: Coords, b: Coords): Coords => {
     return { x: a.x + b.x, y: a.y + b.y };
@@ -16,6 +15,7 @@ export const CoordsUtil = {
   },
 };
 
+// gets a random valid tile in the given list of tiles. deconflicts with actors if the actors are sent in too
 export function getRandomValidTile(
   tiles: Map<string, Coords>,
   actors?: Map<string, Coords>

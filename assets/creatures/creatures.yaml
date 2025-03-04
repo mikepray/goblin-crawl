@@ -12,7 +12,7 @@ creatures:
       - branchName: D
         level: 1
         spawnChance: 100
-        maxSpawnNum: 8
+        maxSpawnNum: 4
       - branchName: D
         level: 2
         spawnChance: 100

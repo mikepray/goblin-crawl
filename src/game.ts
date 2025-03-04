@@ -17,12 +17,11 @@ export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
 function initGame(): Game {
-
   const creatures = loadCreatures();
   let placedActors = new Map<string, Actor>();
   let game = {
     actorsByCoords: placedActors,
-    player: {  x: 0, y: 0, } as Player,
+    player: { x: 0, y: 0 } as Player,
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
@@ -34,26 +33,94 @@ function initGame(): Game {
   return descendLevel(game, { branchName: "D", level: 1 });
 }
 
-function buildRoomsAndHallways(game: Game, branch: Branch): Map<string, Coords> {
+function buildRoomsAndHallways(
+  game: Game,
+  branch: Branch
+): Map<string, Coords> {
   // a level consists of an unordered Map of (coordKey => coords) which represents the empty tiles
   let tiles = new Map<string, Coords>();
-  // create 2-5 rooms of min 4x4 max 10x10 size
-  // place them by adding their coords to the set
-  let w = Math.floor(Math.random() * 7) + 4;
-  let h =  Math.floor(Math.random() * 7) + 4;
+  let midpoints = new Array();
 
-  // randomly generate origin point of room (top left)
-  let x = Math.floor(Math.random() * (dungeonWidth - w));
-  let y = Math.floor(Math.random() * (dungeonHeight - h));
+  const numRooms = Math.floor(Math.random() * 3) + 5;
+  for (let i = 0; i < numRooms; i++) {
+    let room = buildRoom();
+    midpoints.push(room.midpoint);
+    tiles = new Map([...tiles, ...room.tiles]);
+  }
 
-  // add room to tile set
-  for (let i = 0; i < h; i++) {
-    for (let j = 0; j < w; j++) {
-      tiles.set(coordsToKey({x: x + j, y: y + i}), {x: x + j, y: y + i});
+  // draw hallways between midpoints
+  for (let i = 0; i < midpoints.length; i++) {
+    for (let j = 0; j < midpoints.length; j++) {
+      if (i === j) continue;
+      let midpoint1 = midpoints[i];
+      let midpoint2 = midpoints[j];
+      // find lowest x
+      // add tiles (if they dont already exist) from midpoint1.x to midpoint2.x
+      if (midpoint1.x < midpoint2.x) {
+        for (let k = 1; k < midpoint2.x; k++) {
+          tiles.set(coordsToKey({ ...midpoint1, x: midpoint1.x + k }), {
+            ...midpoint1,
+            x: midpoint1 + k,
+          });
+        }
+      } else {
+        for (let k = 1; k < midpoint1.x; k++) {
+          tiles.set(coordsToKey({ ...midpoint2, x: midpoint2.x + k }), {
+            ...midpoint2,
+            x: midpoint2 + k,
+          });
+        }
+      }
+      // find lowest y
+      // add tiles (if they dont already exist) from midpoint1.y to midpoint2.y
+      if (midpoint1.y < midpoint2.y) {
+        for (let k = 1; k < midpoint2.y; k++) {
+          tiles.set(coordsToKey({ ...midpoint1, y: midpoint1.y + k }), {
+            ...midpoint1,
+            y: midpoint1 + k,
+          });
+        }
+      } else {
+        for (let k = 1; k < midpoint1.y; k++) {
+          tiles.set(coordsToKey({ ...midpoint2, y: midpoint2.y + k }), {
+            ...midpoint2,
+            y: midpoint2 + k,
+          });
+        }
+      }
     }
   }
 
   return tiles;
+}
+
+function buildRoom() {
+  let tiles = new Map<string, Coords>();
+
+  let w = Math.floor(Math.random() * 7) + 6;
+  let h = Math.floor(Math.random() * 7) + 6;
+
+  // randomly generate origin point of room (top left)
+  let originX = Math.floor(Math.random() * (dungeonWidth - w));
+  let originY = Math.floor(Math.random() * (dungeonHeight - h));
+
+  // add room to tile set
+  for (let i = 0; i < h; i++) {
+    for (let j = 0; j < w; j++) {
+      tiles.set(coordsToKey({ x: originX + j, y: originY + i }), {
+        x: originX + j,
+        y: originY + i,
+      });
+    }
+  }
+
+  let midpoint = {
+    x: Math.floor(originX + w / 2),
+    y: Math.floor(originY + h / 2),
+  };
+
+  // place them by adding their coords to the set
+  return { tiles: tiles, midpoint: midpoint };
 }
 
 function descendLevel(game: Game, branch: Branch) {
@@ -77,10 +144,11 @@ function descendLevel(game: Game, branch: Branch) {
   } as Downstairs;
   game.actorsByCoords.set(coordsToKey(downstairsTile), downstairs);
 
-  // set the 
+  // set the
   let playerTile = getRandomValidTile(game.levelTiles, game.actorsByCoords);
-  const player = {...playerTile, glyph: "@", name: "player"} as Player;
+  const player = { ...playerTile, glyph: "@", name: "player" } as Player;
   game.actorsByCoords.set(coordsToKey(playerTile), player);
+  game.player = player;
 
   let possibleLevelCreatures = game.creatures.filter((creature) => {
     return creature.branchSpawnRates?.some(
@@ -95,9 +163,10 @@ function descendLevel(game: Game, branch: Branch) {
     let creature = possibleLevelCreatures[i];
     // determine if the creature should spawn
     const branchSpawnRate = creature.branchSpawnRates?.find(
-      rate => rate.branchName === branch.branchName && rate.level === branch.level
+      (rate) =>
+        rate.branchName === branch.branchName && rate.level === branch.level
     );
-    
+
     // if there's not more than the max allowable spawned already
     // use a frequency map of spawned creatures by their creature name
     let spawnedCreature = (spawnedActorNums.get(creature.name) || 0) + 1;
@@ -107,7 +176,8 @@ function descendLevel(game: Game, branch: Branch) {
     spawnedActorNums.set(creature.name, spawnedCreature);
 
     // try to spawn as many times as maxSpawnNum (even if it doesn't spawn)
-    let attemptedSpawnedCreature = (attemptedSpawnedActorNums.get(creature.name) || 0) + 1;
+    let attemptedSpawnedCreature =
+      (attemptedSpawnedActorNums.get(creature.name) || 0) + 1;
     if (attemptedSpawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
       continue;
     }
@@ -116,8 +186,13 @@ function descendLevel(game: Game, branch: Branch) {
     i--;
     // and if the RNG says it should spawn
     if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
-      let creatureCoords = getRandomValidTile(game.levelTiles, game.actorsByCoords);
-      game.actorsByCoords.set(coordsToKey(creatureCoords), creature);
+      let creatureCoords = getRandomValidTile(
+        game.levelTiles,
+        game.actorsByCoords
+      );
+      creature.x = creatureCoords.x;
+      creature.y = creatureCoords.y;
+      game.actorsByCoords.set(coordsToKey(creatureCoords), { ...creature });
     }
   }
   return game;
@@ -154,12 +229,10 @@ function printScreen(game: Game): Game {
           if (actor) {
             out = out.concat(actor.glyph);
           } else {
-            if(game.levelTiles.has(coordsToKey({x: x, y: y}))) {
-              out = out.concat('.');
-            } else 
-            out = out.concat('#');
+            if (game.levelTiles.has(coordsToKey({ x: x, y: y }))) {
+              out = out.concat(".");
+            } else out = out.concat("#");
           }
-
         }
         out = out.concat("\n");
       }
@@ -233,7 +306,6 @@ function movePlayer(game: Game) {
 }
 
 function gameLoop(game: Game) {
-
   printScreen(game);
   game = movePlayer(game);
   if (!game.gameOver) {

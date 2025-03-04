@@ -1,3 +1,4 @@
+// a moveable, occluding game actor
 export type Actor = Coords & {
   glyph: string;
   name: string;
@@ -9,6 +10,11 @@ export type Player = Actor & {
   name: "player";
   description: "It's you";
 };
+
+// an unmoving, non-occluding game feature (staircase, trap)
+export type Feature = Actor & {
+
+}
 
 // Define status and movement types as string literals for type safety
 export type CreatureStatusType = 'AWAKE' | 'ASLEEP' | 'DEAD';

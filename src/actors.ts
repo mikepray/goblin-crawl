@@ -13,6 +13,7 @@ export const moveActor = (
   const nextPositionKey = coordsToKey(nextPosition);
   const whatsAtNextPosition = game.actorsByCoords.get(nextPositionKey);
 
+  // interact with adjacent actor (bump)
   if (
     whatsAtNextPosition !== undefined &&
     game.actorsByCoords.has(nextPositionKey)
@@ -21,21 +22,25 @@ export const moveActor = (
     return interact(game, actor, whatsAtNextPosition!);
   }
 
+  // prevent move on boundary collision
   if (
-    // prevent move on boundary collision
-    !(
-      nextPosition.x > dungeonWidth - 1 ||
-      nextPosition.x < 0 ||
-      nextPosition.y > dungeonHeight - 1 ||
-      nextPosition.y < 0
-    )
+    nextPosition.x > dungeonWidth - 1 ||
+    nextPosition.x < 0 ||
+    nextPosition.y > dungeonHeight - 1 ||
+    nextPosition.y < 0
   ) {
-    actor.x = nextPosition.x;
-    actor.y = nextPosition.y;
-
-    game.actorsByCoords.delete(coordsToKey(previousPosition));
-    game.actorsByCoords.set(coordsToKey(nextPosition), actor);
+    return game;
   }
+  // prevent move on wall collision
+  if (!game.levelTiles.has(nextPositionKey)) {
+    return game;
+  }
+  actor.x = nextPosition.x;
+  actor.y = nextPosition.y;
+
+  game.actorsByCoords.delete(coordsToKey(previousPosition));
+  game.actorsByCoords.set(coordsToKey(nextPosition), actor);
+
   game.isScreenDirty = true;
   return game;
 };
@@ -49,7 +54,9 @@ function interact(game: Game, object: Actor, subject: Actor): Game {
       // dialog with player
       if (object.name === "player" && subjectCreature.dialog) {
         const dialogNode =
-        subjectCreature.dialog[Math.floor(Math.random() * subjectCreature.dialog.length)];
+          subjectCreature.dialog[
+            Math.floor(Math.random() * subjectCreature.dialog.length)
+          ];
         game.activeDialog = dialogNode;
         game.interactingActor = subjectCreature;
         game.isScreenDirty = true;
@@ -63,17 +70,16 @@ function interact(game: Game, object: Actor, subject: Actor): Game {
 
 export const getWanderingMoveDelta = (creature: Creature): Coords => {
   const moveDelta: Coords = { x: 0, y: 0 };
-  
-  // Only wandering creatures should move randomly
-  if (creature.movementType !== 'WANDERING') {
+
+  if (creature.movementType !== "WANDERING") {
     return moveDelta;
   }
-  
+
   if (!creature.wanderingDirection || Math.random() < 0.2) {
     const randomDirection = Math.floor(Math.random() * 5);
     creature.wanderingDirection = randomDirection as MovementDirection;
   }
-  
+
   switch (creature.wanderingDirection) {
     case MovementDirection.N:
       moveDelta.y--;
