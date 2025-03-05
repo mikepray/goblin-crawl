@@ -2,7 +2,6 @@
 creatures:
   - name: goblin
     glyph: g
-    color: green
     description: >
       a small greenish humanoid with long ears and large eyes. 
       it is fragile but cunning and well adapted to privation and darkness

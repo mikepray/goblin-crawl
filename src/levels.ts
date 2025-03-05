@@ -83,14 +83,16 @@ export function buildRoom() {
 
 export function saveLevel(game: Game) {
   // save the current state
-  let currentLevel = game.levels.get(branchLevelToKey(game.currentBranchLevel));
-  if (currentLevel) {
-    // copy map
-    currentLevel.actors = new Map(game.actors);
-    currentLevel.tiles = new Map(game.tiles);
-    currentLevel.features = new Map(game.features);
-  } else {
-    game.debugOutput.push("error - could not save current level");
+  if (game.currentBranchLevel.branchName !== "D" && game.currentBranchLevel.level !== 0) {
+    let currentLevel = game.levels.get(branchLevelToKey(game.currentBranchLevel));
+    if (currentLevel) {
+      // copy map
+      currentLevel.actors = new Map(game.actors);
+      currentLevel.tiles = new Map(game.tiles);
+      currentLevel.features = new Map(game.features);
+    } else {
+      game.debugOutput.push("error - could not save current level");
+    }
   }
   return game;
 }
