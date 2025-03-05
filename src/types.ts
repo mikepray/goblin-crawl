@@ -1,3 +1,17 @@
+export type Game = {
+  isScreenDirty: boolean;
+  actorsByCoords: Map<string, Actor>;
+  player: Player;
+  gameOver: boolean;
+  activeDialog?: CreatureDialogNode;
+  interactingActor?: Actor;
+  dialogPointer: number;
+  currentBranch: Branch;
+  creatures: Array<Creature>;
+  levelTiles: Map<string, Coords>;
+  debugOutput: Array<string>;
+}
+
 // a moveable, occluding game actor
 export type Actor = Coords & {
   glyph: string;
@@ -62,18 +76,6 @@ export type Coords = {
   y: number;
 }
 
-export type Game = {
-  isScreenDirty: boolean;
-  actorsByCoords: Map<string, Actor>;
-  player: Player;
-  gameOver: boolean;
-  activeDialog?: CreatureDialogNode;
-  interactingActor?: Actor;
-  dialogPointer: number;
-  currentBranch: Branch;
-  creatures: Array<Creature>;
-  levelTiles: Map<string, Coords>;
-}
 
 export type Upstairs = Actor & {
   glyph: "<";

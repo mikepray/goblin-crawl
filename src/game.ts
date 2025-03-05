@@ -28,6 +28,7 @@ function initGame(): Game {
     currentBranch: { branchName: "D", level: 1 },
     creatures: creatures,
     levelTiles: new Map<string, Coords>(),
+    debugOutput: new Array<string>(0),
   };
 
   return descendLevel(game, { branchName: "D", level: 1 });
@@ -54,40 +55,67 @@ function buildRoomsAndHallways(
       if (i === j) continue;
       let midpoint1 = midpoints[i];
       let midpoint2 = midpoints[j];
+
+      let midpointWithLeastX = midpoint1.x < midpoint2.x ? midpoint1 : midpoint2;
+      let midpointWithLeastY = midpoint1.y < midpoint2.y ? midpoint1 : midpoint2;
+      let leastX = midpoint1.x < midpoint2.x ? midpoint1.x : midpoint2.x;
+      let greatestX = midpoint1.x < midpoint2.x ? midpoint2.x : midpoint1.x;
+      let leastY = midpoint1.y < midpoint2.y ? midpoint1.y : midpoint2.y;
+      let greatestY = midpoint1.y < midpoint2.y ? midpoint2.y : midpoint1.y;
+
+      for (let k = 1; leastX + k <= greatestX; k++) {
+        tiles.set(coordsToKey({ x: leastX + k, y: midpointWithLeastX.y }), {
+          x: leastX + k,
+          y: midpointWithLeastX.y,
+        });
+      }
+
+      for (let k = 1; leastY + k <= greatestY; k++) {
+        tiles.set(coordsToKey({ x: greatestX, y: leastY + k }), {
+          x: greatestX,
+          y: leastY + k,
+        });
+      }
+/*
       // find lowest x
       // add tiles (if they dont already exist) from midpoint1.x to midpoint2.x
       if (midpoint1.x < midpoint2.x) {
-        for (let k = 1; k < midpoint2.x; k++) {
-          tiles.set(coordsToKey({ ...midpoint1, x: midpoint1.x + k }), {
-            ...midpoint1,
+        for (let k = 1; midpoint1.x + k  <= midpoint2.x; k++) {
+          game.debugOutput.push('in one')
+          tiles.set(coordsToKey({ x: midpoint1.x + k, y:midpoint1.y }), {
             x: midpoint1 + k,
+            y:midpoint1.y,
           });
         }
       } else {
-        for (let k = 1; k < midpoint1.x; k++) {
-          tiles.set(coordsToKey({ ...midpoint2, x: midpoint2.x + k }), {
-            ...midpoint2,
+        for (let k = 1; midpoint2.x + k <= midpoint1.x; k++) {
+          game.debugOutput.push('in two')
+          tiles.set(coordsToKey({ x: midpoint2.x + k, y:midpoint2.y}), {
             x: midpoint2 + k,
+            y:midpoint2.y,
           });
         }
       }
       // find lowest y
       // add tiles (if they dont already exist) from midpoint1.y to midpoint2.y
       if (midpoint1.y < midpoint2.y) {
-        for (let k = 1; k < midpoint2.y; k++) {
-          tiles.set(coordsToKey({ ...midpoint1, y: midpoint1.y + k }), {
-            ...midpoint1,
+        game.debugOutput.push('in three')
+        for (let k = 1; midpoint1.y + k <= midpoint2.y; k++) {
+          tiles.set(coordsToKey({x:midpoint2.x, y: midpoint1.y + k }), {
+            x:midpoint2.x,
             y: midpoint1 + k,
           });
         }
       } else {
-        for (let k = 1; k < midpoint1.y; k++) {
-          tiles.set(coordsToKey({ ...midpoint2, y: midpoint2.y + k }), {
-            ...midpoint2,
+        for (let k = 1; midpoint1.y + k <= midpoint1.y; k++) {
+          game.debugOutput.push('in four')
+          tiles.set(coordsToKey({ x:midpoint1.x, y: midpoint2.y + k }), {
+            x:midpoint1.x,
             y: midpoint2 + k,
           });
         }
       }
+        */
     }
   }
 
@@ -237,6 +265,11 @@ function printScreen(game: Game): Game {
         out = out.concat("\n");
       }
     }
+
+    for (let i = 0; i < game.debugOutput.length; i++) {
+      out = out.concat(`${game.debugOutput.shift() || ""}\n`);
+    }
+
     console.log(out);
     game.isScreenDirty = false;
   }
