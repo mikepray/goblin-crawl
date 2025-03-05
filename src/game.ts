@@ -1,6 +1,6 @@
 import { spawn } from "child_process";
 import { getWanderingMoveDelta, moveActor } from "./actors";
-import { loadCreatures } from "./loadCreatures";
+import { loadCreatures } from "./loader";
 import {
   Player,
   Actor,
@@ -16,6 +16,7 @@ import {
 } from "./types";
 import { branchLevelToKey, coordsToKey, getRandomValidTile } from "./utils";
 import { descend, ascend } from "./levels";
+import chalk from "chalk";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -78,7 +79,8 @@ function printScreen(game: Game): Game {
           } else if (feature) {
             out = out.concat(feature.glyph);
           } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-            out = out.concat(".");
+            out = out.concat(`${chalk.dim(".")}`);
+
           } else out = out.concat("#");
         }
         out = out.concat("\n");

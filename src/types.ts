@@ -20,6 +20,7 @@ export type Game = {
 // a moveable, occluding game actor
 export type Actor = Coords & {
   glyph: string;
+  color?: string;
   name: string;
   description?: string;
 };

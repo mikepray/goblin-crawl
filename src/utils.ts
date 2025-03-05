@@ -44,3 +44,4 @@ export function getRandomValidTile(
   }
   return tileCoords;
 }
+
