@@ -11,12 +11,12 @@ export const moveActor = (
 
   const nextPosition = CoordsUtil.add(previousPosition, moveDelta);
   const nextPositionKey = coordsToKey(nextPosition);
-  const whatsAtNextPosition = game.actorsByCoords.get(nextPositionKey);
+  const whatsAtNextPosition = game.actors.get(nextPositionKey);
 
   // interact with adjacent actor (bump)
   if (
     whatsAtNextPosition !== undefined &&
-    game.actorsByCoords.has(nextPositionKey)
+    game.actors.has(nextPositionKey)
   ) {
     // TODO prevent actors from interacting with themselves
     return interact(game, actor, whatsAtNextPosition!);
@@ -32,14 +32,14 @@ export const moveActor = (
     return game;
   }
   // prevent move on wall collision
-  if (!game.levelTiles.has(nextPositionKey)) {
+  if (!game.tiles.has(nextPositionKey)) {
     return game;
   }
   actor.x = nextPosition.x;
   actor.y = nextPosition.y;
 
-  game.actorsByCoords.delete(coordsToKey(previousPosition));
-  game.actorsByCoords.set(coordsToKey(nextPosition), actor);
+  game.actors.delete(coordsToKey(previousPosition));
+  game.actors.set(coordsToKey(nextPosition), actor);
 
   game.isScreenDirty = true;
   return game;

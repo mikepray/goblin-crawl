@@ -10,6 +10,7 @@ import {
   Branch,
   Upstairs,
   Downstairs,
+  Feature,
 } from "./types";
 import { coordsToKey, getRandomValidTile } from "./utils";
 
@@ -17,21 +18,20 @@ export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
 function initGame(): Game {
-  const creatures = loadCreatures();
-  let placedActors = new Map<string, Actor>();
   let game = {
-    actorsByCoords: placedActors,
+    actors: new Map<string, Actor>(),
+    tiles: new Map<string, Coords>(),
+    features: new Map<string, Feature>(),
     player: { x: 0, y: 0 } as Player,
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
     currentBranch: { branchName: "D", level: 1 },
-    creatures: creatures,
-    levelTiles: new Map<string, Coords>(),
+    creatures: loadCreatures(),
     debugOutput: new Array<string>(0),
   };
 
-  return descendLevel(game, { branchName: "D", level: 1 });
+  return descendLevel(game);
 }
 
 function buildRoomsAndHallways(
@@ -56,8 +56,10 @@ function buildRoomsAndHallways(
       let midpoint1 = midpoints[i];
       let midpoint2 = midpoints[j];
 
-      let midpointWithLeastX = midpoint1.x < midpoint2.x ? midpoint1 : midpoint2;
-      let midpointWithLeastY = midpoint1.y < midpoint2.y ? midpoint1 : midpoint2;
+      // find the midpoint with the least x coord, start iterating from there to the next midpoint adding tiles
+      // then iterate from that midpoint's Y to the next midpoint's Y
+      let midpointWithLeastX =
+        midpoint1.x < midpoint2.x ? midpoint1 : midpoint2;
       let leastX = midpoint1.x < midpoint2.x ? midpoint1.x : midpoint2.x;
       let greatestX = midpoint1.x < midpoint2.x ? midpoint2.x : midpoint1.x;
       let leastY = midpoint1.y < midpoint2.y ? midpoint1.y : midpoint2.y;
@@ -76,46 +78,6 @@ function buildRoomsAndHallways(
           y: leastY + k,
         });
       }
-/*
-      // find lowest x
-      // add tiles (if they dont already exist) from midpoint1.x to midpoint2.x
-      if (midpoint1.x < midpoint2.x) {
-        for (let k = 1; midpoint1.x + k  <= midpoint2.x; k++) {
-          game.debugOutput.push('in one')
-          tiles.set(coordsToKey({ x: midpoint1.x + k, y:midpoint1.y }), {
-            x: midpoint1 + k,
-            y:midpoint1.y,
-          });
-        }
-      } else {
-        for (let k = 1; midpoint2.x + k <= midpoint1.x; k++) {
-          game.debugOutput.push('in two')
-          tiles.set(coordsToKey({ x: midpoint2.x + k, y:midpoint2.y}), {
-            x: midpoint2 + k,
-            y:midpoint2.y,
-          });
-        }
-      }
-      // find lowest y
-      // add tiles (if they dont already exist) from midpoint1.y to midpoint2.y
-      if (midpoint1.y < midpoint2.y) {
-        game.debugOutput.push('in three')
-        for (let k = 1; midpoint1.y + k <= midpoint2.y; k++) {
-          tiles.set(coordsToKey({x:midpoint2.x, y: midpoint1.y + k }), {
-            x:midpoint2.x,
-            y: midpoint1 + k,
-          });
-        }
-      } else {
-        for (let k = 1; midpoint1.y + k <= midpoint1.y; k++) {
-          game.debugOutput.push('in four')
-          tiles.set(coordsToKey({ x:midpoint1.x, y: midpoint2.y + k }), {
-            x:midpoint1.x,
-            y: midpoint2 + k,
-          });
-        }
-      }
-        */
     }
   }
 
@@ -151,36 +113,42 @@ function buildRoom() {
   return { tiles: tiles, midpoint: midpoint };
 }
 
-function descendLevel(game: Game, branch: Branch) {
-  game.levelTiles = buildRoomsAndHallways(game, branch);
-
-  // set the upstairs tile
-  let upstairsTile = getRandomValidTile(game.levelTiles);
-  const upstairs = {
-    ...upstairsTile,
-    glyph: "<",
-    name: "Upstairs",
-  } as Upstairs;
-  game.actorsByCoords.set(coordsToKey(upstairsTile), upstairs);
-
+function descendLevel(game: Game) {
+  game.features = new Map<string, Feature>();
+  game.actors = new Map<string, Actor>();
+  game.tiles = buildRoomsAndHallways(game, game.currentBranch);
+  let playerTile;
+  if (game.currentBranch.branchName === "D" && game.currentBranch.level === 1) {
+    // if the player is on the first level, don't show the upstairs and place the player randomly
+    playerTile = getRandomValidTile(game.tiles, game.actors);
+  } else {
+    // set the upstairs tile
+    let upstairsTile = getRandomValidTile(game.tiles);
+    const upstairs = {
+      ...upstairsTile,
+      glyph: "<",
+      name: "Upstairs",
+    } as Upstairs;
+    // set the player to that tile as if they had just come from upstairs
+    game.features.set(coordsToKey(upstairsTile), upstairs);
+    playerTile = upstairsTile;
+  }
   // set the downstairs tile
-  let downstairsTile = getRandomValidTile(game.levelTiles, game.actorsByCoords);
+  let downstairsTile = getRandomValidTile(game.tiles, game.actors);
   const downstairs = {
-    ...upstairsTile,
+    ...downstairsTile,
     glyph: ">",
     name: "Downstairs",
   } as Downstairs;
-  game.actorsByCoords.set(coordsToKey(downstairsTile), downstairs);
 
-  // set the
-  let playerTile = getRandomValidTile(game.levelTiles, game.actorsByCoords);
+  game.features.set(coordsToKey(downstairsTile), downstairs);
   const player = { ...playerTile, glyph: "@", name: "player" } as Player;
-  game.actorsByCoords.set(coordsToKey(playerTile), player);
+  game.actors.set(coordsToKey(playerTile), player);
   game.player = player;
 
   let possibleLevelCreatures = game.creatures.filter((creature) => {
     return creature.branchSpawnRates?.some(
-      (rate) => rate.branchName === branch.branchName
+      (rate) => rate.branchName === game.currentBranch.branchName
     );
   });
 
@@ -192,7 +160,7 @@ function descendLevel(game: Game, branch: Branch) {
     // determine if the creature should spawn
     const branchSpawnRate = creature.branchSpawnRates?.find(
       (rate) =>
-        rate.branchName === branch.branchName && rate.level === branch.level
+        rate.branchName === game.currentBranch.branchName && rate.level === game.currentBranch.level
     );
 
     // if there's not more than the max allowable spawned already
@@ -214,15 +182,13 @@ function descendLevel(game: Game, branch: Branch) {
     i--;
     // and if the RNG says it should spawn
     if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
-      let creatureCoords = getRandomValidTile(
-        game.levelTiles,
-        game.actorsByCoords
-      );
+      let creatureCoords = getRandomValidTile(game.tiles, game.actors);
       creature.x = creatureCoords.x;
       creature.y = creatureCoords.y;
-      game.actorsByCoords.set(coordsToKey(creatureCoords), { ...creature });
+      game.actors.set(coordsToKey(creatureCoords), { ...creature });
     }
   }
+  game.isScreenDirty = true;
   return game;
 }
 
@@ -253,14 +219,17 @@ function printScreen(game: Game): Game {
       // dungeon screen
       for (let y = 0; y < dungeonHeight; y++) {
         for (let x = 0; x < dungeonWidth; x++) {
-          const actor = game.actorsByCoords.get(coordsToKey({ x: x, y: y }));
+          // display order:
+          // actors, features, tiles
+          const actor = game.actors.get(coordsToKey({ x: x, y: y }));
+          const feature = game.features.get(coordsToKey({ x: x, y: y }));
           if (actor) {
             out = out.concat(actor.glyph);
-          } else {
-            if (game.levelTiles.has(coordsToKey({ x: x, y: y }))) {
-              out = out.concat(".");
-            } else out = out.concat("#");
-          }
+          } else if (feature) {
+            out = out.concat(feature.glyph);
+          } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
+            out = out.concat(".");
+          } else out = out.concat("#");
         }
         out = out.concat("\n");
       }
@@ -281,6 +250,13 @@ function movePlayer(game: Game) {
   if (!game.activeDialog) {
     let playerMove: Coords = { x: 0, y: 0 };
     if (nextInput) {
+
+      if (nextInput === ">") {
+        // descend level
+        game.currentBranch = {branchName: "D", level: game.currentBranch.level + 1};
+        return descendLevel(game);
+      }
+
       if (nextInput === InputKey.UP) {
         playerMove.y--;
       } else if (nextInput === InputKey.DOWN) {
@@ -297,7 +273,7 @@ function movePlayer(game: Game) {
       game = moveActor(game, game.player, playerMove);
 
       // copy list to prevent concurrent modification
-      const previousActorList = new Map(game.actorsByCoords);
+      const previousActorList = new Map(game.actors);
 
       previousActorList.forEach((actor) => {
         let moveDelta = { x: 0, y: 0 };

@@ -1,6 +1,8 @@
 export type Game = {
   isScreenDirty: boolean;
-  actorsByCoords: Map<string, Actor>;
+  tiles: CoordsMap;
+  actors: Map<string, Actor>;
+  features: Map<string, Feature>;
   player: Player;
   gameOver: boolean;
   activeDialog?: CreatureDialogNode;
@@ -8,7 +10,6 @@ export type Game = {
   dialogPointer: number;
   currentBranch: Branch;
   creatures: Array<Creature>;
-  levelTiles: Map<string, Coords>;
   debugOutput: Array<string>;
 }
 
@@ -29,6 +30,13 @@ export type Player = Actor & {
 export type Feature = Actor & {
 
 }
+
+export type Coords = { 
+  x: number;
+  y: number;
+}
+
+export type CoordsMap = Map<string, Coords>;
 
 // Define status and movement types as string literals for type safety
 export type CreatureStatusType = 'AWAKE' | 'ASLEEP' | 'DEAD';
@@ -71,19 +79,13 @@ export enum MovementDirection {
   W,
 }
 
-export type Coords = { 
-  x: number;
-  y: number;
-}
-
-
-export type Upstairs = Actor & {
+export type Upstairs = Feature & {
   glyph: "<";
   name: "Upstairs";
   description: "Stairs going up to the next level";
 }
 
-export type Downstairs = Actor & {
+export type Downstairs = Feature & {
   glyph: ">";
   name: "Downstairs";
   description: "Stairs going down to the next level";
