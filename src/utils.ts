@@ -1,8 +1,13 @@
-import { Coords } from "./types";
+import { BranchLevel, Coords } from "./types";
 
 // converts coordinates to a string key for O(1) lookups in Maps
 export function coordsToKey(coords: Coords): string {
   return `${coords.x},${coords.y}`;
+}
+
+// converts coordinates to a string key for O(1) lookups in Maps
+export function branchLevelToKey(branchLevel: BranchLevel): string {
+  return `${branchLevel.branchName}:${branchLevel.level}`;
 }
 
 export const CoordsUtil = {

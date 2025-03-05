@@ -1,3 +1,4 @@
+import { spawn } from "child_process";
 import { getWanderingMoveDelta, moveActor } from "./actors";
 import { loadCreatures } from "./loadCreatures";
 import {
@@ -7,18 +8,21 @@ import {
   Game,
   InputKey,
   Creature,
-  Branch,
+  BranchLevel,
   Upstairs,
   Downstairs,
   Feature,
+  Level,
 } from "./types";
-import { coordsToKey, getRandomValidTile } from "./utils";
+import { branchLevelToKey, coordsToKey, getRandomValidTile } from "./utils";
+import { descend, ascend } from "./levels";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
 function initGame(): Game {
   let game = {
+    turnCount: 0,
     actors: new Map<string, Actor>(),
     tiles: new Map<string, Coords>(),
     features: new Map<string, Feature>(),
@@ -26,170 +30,16 @@ function initGame(): Game {
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
-    currentBranch: { branchName: "D", level: 1 },
+    currentBranchLevel: { branchName: "D", level: 0 },
     creatures: loadCreatures(),
     debugOutput: new Array<string>(0),
+    levels: new Map<string, Level>(),
   };
 
-  return descendLevel(game);
-}
-
-function buildRoomsAndHallways(
-  game: Game,
-  branch: Branch
-): Map<string, Coords> {
-  // a level consists of an unordered Map of (coordKey => coords) which represents the empty tiles
-  let tiles = new Map<string, Coords>();
-  let midpoints = new Array();
-
-  const numRooms = Math.floor(Math.random() * 3) + 5;
-  for (let i = 0; i < numRooms; i++) {
-    let room = buildRoom();
-    midpoints.push(room.midpoint);
-    tiles = new Map([...tiles, ...room.tiles]);
-  }
-
-  // draw hallways between midpoints
-  for (let i = 0; i < midpoints.length; i++) {
-    for (let j = 0; j < midpoints.length; j++) {
-      if (i === j) continue;
-      let midpoint1 = midpoints[i];
-      let midpoint2 = midpoints[j];
-
-      // find the midpoint with the least x coord, start iterating from there to the next midpoint adding tiles
-      // then iterate from that midpoint's Y to the next midpoint's Y
-      let midpointWithLeastX =
-        midpoint1.x < midpoint2.x ? midpoint1 : midpoint2;
-      let leastX = midpoint1.x < midpoint2.x ? midpoint1.x : midpoint2.x;
-      let greatestX = midpoint1.x < midpoint2.x ? midpoint2.x : midpoint1.x;
-      let leastY = midpoint1.y < midpoint2.y ? midpoint1.y : midpoint2.y;
-      let greatestY = midpoint1.y < midpoint2.y ? midpoint2.y : midpoint1.y;
-
-      for (let k = 1; leastX + k <= greatestX; k++) {
-        tiles.set(coordsToKey({ x: leastX + k, y: midpointWithLeastX.y }), {
-          x: leastX + k,
-          y: midpointWithLeastX.y,
-        });
-      }
-
-      for (let k = 1; leastY + k <= greatestY; k++) {
-        tiles.set(coordsToKey({ x: greatestX, y: leastY + k }), {
-          x: greatestX,
-          y: leastY + k,
-        });
-      }
-    }
-  }
-
-  return tiles;
-}
-
-function buildRoom() {
-  let tiles = new Map<string, Coords>();
-
-  let w = Math.floor(Math.random() * 7) + 6;
-  let h = Math.floor(Math.random() * 7) + 6;
-
-  // randomly generate origin point of room (top left)
-  let originX = Math.floor(Math.random() * (dungeonWidth - w));
-  let originY = Math.floor(Math.random() * (dungeonHeight - h));
-
-  // add room to tile set
-  for (let i = 0; i < h; i++) {
-    for (let j = 0; j < w; j++) {
-      tiles.set(coordsToKey({ x: originX + j, y: originY + i }), {
-        x: originX + j,
-        y: originY + i,
-      });
-    }
-  }
-
-  let midpoint = {
-    x: Math.floor(originX + w / 2),
-    y: Math.floor(originY + h / 2),
-  };
-
-  // place them by adding their coords to the set
-  return { tiles: tiles, midpoint: midpoint };
-}
-
-function descendLevel(game: Game) {
-  game.features = new Map<string, Feature>();
-  game.actors = new Map<string, Actor>();
-  game.tiles = buildRoomsAndHallways(game, game.currentBranch);
-  let playerTile;
-  if (game.currentBranch.branchName === "D" && game.currentBranch.level === 1) {
-    // if the player is on the first level, don't show the upstairs and place the player randomly
-    playerTile = getRandomValidTile(game.tiles, game.actors);
-  } else {
-    // set the upstairs tile
-    let upstairsTile = getRandomValidTile(game.tiles);
-    const upstairs = {
-      ...upstairsTile,
-      glyph: "<",
-      name: "Upstairs",
-    } as Upstairs;
-    // set the player to that tile as if they had just come from upstairs
-    game.features.set(coordsToKey(upstairsTile), upstairs);
-    playerTile = upstairsTile;
-  }
-  // set the downstairs tile
-  let downstairsTile = getRandomValidTile(game.tiles, game.actors);
-  const downstairs = {
-    ...downstairsTile,
-    glyph: ">",
-    name: "Downstairs",
-  } as Downstairs;
-
-  game.features.set(coordsToKey(downstairsTile), downstairs);
-  const player = { ...playerTile, glyph: "@", name: "player" } as Player;
-  game.actors.set(coordsToKey(playerTile), player);
-  game.player = player;
-
-  let possibleLevelCreatures = game.creatures.filter((creature) => {
-    return creature.branchSpawnRates?.some(
-      (rate) => rate.branchName === game.currentBranch.branchName
-    );
+  return descend(game, {
+    branchName: "D",
+    level: game.currentBranchLevel.level + 1,
   });
-
-  let spawnedActorNums = new Map<string, number>();
-  let attemptedSpawnedActorNums = new Map<string, number>();
-  // Place creatures randomly on the map
-  for (let i = 0; i < possibleLevelCreatures.length; i++) {
-    let creature = possibleLevelCreatures[i];
-    // determine if the creature should spawn
-    const branchSpawnRate = creature.branchSpawnRates?.find(
-      (rate) =>
-        rate.branchName === game.currentBranch.branchName && rate.level === game.currentBranch.level
-    );
-
-    // if there's not more than the max allowable spawned already
-    // use a frequency map of spawned creatures by their creature name
-    let spawnedCreature = (spawnedActorNums.get(creature.name) || 0) + 1;
-    if (spawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
-      continue;
-    }
-    spawnedActorNums.set(creature.name, spawnedCreature);
-
-    // try to spawn as many times as maxSpawnNum (even if it doesn't spawn)
-    let attemptedSpawnedCreature =
-      (attemptedSpawnedActorNums.get(creature.name) || 0) + 1;
-    if (attemptedSpawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
-      continue;
-    }
-    attemptedSpawnedActorNums.set(creature.name, attemptedSpawnedCreature);
-    // spawn this creature again until it hits the max spawn rate
-    i--;
-    // and if the RNG says it should spawn
-    if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
-      let creatureCoords = getRandomValidTile(game.tiles, game.actors);
-      creature.x = creatureCoords.x;
-      creature.y = creatureCoords.y;
-      game.actors.set(coordsToKey(creatureCoords), { ...creature });
-    }
-  }
-  game.isScreenDirty = true;
-  return game;
 }
 
 function printScreen(game: Game): Game {
@@ -250,11 +100,38 @@ function movePlayer(game: Game) {
   if (!game.activeDialog) {
     let playerMove: Coords = { x: 0, y: 0 };
     if (nextInput) {
-
+      game.turnCount++;
       if (nextInput === ">") {
-        // descend level
-        game.currentBranch = {branchName: "D", level: game.currentBranch.level + 1};
-        return descendLevel(game);
+        // get feature at coords
+        let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
+        if (featureAtTile && featureAtTile.name === "Downstairs") {
+          // descend level
+          return descend(game, {
+            branchName: "D",
+            level: game.currentBranchLevel.level + 1,
+          });
+        } else {
+          game.debugOutput.push(
+            "Press > to go downstairs while standing on a > tile"
+          );
+        }
+      } else if (nextInput === "<") {
+        // get feature at coords
+        let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
+        if (featureAtTile && featureAtTile.name === "Upstairs") {
+          // ascend level
+          // get parent level
+          let parentBranch = game.levels.get(
+            branchLevelToKey(game.currentBranchLevel)
+          )?.parentLevel;
+          if (parentBranch) {
+            return ascend(game, { ...parentBranch });
+          }
+        } else {
+          game.debugOutput.push(
+             "Press < to go upstairs while standing on a < tile"
+          );
+        }
       }
 
       if (nextInput === InputKey.UP) {
