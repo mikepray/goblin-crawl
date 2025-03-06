@@ -5,6 +5,7 @@ import { loadCreatures } from "./loader";
 import {
   Actor,
   Coords,
+  CoordsMap,
   Creature,
   Feature,
   Game,
@@ -12,7 +13,7 @@ import {
   Level,
   Player,
 } from "./types";
-import { branchLevelToKey, coordsToKey } from "./utils";
+import { branchLevelToKey, coordsToKey, getBresenhamsLine } from "./utils";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -68,7 +69,7 @@ function printScreen(game: Game): Game {
       for (let y = 0; y < dungeonHeight; y++) {
         for (let x = 0; x < dungeonWidth; x++) {
           // field of vision
-          if (isInFieldOfVision({ x: x, y: y }, { ...game.player }, 8)) {
+          if (isTileInFieldOfVision({ x: x, y: y }, { ...game.player }, 8, game.tiles)) {
             // add tile to seen tiles
             game.seenTiles.set(coordsToKey({ x: x, y: y }), { x: x, y: y });
             // display order:
@@ -85,7 +86,11 @@ function printScreen(game: Game): Game {
           } else {
             // if not in field of vision, render the tile dimmer if the player has already seen it
             if (game.seenTiles.has(coordsToKey({ x: x, y: y }))) {
-              if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
+              if (game.features.has(coordsToKey({ x: x, y: y }))) {
+                // show seen features first
+                const feature = game.features.get(coordsToKey({ x: x, y: y }));
+                out = out.concat(`${chalk.grey.dim(feature?.glyph)}`);
+              } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
                 out = out.concat(`${chalk.grey.dim(".")}`);
               } else {
                 out = out.concat(`${chalk.grey.dim("#")}`);
@@ -109,10 +114,11 @@ function printScreen(game: Game): Game {
   return game;
 }
 
-function isInFieldOfVision(
+function isTileInFieldOfVision(
   testCoords: Coords,
   playerCoords: Coords,
-  viewRadius: number
+  viewRadius: number,
+  gameTiles: CoordsMap
 ): boolean {
   // if test coord is not within player view radius
   if (
@@ -123,33 +129,20 @@ function isInFieldOfVision(
   ) {
     return false;
   }
-  // 
-  return true;
-}
+  // raycast using bresnham's algorithm
+  let line = getBresenhamsLine(playerCoords.x, playerCoords.y, testCoords.x, testCoords.y);
 
-function bresenhams(x0: number, y0:number , x1: number, y1: number) {
-  let lineCoords = new Map<string, Coords>();
-  let dx = Math.abs(x1 - x0);
-  let sx = x0 < x1 ? 1 : -1;
-  let dy = -Math.abs(y1 - y0);
-  let sy = y0 < y1 ? 1 : -1;
-  let error = dx + dy;
-  let error2;
-
-  while (true) {
-    lineCoords.set(coordsToKey({x: x0, y: y0}), {x: x0, y: y0});
-    if (x0 === x1 && y0 === y1) break;
-    error2 = 2 * error;
-    if (error2 >= dy) {
-      error += dy; 
-      x0 += sx; 
+  let i = 0;
+  for (const tile of line) {
+    if (!gameTiles.has(coordsToKey(tile))) {
+      // if the final point in the line is a wall, display the wall
+      return i === line.size - 1;
     }
-    if (error2 <= dx) {
-      error += dx; 
-      y0 += sy;
-    }
+    i++;
   }
-  return lineCoords;
+  // if any tile in the resulting line does not exist in the tile set, then the tile is not in field of vision
+
+  return true;
 }
 
 function movePlayer(game: Game) {
@@ -157,7 +150,6 @@ function movePlayer(game: Game) {
   if (!game.activeDialog) {
     let playerMove: Coords = { x: 0, y: 0 };
     if (nextInput) {
-      game.turnCount++;
       if (nextInput === ">") {
         // get feature at coords
         let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
@@ -189,20 +181,39 @@ function movePlayer(game: Game) {
             "Press < to go upstairs while standing on a < tile"
           );
         }
-      }
-
-      if (nextInput === InputKey.UP) {
+      } else if (nextInput === InputKey.UP || nextInput === "k") {
         playerMove.y--;
-      } else if (nextInput === InputKey.DOWN) {
+      } else if (nextInput === InputKey.DOWN || nextInput === "j") {
         playerMove.y++;
-      } else if (nextInput === InputKey.LEFT) {
+      } else if (nextInput === InputKey.LEFT || nextInput === "h") {
         playerMove.x--;
-      } else if (nextInput === InputKey.RIGHT) {
+      } else if (nextInput === InputKey.RIGHT || nextInput === "l") {
         playerMove.x++;
+      } else if (nextInput === "y") {
+        // diagonal up left
+        playerMove.x--;
+        playerMove.y--;
+      } else if (nextInput === "u") {
+        // diagonal up right
+        playerMove.x++;
+        playerMove.y--;
+      } else if (nextInput === "b") {
+        // diagonal down left
+        playerMove.x--;
+        playerMove.y++;
+      } else if (nextInput === "n") {
+        // diagonal down right
+        playerMove.x++;
+        playerMove.y++;
       } else if (nextInput === InputKey.PERIOD) {
         // do nothing
+      } else if (nextInput === "?") {
+        game.debugOutput.push("You are the @ symbol, arrow keys and vim keys move, period waits one turn, < and > go up and down stairs")
+      } else { 
+        return game;
       }
 
+      game.turnCount++;
       // move player first
       game = moveActor(game, game.player, playerMove);
 

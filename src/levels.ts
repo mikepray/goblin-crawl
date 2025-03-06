@@ -83,13 +83,14 @@ export function buildRoom() {
 
 export function saveLevel(game: Game) {
   // save the current state
-  if (game.currentBranchLevel.branchName !== "D" && game.currentBranchLevel.level !== 0) {
+  if (game.currentBranchLevel.branchName === "D" && game.currentBranchLevel.level !== 0) {
     let currentLevel = game.levels.get(branchLevelToKey(game.currentBranchLevel));
     if (currentLevel) {
       // copy map
       currentLevel.actors = new Map(game.actors);
       currentLevel.tiles = new Map(game.tiles);
       currentLevel.features = new Map(game.features);
+      currentLevel.seenTiles = new Map(game.seenTiles);
     } else {
       game.debugOutput.push("error - could not save current level");
     }
@@ -108,6 +109,7 @@ export function loadLevel(game: Game, nextBranchLevel: BranchLevel) {
     game.actors = new Map(nextLevel.actors);
     game.features = new Map(nextLevel.features);
     game.currentBranchLevel = nextBranchLevel;
+    game.seenTiles = new Map(nextLevel.seenTiles);
   } else {
     game.debugOutput.push("error - could not load next level");
   }
@@ -154,6 +156,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
 
   game.features = new Map<string, Feature>();
   game.actors = new Map<string, Actor>();
+  game.seenTiles = new Map<string, Coords>();
   game.tiles = buildRoomsAndHallways(game, nextBranchLevel);
   let playerTile;
   if (nextBranchLevel.branchName === "D" && nextBranchLevel.level === 1) {
@@ -234,6 +237,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     tiles: { ...game.tiles },
     actors: { ...game.actors },
     features: { ...game.features },
+    seenTiles: {...game.seenTiles},
   });
   game.currentBranchLevel = nextBranchLevel;
   return game;

@@ -1,5 +1,30 @@
 import { BranchLevel, Coords } from "./types";
 
+export function getBresenhamsLine(x0: number, y0:number , x1: number, y1: number) {
+  let lineCoords = new Set<Coords>;
+  let dx = Math.abs(x1 - x0);
+  let sx = x0 < x1 ? 1 : -1;
+  let dy = -Math.abs(y1 - y0);
+  let sy = y0 < y1 ? 1 : -1;
+  let error = dx + dy;
+  let error2;
+
+  while (true) {
+    lineCoords.add({x: x0, y: y0});
+    if (x0 === x1 && y0 === y1) break;
+    error2 = 2 * error;
+    if (error2 >= dy) {
+      error += dy; 
+      x0 += sx; 
+    }
+    if (error2 <= dx) {
+      error += dx; 
+      y0 += sy;
+    }
+  }
+  return lineCoords;
+}
+
 // converts coordinates to a string key for O(1) lookups in Maps
 export function coordsToKey(coords: Coords): string {
   return `${coords.x},${coords.y}`;
