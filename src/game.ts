@@ -1,22 +1,18 @@
-import { spawn } from "child_process";
+import chalk from "chalk";
 import { getWanderingMoveDelta, moveActor } from "./actors";
+import { ascend, descend } from "./levels";
 import { loadCreatures } from "./loader";
 import {
-  Player,
   Actor,
   Coords,
+  Creature,
+  Feature,
   Game,
   InputKey,
-  Creature,
-  BranchLevel,
-  Upstairs,
-  Downstairs,
-  Feature,
   Level,
+  Player,
 } from "./types";
-import { branchLevelToKey, coordsToKey, getRandomValidTile } from "./utils";
-import { descend, ascend } from "./levels";
-import chalk from "chalk";
+import { branchLevelToKey, coordsToKey } from "./utils";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -35,6 +31,7 @@ function initGame(): Game {
     creatures: loadCreatures(),
     debugOutput: new Array<string>(0),
     levels: new Map<string, Level>(),
+    seenTiles: new Map<string, Coords>(),
   };
 
   return descend(game, {
@@ -70,18 +67,33 @@ function printScreen(game: Game): Game {
       // dungeon screen
       for (let y = 0; y < dungeonHeight; y++) {
         for (let x = 0; x < dungeonWidth; x++) {
-          // display order:
-          // actors, features, tiles
-          const actor = game.actors.get(coordsToKey({ x: x, y: y }));
-          const feature = game.features.get(coordsToKey({ x: x, y: y }));
-          if (actor) {
-            out = out.concat(actor.glyph);
-          } else if (feature) {
-            out = out.concat(feature.glyph);
-          } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-            out = out.concat(`${chalk.dim(".")}`);
-
-          } else out = out.concat("#");
+          // field of vision
+          if (isInFieldOfVision({ x: x, y: y }, { ...game.player }, 8)) {
+            // add tile to seen tiles
+            game.seenTiles.set(coordsToKey({ x: x, y: y }), { x: x, y: y });
+            // display order:
+            // actors, features, tiles
+            const actor = game.actors.get(coordsToKey({ x: x, y: y }));
+            const feature = game.features.get(coordsToKey({ x: x, y: y }));
+            if (actor) {
+              out = out.concat(actor.glyph);
+            } else if (feature) {
+              out = out.concat(feature.glyph);
+            } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
+              out = out.concat(`${chalk.grey(".")}`);
+            } else out = out.concat("#");
+          } else {
+            // if not in field of vision, render the tile dimmer if the player has already seen it
+            if (game.seenTiles.has(coordsToKey({ x: x, y: y }))) {
+              if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
+                out = out.concat(`${chalk.grey.dim(".")}`);
+              } else {
+                out = out.concat(`${chalk.grey.dim("#")}`);
+              }
+            } else {
+              out = out.concat(" ");
+            }
+          }
         }
         out = out.concat("\n");
       }
@@ -95,6 +107,49 @@ function printScreen(game: Game): Game {
     game.isScreenDirty = false;
   }
   return game;
+}
+
+function isInFieldOfVision(
+  testCoords: Coords,
+  playerCoords: Coords,
+  viewRadius: number
+): boolean {
+  // if test coord is not within player view radius
+  if (
+    testCoords.x > playerCoords.x + viewRadius ||
+    testCoords.y > playerCoords.y + viewRadius ||
+    testCoords.x < playerCoords.x - viewRadius ||
+    testCoords.y < playerCoords.y - viewRadius
+  ) {
+    return false;
+  }
+  // 
+  return true;
+}
+
+function bresenhams(x0: number, y0:number , x1: number, y1: number) {
+  let lineCoords = new Map<string, Coords>();
+  let dx = Math.abs(x1 - x0);
+  let sx = x0 < x1 ? 1 : -1;
+  let dy = -Math.abs(y1 - y0);
+  let sy = y0 < y1 ? 1 : -1;
+  let error = dx + dy;
+  let error2;
+
+  while (true) {
+    lineCoords.set(coordsToKey({x: x0, y: y0}), {x: x0, y: y0});
+    if (x0 === x1 && y0 === y1) break;
+    error2 = 2 * error;
+    if (error2 >= dy) {
+      error += dy; 
+      x0 += sx; 
+    }
+    if (error2 <= dx) {
+      error += dx; 
+      y0 += sy;
+    }
+  }
+  return lineCoords;
 }
 
 function movePlayer(game: Game) {
@@ -131,7 +186,7 @@ function movePlayer(game: Game) {
           }
         } else {
           game.debugOutput.push(
-             "Press < to go upstairs while standing on a < tile"
+            "Press < to go upstairs while standing on a < tile"
           );
         }
       }

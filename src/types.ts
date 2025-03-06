@@ -15,6 +15,7 @@ export type Game = {
   tiles: CoordsMap;
   actors: Map<string, Actor>;
   features: Map<string, Feature>;
+  seenTiles: CoordsMap;
 };
 
 // a moveable, occluding game actor
@@ -44,6 +45,7 @@ export type CoordsMap = Map<string, Coords>;
 export type Level = BranchLevel & {
   parentLevel: BranchLevel;
   tiles: CoordsMap;
+  seenTiles: CoordsMap;
   actors: Map<string, Actor>;
   features: Map<string, Feature>;
 };

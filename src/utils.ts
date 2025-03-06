@@ -41,6 +41,8 @@ export function getRandomValidTile(
     if (!actors || !actors.has(coordsToKey(tileCoords))) {
       break;
     }
+
+    // TODO could make this more optimal by using the union of the actors and tiles
   }
   return tileCoords;
 }
