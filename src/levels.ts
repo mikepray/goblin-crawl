@@ -213,8 +213,19 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   game.player.y = playerTile.y;
   game.actors.set(coordsToKey(playerTile), game.player);
 
+  // spawn features, deconflict with already placed actors
+  let features = spawnThings(
+    game.allFeatures,
+    nextBranchLevel,
+    game.features,
+    game.actors,
+  )
+  for (let i = 0; i < features.length; i++) {
+    game.features.set(features[i].coords, features[i].thing);
+  }
+
   // spawn creatures, deconflict with already placed actors
-  let creatures: Array<{coords: string, thing: Creature | Item}> = spawnThings(
+  let creatures = spawnThings(
     game.allCreatures,
     nextBranchLevel,
     game.tiles,
@@ -257,12 +268,12 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
 }
 
 function spawnThings(
-  spawnableThings: Array<Creature | Item>, // the list of possible things that can be spawned
+  spawnableThings: Array<Creature | Item | Feature>, // the list of possible things that can be spawned
   branchLevel: BranchLevel, // the branch level to spawn into
   tiles: CoordsMap, // the valid set of tiles in the current level
   deconflictWith: Map<string, Actor> | undefined, // things to deconflict with
 ) {
-  let spawnedThings = new Array<{coords: string, thing: Creature | Item}>();
+  let spawnedThings = new Array<{coords: string, thing: Creature | Item | Feature}>();
   // get possible spawnables
   let possibleSpawnables = spawnableThings.filter((spawnable) => {
     return spawnable.branchSpawnRates?.some(

@@ -1,13 +1,13 @@
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import path from "path";
-import { Creature, CreatureStatusMap, CreatureStatusType, Item, MovementTypeMap, MovementTypeValue } from "./types";
+import { Creature, CreatureStatusMap, CreatureStatusType, Feature, Item, MovementTypeMap, MovementTypeValue } from "./types";
 
 export function loadCreatures() {
   let creatures: Creature[] = [];
   loadAssetDirectory("creatures")
     .forEach((file) => {
-      creatures = creatures.concat(loadCreaturesFromFile(fs.readFileSync(file, "utf8")));
+      creatures = creatures.concat(loadCreaturesFromFile(file, fs.readFileSync(file, "utf8")));
     });
   return creatures;
 }
@@ -16,7 +16,16 @@ export function loadItems() {
   let items: Item[] = [];
   loadAssetDirectory("items")
     .forEach((file) => {
-      items = items.concat(loadItemsFromFile(fs.readFileSync(file, "utf8")));
+      items = items.concat(loadItemsFromFile(file, fs.readFileSync(file, "utf8")));
+    });
+  return items;
+}
+
+export function loadFeatures() {
+  let items: Feature[] = [];
+  loadAssetDirectory("features")
+    .forEach((file) => {
+      items = items.concat(loadFeaturesFromFile(file, fs.readFileSync(file, "utf8")));
     });
   return items;
 }
@@ -39,7 +48,7 @@ function loadAssetDirectory(directoryName: string): Array<string> {
     .filter(isFile);
 }
 
-function loadCreaturesFromFile(file: string): Creature[] {
+function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
   try {
     const data = yaml.load(file) as { creatures: Partial<Creature>[] };
 
@@ -48,7 +57,7 @@ function loadCreaturesFromFile(file: string): Creature[] {
       !data.creatures ||
       !Array.isArray(data.creatures)
     ) {
-      console.error("Invalid yaml data format");
+      console.error(`Invalid yaml for creatures file ${fileName}`);
       return [];
     }
 
@@ -81,8 +90,7 @@ function loadCreaturesFromFile(file: string): Creature[] {
   }
 }
 
-
-function loadItemsFromFile(file: string): Item[] {
+function loadItemsFromFile(fileName:string, file: string): Item[] {
   try {
     const data = yaml.load(file) as { items: Partial<Item>[] };
 
@@ -91,7 +99,7 @@ function loadItemsFromFile(file: string): Item[] {
       !data.items ||
       !Array.isArray(data.items)
     ) {
-      console.error("Invalid yaml data format");
+      console.error(`Invalid yaml file for file ${fileName}`);
       return [];
     }
 
@@ -110,6 +118,37 @@ function loadItemsFromFile(file: string): Item[] {
     return items;
   } catch (error) {
     console.error("Error loading item data:", error);
+    return [];
+  }
+}
+
+function loadFeaturesFromFile(fileName: string, file: string): Feature[] {
+  try {
+    const data = yaml.load(file) as { features: Partial<Feature>[] };
+
+    if (
+      ("features" in data && !data) ||
+      !data.features ||
+      !Array.isArray(data.features)
+    ) {
+      console.error(`Invalid yaml data format for features file ${fileName}`);
+      return [];
+    }
+
+    const features: Feature[] = data.features.map((feature) => {
+      const defaults = {
+        branchSpawnRates: [],
+      };
+
+      return {
+        ...defaults,
+        ...feature,
+      } as Feature;
+    });
+
+    return features;
+  } catch (error) {
+    console.error("Error loading feature data:", error);
     return [];
   }
 }

@@ -98,6 +98,13 @@ export function movePlayer(game: Game, nextInput: any) {
         );
         game.isScreenDirty = true;
         return game;
+      } else if (nextInput === "^") {
+        // Praying at altars
+        game.debugOutput.push(
+          "You pray to Meggled"
+        );
+        game.isScreenDirty = true;
+        return game;
       } else {
         return game;
       }

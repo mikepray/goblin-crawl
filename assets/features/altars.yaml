@@ -1,0 +1,10 @@
+---
+features:
+  - name: altar to Meggled
+    description: A sacred bone altar to Meggled, the two-headed goblin god
+    glyph: ^
+    branchSpawnRates: 
+    - branchName: D
+      level: 1
+      spawnChance: 100
+      maxSpawnNum: 1

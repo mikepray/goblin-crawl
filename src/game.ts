@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { getWanderingMoveDelta, moveActor } from "./actors";
 import { ascend, descend } from "./levels";
-import { loadCreatures, loadItems } from "./loader";
+import { loadCreatures, loadFeatures, loadItems } from "./loader";
 import {
   Actor,
   Coords,
@@ -22,6 +22,7 @@ export const dungeonHeight = 24;
 
 function initGame(): Game {
   let items = loadItems();
+  let features = loadFeatures();
   let game = {
     turnCount: 0,
     actors: new Map<string, Actor>(),
@@ -40,9 +41,10 @@ function initGame(): Game {
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
-    allItems: items,
     currentBranchLevel: { branchName: "D", level: 0 },
+    allFeatures: features,
     allCreatures: loadCreatures(),
+    allItems: items,
     debugOutput: new Array<string>(0),
     levels: new Map<string, Level>(),
     items: new Map<string, Array<Item>>(),

@@ -7,10 +7,11 @@ export type Game = {
   interactingActor?: Actor;
   dialogPointer: number;
   currentBranchLevel: BranchLevel;
+  allFeatures: Array<Feature>;
   allCreatures: Array<Creature>;
+  allItems: Array<Item>;
   debugOutput: Array<string>;
   levels: Map<string, Level>;
-  allItems: Array<Item>;
   dialogMode: string;
 
   // these objects are updated per level
@@ -31,7 +32,6 @@ export type Actor = Coords & {
 };
 
 export type Item = Feature & {
-  branchSpawnRates?: Array<BranchSpawnRate>;
   edible: boolean;
 }
 export type Player = Actor & {
@@ -41,7 +41,9 @@ export type Player = Actor & {
 };
 
 // an unmoving, non-occluding game feature (staircase, trap)
-export type Feature = Actor & {};
+export type Feature = Actor & {
+  branchSpawnRates?: Array<BranchSpawnRate>;
+};
 
 export type Coords = {
   x: number;
