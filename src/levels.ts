@@ -1,6 +1,18 @@
-import { dungeonWidth, dungeonHeight } from "./game";
-import { Game, BranchLevel, Coords, Feature, Actor, Upstairs, Downstairs, Player } from "./types";
-import { coordsToKey, branchLevelToKey, getRandomValidTile } from "./utils";
+import { dungeonHeight, dungeonWidth } from "./game";
+import {
+  Actor,
+  BranchLevel,
+  Coords,
+  CoordsMap,
+  Creature,
+  Downstairs,
+  Feature,
+  Game,
+  Item,
+  Player,
+  Upstairs,
+} from "./types";
+import { branchLevelToKey, coordsToKey, getRandomValidTile } from "./utils";
 
 export function buildRoomsAndHallways(
   game: Game,
@@ -83,14 +95,20 @@ export function buildRoom() {
 
 export function saveLevel(game: Game) {
   // save the current state
-  if (game.currentBranchLevel.branchName === "D" && game.currentBranchLevel.level !== 0) {
-    let currentLevel = game.levels.get(branchLevelToKey(game.currentBranchLevel));
+  if (
+    game.currentBranchLevel.branchName === "D" &&
+    game.currentBranchLevel.level !== 0
+  ) {
+    let currentLevel = game.levels.get(
+      branchLevelToKey(game.currentBranchLevel)
+    );
     if (currentLevel) {
       // copy map
       currentLevel.actors = new Map(game.actors);
       currentLevel.tiles = new Map(game.tiles);
       currentLevel.features = new Map(game.features);
       currentLevel.seenTiles = new Map(game.seenTiles);
+      currentLevel.items = new Map(game.items);
     } else {
       game.debugOutput.push("error - could not save current level");
     }
@@ -110,6 +128,7 @@ export function loadLevel(game: Game, nextBranchLevel: BranchLevel) {
     game.features = new Map(nextLevel.features);
     game.currentBranchLevel = nextBranchLevel;
     game.seenTiles = new Map(nextLevel.seenTiles);
+    game.items = new Map(nextLevel.items);
   } else {
     game.debugOutput.push("error - could not load next level");
   }
@@ -139,7 +158,7 @@ export function ascend(game: Game, nextBranchLevel: BranchLevel) {
   game = saveLevel(game);
   game = loadLevel(game, nextBranchLevel);
   game = teleportPlayer(game, "Downstairs");
-  game.isScreenDirty = true
+  game.isScreenDirty = true;
   return game;
 }
 
@@ -154,11 +173,15 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     return game;
   }
 
+  // clear current level's features, actors, etc
   game.features = new Map<string, Feature>();
   game.actors = new Map<string, Actor>();
   game.seenTiles = new Map<string, Coords>();
+  game.items = new Map<string, Array<Item>>();
   game.tiles = buildRoomsAndHallways(game, nextBranchLevel);
+
   let playerTile;
+  // place stairs
   if (nextBranchLevel.branchName === "D" && nextBranchLevel.level === 1) {
     // if the player is on the first level, don't show the upstairs and place the player randomly
     playerTile = getRandomValidTile(game.tiles, game.actors);
@@ -169,6 +192,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
       ...upstairsTile,
       glyph: "<",
       name: "Upstairs",
+      description: "Stairs going up one level. Press < to ascend"
     } as Upstairs;
     // set the player to that tile as if they had just come from upstairs
     game.features.set(coordsToKey(upstairsTile), upstairs);
@@ -180,56 +204,44 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     ...downstairsTile,
     glyph: ">",
     name: "Downstairs",
+    description: "Stairs going down to the next level. Press > to descend"
   } as Downstairs;
-
   game.features.set(coordsToKey(downstairsTile), downstairs);
-  const player = { ...playerTile, glyph: "@", name: "player" } as Player;
-  game.actors.set(coordsToKey(playerTile), player);
-  game.player = player;
 
-  let possibleLevelCreatures = game.creatures.filter((creature) => {
-    return creature.branchSpawnRates?.some(
-      (rate) => rate.branchName === nextBranchLevel.branchName
-    );
-  });
+  // place player
+  game.player.x = playerTile.x;
+  game.player.y = playerTile.y;
+  game.actors.set(coordsToKey(playerTile), game.player);
 
-  let spawnedActorNums = new Map<string, number>();
-  let attemptedSpawnedActorNums = new Map<string, number>();
-  // Place creatures randomly on the map
-  for (let i = 0; i < possibleLevelCreatures.length; i++) {
-    let creature = possibleLevelCreatures[i];
-    // determine if the creature should spawn
-    const branchSpawnRate = creature.branchSpawnRates?.find(
-      (rate) =>
-        rate.branchName === nextBranchLevel.branchName &&
-        rate.level === nextBranchLevel.level
-    );
+  // spawn creatures, deconflict with already placed actors
+  let creatures: Array<{coords: string, thing: Creature | Item}> = spawnThings(
+    game.allCreatures,
+    nextBranchLevel,
+    game.tiles,
+    game.actors,
+  );
 
-    // if there's not more than the max allowable spawned already
-    // use a frequency map of spawned creatures by their creature name
-    let spawnedCreature = (spawnedActorNums.get(creature.name) || 0) + 1;
-    if (spawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
-      continue;
-    }
-    spawnedActorNums.set(creature.name, spawnedCreature);
-
-    // try to spawn as many times as maxSpawnNum (even if it doesn't spawn)
-    let attemptedSpawnedCreature =
-      (attemptedSpawnedActorNums.get(creature.name) || 0) + 1;
-    if (attemptedSpawnedCreature > (branchSpawnRate?.maxSpawnNum || 1)) {
-      continue;
-    }
-    attemptedSpawnedActorNums.set(creature.name, attemptedSpawnedCreature);
-    // spawn this creature again until it hits the max spawn rate
-    i--;
-    // and if the RNG says it should spawn
-    if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
-      let creatureCoords = getRandomValidTile(game.tiles, game.actors);
-      creature.x = creatureCoords.x;
-      creature.y = creatureCoords.y;
-      game.actors.set(coordsToKey(creatureCoords), { ...creature });
-    }
+  for (let i = 0; i < creatures.length; i++) {
+    game.actors.set(creatures[i].coords, creatures[i].thing);
   }
+
+  // spawn items, deconflict with already placed items
+  let items = spawnThings(
+    game.allItems,
+    nextBranchLevel,
+    game.tiles,
+    undefined,
+  );
+
+  for (const item of items) {
+    let itemStack = game.items.get(item.coords);
+    if (!itemStack) {
+      itemStack = new Array<Item>();
+    }
+    itemStack.push(item.thing);
+    game.items.set(item.coords, itemStack);
+  }
+
   game.isScreenDirty = true;
   game.levels.set(branchLevelToKey(nextBranchLevel), {
     ...nextBranchLevel,
@@ -237,8 +249,63 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     tiles: { ...game.tiles },
     actors: { ...game.actors },
     features: { ...game.features },
-    seenTiles: {...game.seenTiles},
+    seenTiles: { ...game.seenTiles },
+    items: { ...game.items },
   });
   game.currentBranchLevel = nextBranchLevel;
   return game;
+}
+
+function spawnThings(
+  spawnableThings: Array<Creature | Item>, // the list of possible things that can be spawned
+  branchLevel: BranchLevel, // the branch level to spawn into
+  tiles: CoordsMap, // the valid set of tiles in the current level
+  deconflictWith: Map<string, Actor> | undefined, // things to deconflict with
+) {
+  let spawnedThings = new Array<{coords: string, thing: Creature | Item}>();
+  // get possible spawnables
+  let possibleSpawnables = spawnableThings.filter((spawnable) => {
+    return spawnable.branchSpawnRates?.some(
+      (rate: BranchLevel) => rate.branchName === branchLevel.branchName
+    );
+  });
+
+  let spawnedThingNums = new Map<string, number>();
+  let attemptedSpawnedThingNums = new Map<string, number>();
+  // Place spawned things randomly on the map
+  for (let i = 0; i < possibleSpawnables.length; i++) {
+    let spawnable = possibleSpawnables[i];
+    // determine if the thing should spawn
+    const branchSpawnRate = spawnable.branchSpawnRates?.find(
+      (rate: BranchLevel) =>
+        rate.branchName === branchLevel.branchName &&
+        rate.level === branchLevel.level
+    );
+
+    // if there's not more than the max allowable spawned already
+    // use a frequency map of spawned things by their name
+    let spawnedThing = (spawnedThingNums.get(spawnable.name) || 0) + 1;
+    if (spawnedThing > (branchSpawnRate?.maxSpawnNum || 1)) {
+      continue;
+    }
+    spawnedThingNums.set(spawnable.name, spawnedThing);
+
+    // try to spawn as many times as maxSpawnNum (even if it doesn't spawn)
+    let attemptedSpawnedThing =
+      (attemptedSpawnedThingNums.get(spawnable.name) || 0) + 1;
+    if (attemptedSpawnedThing > (branchSpawnRate?.maxSpawnNum || 1)) {
+      continue;
+    }
+    attemptedSpawnedThingNums.set(spawnable.name, attemptedSpawnedThing);
+    // spawn this thing again until it hits the max spawn rate
+    i--;
+    // and if the RNG says it should spawn
+    if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
+      let spawnedThingCoords = getRandomValidTile(tiles, deconflictWith);
+      spawnable.x = spawnedThingCoords.x;
+      spawnable.y = spawnedThingCoords.y;
+      spawnedThings.push({coords: coordsToKey(spawnedThingCoords), thing: { ...spawnable }});
+    }
+  }
+  return spawnedThings;
 }

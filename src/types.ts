@@ -7,11 +7,14 @@ export type Game = {
   interactingActor?: Actor;
   dialogPointer: number;
   currentBranchLevel: BranchLevel;
-  creatures: Array<Creature>;
+  allCreatures: Array<Creature>;
   debugOutput: Array<string>;
   levels: Map<string, Level>;
+  allItems: Array<Item>;
+  dialogMode: string;
 
   // these objects are updated per level
+  items: Map<string, Array<Item>>;
   tiles: CoordsMap;
   actors: Map<string, Actor>;
   features: Map<string, Feature>;
@@ -24,8 +27,12 @@ export type Actor = Coords & {
   color?: string;
   name: string;
   description?: string;
+  inventory?: Array<Item>;
 };
 
+export type Item = Feature & {
+  branchSpawnRates?: Array<BranchSpawnRate>;
+}
 export type Player = Actor & {
   glyph: "@";
   name: "player";
@@ -48,6 +55,7 @@ export type Level = BranchLevel & {
   seenTiles: CoordsMap;
   actors: Map<string, Actor>;
   features: Map<string, Feature>;
+  items: Map<string, Array<Item>>;
 };
 
 // Define status and movement types as string literals for type safety
@@ -85,7 +93,13 @@ export type Creature = Actor & {
   movementType: MovementTypeValue;
   wanderingDirection?: MovementDirection;
   branchSpawnRates?: Array<BranchSpawnRate>;
+  shouts?: Array<string>;
 };
+
+export type Shout = {
+  shout: string;
+  chance: number; // 0 to 100 chance of shouting 
+}
 
 export type BranchSpawnRate = BranchLevel & {
   // 0 - 100, where 100 means it will spawn 100% of the time in allowed spawn boundaries
@@ -104,13 +118,11 @@ export enum MovementDirection {
 export type Upstairs = Feature & {
   glyph: "<";
   name: "Upstairs";
-  description: "Stairs going up to the next level";
 };
 
 export type Downstairs = Feature & {
   glyph: ">";
   name: "Downstairs";
-  description: "Stairs going down to the next level";
 };
 
 export type BranchLevel = { branchName: string; level: number };

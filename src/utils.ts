@@ -1,4 +1,40 @@
-import { BranchLevel, Coords } from "./types";
+import { BranchLevel, Coords, CoordsMap } from "./types";
+
+export function isTileInFieldOfVision(
+  testCoords: Coords,
+  playerCoords: Coords,
+  viewRadius: number,
+  gameTiles: CoordsMap
+): boolean {
+  // if test coord is not within player view radius
+  if (
+    testCoords.x > playerCoords.x + viewRadius ||
+    testCoords.y > playerCoords.y + viewRadius ||
+    testCoords.x < playerCoords.x - viewRadius ||
+    testCoords.y < playerCoords.y - viewRadius
+  ) {
+    return false;
+  }
+  // raycast using bresnham's algorithm
+  let line = getBresenhamsLine(
+    playerCoords.x,
+    playerCoords.y,
+    testCoords.x,
+    testCoords.y
+  );
+
+  let i = 0;
+  for (const tile of line) {
+    if (!gameTiles.has(coordsToKey(tile))) {
+      // if the final point in the line is a wall, display the wall
+      return i === line.size - 1;
+    }
+    i++;
+  }
+  // if any tile in the resulting line does not exist in the tile set, then the tile is not in field of vision
+
+  return true;
+}
 
 export function getBresenhamsLine(x0: number, y0:number , x1: number, y1: number) {
   let lineCoords = new Set<Coords>;
@@ -48,7 +84,7 @@ export const CoordsUtil = {
 // gets a random valid tile in the given list of tiles. deconflicts with actors if the actors are sent in too
 export function getRandomValidTile(
   tiles: Map<string, Coords>,
-  actors?: Map<string, Coords>
+  deconflictWith?: Map<string, Coords>
 ): Coords {
   let tileCoords = { x: 0, y: 0 };
 
@@ -61,13 +97,13 @@ export function getRandomValidTile(
       y: tiles.get(key!)!.y,
     };
 
-    // deconflict with placed actors
+    // deconflict 
     // keep iterating if there's a collision in placement
-    if (!actors || !actors.has(coordsToKey(tileCoords))) {
+    if (!deconflictWith || !deconflictWith.has(coordsToKey(tileCoords))) {
       break;
     }
 
-    // TODO could make this more optimal by using the union of the actors and tiles
+    // TODO could make this more optimal by using the union of the deconflict map and tiles
   }
   return tileCoords;
 }

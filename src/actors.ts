@@ -59,6 +59,7 @@ function interact(game: Game, object: Actor, subject: Actor): Game {
           ];
         game.activeDialog = dialogNode;
         game.interactingActor = subjectCreature;
+        game.dialogMode = "dialog";
         game.isScreenDirty = true;
       } else {
         // creature doesn't speak

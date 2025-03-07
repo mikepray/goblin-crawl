@@ -27,6 +27,11 @@ creatures:
       - dialog: yeek!
       - dialog: watch out for those evil kobolds...
       - dialog: yough...
+    shouts:
+      - shout: where's my skrunt?
+      - shout: urgh...
+      - shout: yeek!
+      - shout: blasted kobolds!
   
   - name: skrunt
     glyph: s

@@ -1,32 +1,45 @@
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import path from "path";
-import { Creature, CreatureStatusMap, CreatureStatusType, MovementTypeMap, MovementTypeValue } from "./types";
+import { Creature, CreatureStatusMap, CreatureStatusType, Item, MovementTypeMap, MovementTypeValue } from "./types";
 
 export function loadCreatures() {
-  const isFile = (fileName: fs.PathLike) => {
-    return (
-      fs.lstatSync(fileName).isFile() &&
-      (fileName.toString().endsWith(".yaml") ||
-        fileName.toString().endsWith(".yml"))
-    );
-  };
-  // Load Creatures
   let creatures: Creature[] = [];
-  const assetsFilePath = path.join(__dirname, "../assets/creatures");
-  fs.readdirSync(assetsFilePath)
-    .map((fileName) => {
-      return path.join(__dirname, "../assets/creatures", fileName);
-    })
-    .filter(isFile)
+  loadAssetDirectory("creatures")
     .forEach((file) => {
       creatures = creatures.concat(loadCreaturesFromFile(fs.readFileSync(file, "utf8")));
     });
   return creatures;
 }
 
-// Load goblins from YAML file
-export function loadCreaturesFromFile(file: string): Creature[] {
+export function loadItems() {
+  let items: Item[] = [];
+  loadAssetDirectory("items")
+    .forEach((file) => {
+      items = items.concat(loadItemsFromFile(fs.readFileSync(file, "utf8")));
+    });
+  return items;
+}
+
+const isFile = (fileName: fs.PathLike) => {
+  return (
+    fs.lstatSync(fileName).isFile() &&
+    (fileName.toString().endsWith(".yaml") ||
+      fileName.toString().endsWith(".yml"))
+  );
+};
+
+function loadAssetDirectory(directoryName: string): Array<string> {
+  // Load Creatures
+  const assetsFilePath = path.join(__dirname, `../assets/${directoryName}`);
+  return fs.readdirSync(assetsFilePath)
+    .map((fileName) => {
+      return path.join(__dirname, `../assets/${directoryName}`, fileName);
+    })
+    .filter(isFile);
+}
+
+function loadCreaturesFromFile(file: string): Creature[] {
   try {
     const data = yaml.load(file) as { creatures: Partial<Creature>[] };
 
@@ -68,6 +81,37 @@ export function loadCreaturesFromFile(file: string): Creature[] {
   }
 }
 
+
+function loadItemsFromFile(file: string): Item[] {
+  try {
+    const data = yaml.load(file) as { items: Partial<Item>[] };
+
+    if (
+      ("items" in data && !data) ||
+      !data.items ||
+      !Array.isArray(data.items)
+    ) {
+      console.error("Invalid yaml data format");
+      return [];
+    }
+
+    const items: Item[] = data.items.map((item) => {
+      const defaults = {
+        branchSpawnRates: [],
+      };
+
+      return {
+        ...defaults,
+        ...item,
+      } as Item;
+    });
+
+    return items;
+  } catch (error) {
+    console.error("Error loading item data:", error);
+    return [];
+  }
+}
 
 // Convert string or number to CreatureStatusType
 export function parseCreatureStatus(status: string | undefined): CreatureStatusType {
