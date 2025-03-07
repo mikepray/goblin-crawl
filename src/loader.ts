@@ -98,6 +98,7 @@ function loadItemsFromFile(file: string): Item[] {
     const items: Item[] = data.items.map((item) => {
       const defaults = {
         branchSpawnRates: [],
+        edible: false,
       };
 
       return {

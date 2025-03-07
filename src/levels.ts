@@ -238,7 +238,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     if (!itemStack) {
       itemStack = new Array<Item>();
     }
-    itemStack.push(item.thing);
+    itemStack.push(item.thing as Item);
     game.items.set(item.coords, itemStack);
   }
 

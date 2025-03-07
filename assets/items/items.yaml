@@ -3,6 +3,7 @@ items:
   - name: skrunt egg
     description: A skrunt egg. Delicious!
     glyph: o
+    edible: true
     branchSpawnRates: 
     - branchName: D
       level: 1

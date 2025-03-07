@@ -32,6 +32,7 @@ export type Actor = Coords & {
 
 export type Item = Feature & {
   branchSpawnRates?: Array<BranchSpawnRate>;
+  edible: boolean;
 }
 export type Player = Actor & {
   glyph: "@";

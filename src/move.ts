@@ -167,33 +167,32 @@ export function movePlayer(game: Game, nextInput: any) {
         }
       } else if (game.player.inventory && nextInput) {
         if (nextInput === "d") {
-          // drop the inventory item
           if (!game.dialogPointer || game.dialogPointer < 1) {
             game.debugOutput.push(
-              "Use the number keys to select an item to drop"
+              "Use the number keys to select an item. e to eat, d to drop"
             );
-          } else if (!game.player.inventory || game.player.inventory.length === 0){
-            game.debugOutput.push("You have nothing to drop");
+          } else if (
+            !game.player.inventory ||
+            game.player.inventory.length === 0
+          ) {
+            game.debugOutput.push("You have nothing...");
           } else {
+            // drop the inventory item
             let item = game.player.inventory[game.dialogPointer - 1];
-            let newInventoryListWithoutItem = new Array<Item>();
-            // rebuild the list without the item
-            for (let i = 0; i < game.player.inventory.length; i++) {
-              if (i !== game.dialogPointer - 1) {
-                newInventoryListWithoutItem.push(game.player.inventory[i]);
-              }
-            }
-            game.player.inventory = newInventoryListWithoutItem;
-
-            // put the item on the floor in the tile stack
-            let itemStack = game.items.get(coordsToKey({ ...game.player }));
-            if (!itemStack) {
-              itemStack = new Array<Item>();
-            }
-            itemStack.push(item);
-            game.items.set(coordsToKey({ ...game.player }), itemStack);
+            removeSelectedItemFromPlayerInventory(game);
+            putItemOnFloorStack(game, item);
             game.debugOutput.push(`You dropped the ${item.name}`);
             game.turnCount++;
+          }
+        } else if (nextInput === "e") {
+          // eat the inventory item
+          let item = game.player.inventory[game.dialogPointer - 1];
+          if (item.edible) {
+            removeSelectedItemFromPlayerInventory(game);
+            game.debugOutput.push(`You ate the ${item.name}. Delicious!`);
+            game.turnCount++;
+          } else {
+            game.debugOutput.push(`You cannot eat the ${item.name}!`);
           }
         }
       }
@@ -202,4 +201,27 @@ export function movePlayer(game: Game, nextInput: any) {
   }
 
   return game;
+}
+
+function putItemOnFloorStack(game: Game, item: Item) {
+  // put the item on the floor in the tile stack
+  let itemStack = game.items.get(coordsToKey({ ...game.player }));
+  if (!itemStack) {
+    itemStack = new Array<Item>();
+  }
+  itemStack.push(item);
+  game.items.set(coordsToKey({ ...game.player }), itemStack);
+}
+
+function removeSelectedItemFromPlayerInventory(game: Game) {
+  let newInventoryListWithoutItem = new Array<Item>();
+  if (game.player.inventory) {
+    // rebuild the list without the item
+    for (let i = 0; i < game.player.inventory.length; i++) {
+      if (i !== game.dialogPointer - 1) {
+        newInventoryListWithoutItem.push(game.player.inventory[i]);
+      }
+    }
+  }
+  game.player.inventory = newInventoryListWithoutItem;
 }
