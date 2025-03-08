@@ -10,9 +10,9 @@ export type Game = {
   allFeatures: Array<Feature>;
   allCreatures: Array<Creature>;
   allItems: Array<Item>;
-  debugOutput: Array<string>;
+  messages: Array<string>;
   levels: Map<string, Level>;
-  dialogMode: string;
+  dialogMode: "inventory" | "game" | "dialog";
 
   // these objects are updated per level
   items: Map<string, Array<Item>>;
@@ -30,7 +30,6 @@ export type Actor = Coords & {
   description?: string;
   inventory?: Array<Item>;
 };
-
 export type Item = Feature & {
   edible: boolean;
 }
@@ -61,33 +60,13 @@ export type Level = BranchLevel & {
   items: Map<string, Array<Item>>;
 };
 
-// Define status and movement types as string literals for type safety
-export type CreatureStatusType = "AWAKE" | "ASLEEP" | "DEAD";
-export type MovementTypeValue =
-  | "CANNOT_MOVE"
-  | "GUARDING"
-  | "WANDERING"
-  | "FLEEING";
-
-// Maps to store status and movement type data
-export const CreatureStatusMap = new Map<CreatureStatusType, any>([
-  ["AWAKE", { id: 0, description: "Creature is awake and active" }],
-  [
-    "ASLEEP",
-    {
-      id: 1,
-      description: "Creature is sleeping and will not move unless disturbed",
-    },
-  ],
-  ["DEAD", { id: 2, description: "Creature is dead" }],
-]);
-
-export const MovementTypeMap = new Map<MovementTypeValue, any>([
-  ["CANNOT_MOVE", { id: 0, description: "Creature cannot move" }],
-  ["GUARDING", { id: 1, description: "Creature guards a specific area" }],
-  ["WANDERING", { id: 2, description: "Creature wanders randomly" }],
-  ["FLEEING", { id: 3, description: "Creature flees from threats" }],
-]);
+export type Action = {
+  actionType: Array<"givePlayerItems" | "takePlayerItems" | "updatePlayer" | "updateCreature">;
+  givePlayerItems?: Array<Item>;
+  takePlayerItems?: Array<Item>;
+  updatePlayer?: Partial<Player>;
+  updateCreature?: Partial<Creature>;
+}
 
 export type Creature = Actor & {
   isHostile: boolean;
@@ -97,11 +76,12 @@ export type Creature = Actor & {
   wanderingDirection?: MovementDirection;
   branchSpawnRates?: Array<BranchSpawnRate>;
   shouts?: Array<string>;
+  shoutChance?: number; // 0 to 100 chance of shouting 
 };
 
+// creatures shout randomly, requires no interaction with the player
 export type Shout = {
   shout: string;
-  chance: number; // 0 to 100 chance of shouting 
 }
 
 export type BranchSpawnRate = BranchLevel & {
@@ -134,6 +114,7 @@ export type CreatureDialogNode = {
   playerResponse?: string;
   dialog: string;
   creatureResponses?: Array<CreatureDialogNode>;
+  actions?: Array<Action>;
 };
 
 export enum InputKey {
@@ -142,15 +123,32 @@ export enum InputKey {
   RIGHT = "\u001b[C",
   LEFT = "\u001b[D",
   ESCAPE = "\u001b",
-  PERIOD = ".",
 }
 
-/* A vault is a hardcoded predefined dungeon layout */
-export type Vault = {
-  getVault: () => Set<Coords>;
-};
+// Define status and movement types as string literals for type safety
+export type CreatureStatusType = "AWAKE" | "ASLEEP" | "DEAD";
+export type MovementTypeValue =
+  | "CANNOT_MOVE"
+  | "GUARDING"
+  | "WANDERING"
+  | "FLEEING";
 
-/* A level generator procedurally creates levels */
-export type LevelGenerator = {
-  generate: () => Set<Coords>;
-};
+// Maps to store status and movement type data
+export const CreatureStatusMap = new Map<CreatureStatusType, any>([
+  ["AWAKE", { id: 0, description: "Creature is awake and active" }],
+  [
+    "ASLEEP",
+    {
+      id: 1,
+      description: "Creature is sleeping and will not move unless disturbed",
+    },
+  ],
+  ["DEAD", { id: 2, description: "Creature is dead" }],
+]);
+
+export const MovementTypeMap = new Map<MovementTypeValue, any>([
+  ["CANNOT_MOVE", { id: 0, description: "Creature cannot move" }],
+  ["GUARDING", { id: 1, description: "Creature guards a specific area" }],
+  ["WANDERING", { id: 2, description: "Creature wanders randomly" }],
+  ["FLEEING", { id: 3, description: "Creature flees from threats" }],
+]);

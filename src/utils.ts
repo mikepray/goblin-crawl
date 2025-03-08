@@ -81,30 +81,31 @@ export const CoordsUtil = {
   },
 };
 
-// gets a random valid tile in the given list of tiles. deconflicts with actors if the actors are sent in too
+// gets a random valid tile in the given list of tiles.
 export function getRandomValidTile(
   tiles: Map<string, Coords>,
   deconflictWith?: Map<string, Coords>
 ): Coords {
-  let tileCoords = { x: 0, y: 0 };
 
-  for (let attempts = 0; attempts < tiles.size; attempts++) {
-    // get a random tile using an index of the tile array (the valid empty tiles for a given level)
-    const coords = Math.floor(Math.random() * tiles.size);
-    const key = Array.from(tiles.keys()).at(coords);
-    tileCoords = {
-      x: tiles.get(key!)!.x,
-      y: tiles.get(key!)!.y,
-    };
+  let key;
 
-    // deconflict 
-    // keep iterating if there's a collision in placement
-    if (!deconflictWith || !deconflictWith.has(coordsToKey(tileCoords))) {
-      break;
-    }
-
-    // TODO could make this more optimal by using the union of the deconflict map and tiles
+  if (deconflictWith) {
+    // subtract deconfliction tiles from tiles
+    let deconflictedTiles: Array<string> = Array.from(tiles.keys()).filter(tile => {
+      return !deconflictWith.has(tile);
+    });
+    key = deconflictedTiles[Math.floor(Math.random() * deconflictedTiles.length)];
+  } else {
+    // if nothing to deconflict with, just use the base tile map
+    key = Array.from(tiles.keys()).at(Math.floor(Math.random() * tiles.size));
   }
-  return tileCoords;
+
+  // get a random valid tile key
+  
+  // get the tile by the deconflicted valid tile key
+  return {
+    x: tiles.get(key!)!.x,
+    y: tiles.get(key!)!.y,
+  };
 }
 

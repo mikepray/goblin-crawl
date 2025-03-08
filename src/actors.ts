@@ -1,5 +1,13 @@
+import chalk from "chalk";
 import { dungeonHeight, dungeonWidth } from "./game";
-import { Actor, Coords, Creature, Game, MovementDirection } from "./types";
+import {
+  Actor,
+  Coords,
+  Creature,
+  Game,
+  MovementDirection,
+  Shout,
+} from "./types";
 import { CoordsUtil, coordsToKey } from "./utils";
 
 export const moveActor = (
@@ -14,10 +22,7 @@ export const moveActor = (
   const whatsAtNextPosition = game.actors.get(nextPositionKey);
 
   // interact with adjacent actor (bump)
-  if (
-    whatsAtNextPosition !== undefined &&
-    game.actors.has(nextPositionKey)
-  ) {
+  if (whatsAtNextPosition !== undefined && game.actors.has(nextPositionKey)) {
     // TODO prevent actors from interacting with themselves
     return interact(game, actor, whatsAtNextPosition!);
   }
@@ -40,6 +45,18 @@ export const moveActor = (
 
   game.actors.delete(coordsToKey(previousPosition));
   game.actors.set(coordsToKey(nextPosition), actor);
+
+  // shouting
+  if (
+    "shoutChance" in actor &&
+    "shouts" in actor &&
+    Math.floor(Math.random() * 1000) <= (actor.shoutChance as number)
+  ) {
+    const shout = Math.floor(
+      Math.random() * (actor.shouts as Array<Shout>).length
+    );
+    game.messages.push(chalk.italic.dim(`(${actor.name}) ${(actor.shouts as Array<Shout>)[shout].shout}`));
+  }
 
   game.isScreenDirty = true;
   return game;

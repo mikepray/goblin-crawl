@@ -14,16 +14,21 @@ import {
   Level,
   Player,
 } from "./types";
-import { branchLevelToKey, coordsToKey, getBresenhamsLine, isTileInFieldOfVision } from "./utils";
+import {
+  branchLevelToKey,
+  coordsToKey,
+  getBresenhamsLine,
+  isTileInFieldOfVision,
+} from "./utils";
 import { movePlayer } from "./move";
 
-export const dungeonWidth = 48;
+export const dungeonWidth = 100;
 export const dungeonHeight = 24;
 
 function initGame(): Game {
   let items = loadItems();
   let features = loadFeatures();
-  let game = {
+  let game: Game = {
     turnCount: 0,
     actors: new Map<string, Actor>(),
     tiles: new Map<string, Coords>(),
@@ -31,9 +36,7 @@ function initGame(): Game {
     player: {
       x: 0,
       y: 0,
-      inventory: [
-        items.find(item => item.name === "skrunt egg")
-      ],
+      inventory: [items.find((item) => item.name === "skrunt egg")],
       glyph: "@",
       name: "player",
       description: "It's you",
@@ -45,7 +48,7 @@ function initGame(): Game {
     allFeatures: features,
     allCreatures: loadCreatures(),
     allItems: items,
-    debugOutput: new Array<string>(0),
+    messages: new Array<string>(0),
     levels: new Map<string, Level>(),
     items: new Map<string, Array<Item>>(),
     seenTiles: new Map<string, Coords>(),
@@ -61,11 +64,13 @@ function initGame(): Game {
 function printScreen(game: Game): Game {
   if (game.isScreenDirty) {
     console.clear();
-    let out = `${chalk.greenBright("GoblinCrawl")} | ${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level} Turn: ${game.turnCount}\n`;
+    let out = `${chalk.greenBright("GoblinCrawl")} | ${
+      game.currentBranchLevel.branchName
+    }:${game.currentBranchLevel.level} Turn: ${game.turnCount}\n`;
     if (game.activeDialog) {
       // active dialog
       out = out.concat(
-        `\n${game.interactingActor?.name} says: \n\n> ${game.activeDialog.dialog}\n\n`
+        `\n${game.interactingActor?.name} says: \n\n→ ${game.activeDialog.dialog}\n\n`
       );
       if (game.activeDialog.creatureResponses) {
         for (let i = 0; i < game.activeDialog.creatureResponses?.length; i++) {
@@ -89,15 +94,34 @@ function printScreen(game: Game): Game {
         i++
       ) {
         out = out.concat(
-          `${game.dialogPointer === i + 1 ? "> " : ""}${i + 1}: ${
+          `${game.dialogPointer === i + 1 ? "→ " : ""}${i + 1}: ${
             game.player.inventory[i].name
           } - ${game.player.inventory[i].description}\n`
         );
       }
+      
+      // fill the rest of the screen with whitespace (start at 1 for inventory screen title)
+      for (let i = 1; i < dungeonHeight - (game.player.inventory?.length || 0); i++) {
+        out = out.concat("\n");
+      }
     } else {
       // dungeon screen
-      for (let y = 0; y < dungeonHeight; y++) {
-        for (let x = 0; x < dungeonWidth; x++) {
+      for (let y = 0; y < dungeonHeight + 2; y++) {
+        for (let x = 0; x < dungeonWidth + 2; x++) {
+          if (x === 0 && y === 0) {
+            out = out.concat("┌");
+            continue;
+          } else if (x === dungeonWidth + 1 && y === 0) {
+            out = out.concat("┐");
+            continue;
+          } else if (x === 0 || x === dungeonWidth + 1) {
+            out = out.concat("│");
+            continue;
+          } else if (y === 0 || y === dungeonHeight + 1) {
+            out = out.concat("─");
+            continue;
+          }
+
           // field of vision
           if (
             isTileInFieldOfVision(
@@ -118,7 +142,11 @@ function printScreen(game: Game): Game {
               out = out.concat(actor.glyph);
             } else if (feature) {
               out = out.concat(feature.glyph);
-            } else if (itemsOnTile && itemsOnTile.length >= 0 && itemsOnTile[0]) {
+            } else if (
+              itemsOnTile &&
+              itemsOnTile.length >= 0 &&
+              itemsOnTile[0]
+            ) {
               // show the last item's glyph
               out = out.concat(itemsOnTile[0].glyph);
             } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
@@ -145,8 +173,26 @@ function printScreen(game: Game): Game {
       }
     }
 
-    for (let i = 0; i < game.debugOutput.length; i++) {
-      out = out.concat(`${game.debugOutput.shift() || ""}\n`);
+    if (game.dialogMode === "game" || game.dialogMode === "inventory") {
+      // messages
+      for (let j = 0; j < 5 - game.messages.length; j++) {
+        out = out.concat(`│\n`);
+      }
+      for (let i = 0; i < Math.min(5, game.messages.length); i++) {
+        // show last 5 messages
+        if (i < game.messages.length - 1) {
+          out = out.concat(`│${chalk.dim(game.messages[i] || "")}\n`);
+        } else if (i === game.messages.length - 1) {
+          out = out.concat(`│${chalk.whiteBright(game.messages[i] || "")}\n`);
+        }
+        if (game.messages.length > 5) {
+          game.messages.shift();
+        }
+      }
+      out = out.concat("└");
+      for (let i = 0; i < dungeonWidth + 2;i++) {
+        out = out.concat("─");
+      }
     }
 
     console.log(out);
@@ -170,6 +216,20 @@ function gameLoop(game: Game) {
 process.stdin.setEncoding("utf8");
 process.stdin.setRawMode(true);
 process.stdin.resume();
+// Hide the cursor
+process.stdout.write('\u001B[?25l');
+
+// When the game exits, make sure to show the cursor again
+function showCursor() {
+  process.stdout.write('\u001B[?25h');
+}
+
+// Register cleanup handlers to ensure cursor is restored
+process.on('exit', showCursor);
+process.on('SIGINT', () => {
+  showCursor();
+  process.exit();
+});
 process.stdin.on("data", (key: Buffer) => {
   const keyStr = key.toString();
   // Exit on ctrl-c

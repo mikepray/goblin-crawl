@@ -8,6 +8,7 @@ creatures:
     isHostile: false
     status: AWAKE
     movementType: WANDERING
+    shoutChance: 7
     branchSpawnRates: 
       - branchName: D
         level: 1
@@ -17,21 +18,22 @@ creatures:
         level: 2
         spawnChance: 100
         maxSpawnNum: 3
-    dialog:
-      - dialog: go away!
-      - dialog: urgh...
-      - dialog: have you seen my skrunt?
-        creatureResponses:
-          - playerResponse: No
-      - dialog: out of my way!
-      - dialog: yeek!
-      - dialog: watch out for those evil kobolds...
-      - dialog: yough...
     shouts:
-      - shout: where's my skrunt?
-      - shout: urgh...
-      - shout: yeek!
-      - shout: blasted kobolds!
+      - shout: the goblin mutters "where's my skrunt?"
+      - shout: the goblin says "yeek!" to no one in particular
+      - shout: the goblin falls asleep, but wakes up immediately
+      - shout: the goblin shouts "blasted kobolds!"
+      - shout: the goblin complains about the humidity
+      - shout: the goblin looks around for something to eat
+      - shout: the goblin pulls on its earring
+      - shout: the goblin scratches itself 
+      - shout: the goblin complains about kobolds' shifty eyes
+      - shout: the goblin grumbles about tough skrunt meat
+      - shout: the goblin eats some skrunt jerky
+      - shout: the goblin proclaims "Ugh!"
+      - shout: the goblin offers a half-hearted prayer to Meggled
+      - shout: the goblin says "sorry" but doesn't mean it
+      - shout: the goblin suddenly farts
   
   - name: skrunt
     glyph: s
@@ -40,6 +42,7 @@ creatures:
     isHostile: false
     status: AWAKE
     movementType: WANDERING
+    shoutChance: 5 # out of 1000
     branchSpawnRates: 
       - branchName: D
         level: 1
@@ -49,18 +52,17 @@ creatures:
         level: 2
         spawnChance: 80
         maxSpawnNum: 5
-    dialog: 
-      - dialog: skrunt skrunt skrunt
-      - dialog: skrunt?
-      - dialog: skrunt skrunt
-      - dialog: SKRUUUUUNT!!
+    shouts: 
+      - shout: skrunt skrunt skrunt
+      - shout: skrunt?
+      - shout: skrunt skrunt
+      - shout: SKRUUUUUNT!!
 
   - name: kobold
     glyph: k
     isHostile: true
     status: AWAKE
     movementType: WANDERING
-    spawnChance: 100
     description: >
       a small intelligent dragonlike creature with grey scaly skin. 
       it is detested by goblinkind for its base treachery and villainy
@@ -81,5 +83,15 @@ creatures:
         level: 6
         spawnChance: 80
         maxSpawnNum: 8
-
+    shoutChance: 5
+    shouts:
+      - shout: krek begrak!
+      - shout: iik kweba fak kwa
+      - shout: awk kabak?
+      - shout: kobol kabwak...
+      - shout: the kobold bares its teeth at you
+      - shout: the kobod draws a claw across its neck while glaring at you
+      - shout: the kobold flicks its tongue
+      - shout: the kobold asks "kwak akab?" but doesn't expect an answer
+      - shout: the kobold points at you and says "iik fak akab!"
  

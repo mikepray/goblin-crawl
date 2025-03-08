@@ -110,7 +110,7 @@ export function saveLevel(game: Game) {
       currentLevel.seenTiles = new Map(game.seenTiles);
       currentLevel.items = new Map(game.items);
     } else {
-      game.debugOutput.push("error - could not save current level");
+      game.messages.push("error - could not save current level");
     }
   }
   return game;
@@ -130,7 +130,7 @@ export function loadLevel(game: Game, nextBranchLevel: BranchLevel) {
     game.seenTiles = new Map(nextLevel.seenTiles);
     game.items = new Map(nextLevel.items);
   } else {
-    game.debugOutput.push("error - could not load next level");
+    game.messages.push("error - could not load next level");
   }
   return game;
 }
@@ -147,7 +147,7 @@ export function teleportPlayer(game: Game, spawnAtFeature: string) {
     game.player.y = featureToSpawnAt.y;
     game.actors.set(coordsToKey({ ...game.player }), game.player);
   } else {
-    game.debugOutput.push(
+    game.messages.push(
       `error - could not find feature ${spawnAtFeature} to spawn player`
     );
   }
@@ -158,6 +158,8 @@ export function ascend(game: Game, nextBranchLevel: BranchLevel) {
   game = saveLevel(game);
   game = loadLevel(game, nextBranchLevel);
   game = teleportPlayer(game, "Downstairs");
+  game.messages = new Array<string>();
+  game.messages.push("You climb up the stairs");
   game.isScreenDirty = true;
   return game;
 }
@@ -179,6 +181,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   game.seenTiles = new Map<string, Coords>();
   game.items = new Map<string, Array<Item>>();
   game.tiles = buildRoomsAndHallways(game, nextBranchLevel);
+  game.messages = new Array<string>();
 
   let playerTile;
   // place stairs
@@ -197,6 +200,8 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     // set the player to that tile as if they had just come from upstairs
     game.features.set(coordsToKey(upstairsTile), upstairs);
     playerTile = upstairsTile;
+
+    game.messages.push("You climb down the stairs");
   }
   // set the downstairs tile
   let downstairsTile = getRandomValidTile(game.tiles, game.actors);
@@ -217,8 +222,8 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   let features = spawnThings(
     game.allFeatures,
     nextBranchLevel,
-    game.features,
-    game.actors,
+    game.tiles,
+    new Map([...game.actors, ...game.features]), // union of actors and features
   )
   for (let i = 0; i < features.length; i++) {
     game.features.set(features[i].coords, features[i].thing);
@@ -244,6 +249,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     undefined,
   );
 
+  // add flattened items to tile stack of items
   for (const item of items) {
     let itemStack = game.items.get(item.coords);
     if (!itemStack) {

@@ -26,7 +26,7 @@ export function movePlayer(game: Game, nextInput: any) {
             level: game.currentBranchLevel.level + 1,
           });
         } else {
-          game.debugOutput.push(
+          game.messages.push(
             "Press > to go downstairs while standing on a > tile"
           );
         }
@@ -43,7 +43,7 @@ export function movePlayer(game: Game, nextInput: any) {
             return ascend(game, { ...parentBranch });
           }
         } else {
-          game.debugOutput.push(
+          game.messages.push(
             "Press < to go upstairs while standing on a < tile"
           );
         }
@@ -71,20 +71,32 @@ export function movePlayer(game: Game, nextInput: any) {
         // diagonal down right
         playerMove.x++;
         playerMove.y++;
-      } else if (nextInput === InputKey.PERIOD) {
+      } else if (nextInput === ".") {
         // wait one turn
+      } else if (nextInput === "^") {
+        let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
+        if (featureAtTile && featureAtTile.glyph === "^") {
+            game.messages.push("You pray to Meggled");
+            let item = removeLastItemFromFloorStack(game, {...game.player});
+            if (item?.name === "skrunt egg") {
+              game.messages.push("Meggled accepts your sacrifice!");
+            } else if (item) {
+              putItemOnFloorStack(game, item);
+              game.messages.push("Meggled does not accept this as a sacrifice!")
+            }
+          } else {
+            game.messages.push("There's no altar here. Press ^ to sacrifice and pray at altars");
+          }
+
       } else if (nextInput === "g") {
-        // get the items under the player
-        let itemsAtTile = game.items.get(coordsToKey({ ...game.player }));
-        // get the last in the list
-        let item = itemsAtTile?.shift();
+        
+        let item = removeLastItemFromFloorStack(game, {...game.player});
         if (item) {
           game.player.inventory?.push(item);
-          game.items.set(coordsToKey({ ...game.player }), itemsAtTile!);
-          game.debugOutput.push(`You pick up the ${item.name}`);
+          game.messages.push(`You pick up the ${item.name}`);
           game.turnCount++;
-        } else {
-          game.debugOutput.push("There's nothing to pick up here...");
+        } else if (!game.items.get(coordsToKey({...game.player}))) {
+          game.messages.push("There's nothing on the ground here...");
         }
         game.isScreenDirty = true;
         return game;
@@ -93,19 +105,12 @@ export function movePlayer(game: Game, nextInput: any) {
         game.isScreenDirty = true;
         return game;
       } else if (nextInput === "?") {
-        game.debugOutput.push(
-          "You are the @ symbol, arrow keys and vim keys move, period waits one turn, < and > go up and down stairs. Move into other creatures to interact or attack\ni for inventory, g to pick up items from the floor"
+        game.messages.push(
+          "You are the @ symbol, arrow keys and vim keys move, period waits one turn, < and > go up and down stairs. Move into other creatures to interact or attack\ni for inventory, g to interact with what's on the floor"
         );
         game.isScreenDirty = true;
         return game;
-      } else if (nextInput === "^") {
-        // Praying at altars
-        game.debugOutput.push(
-          "You pray to Meggled"
-        );
-        game.isScreenDirty = true;
-        return game;
-      } else {
+     } else {
         return game;
       }
 
@@ -118,17 +123,17 @@ export function movePlayer(game: Game, nextInput: any) {
       let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
       if (itemsAtTile && itemsAtTile.length > 0) {
         let out = "";
-        out = out.concat(`Here: ${itemsAtTile[0].name}, press g to pick up`);
+        out = out.concat(`(g)round: ${itemsAtTile[0].name}.`);
         if (itemsAtTile.length > 1) {
-          out = out.concat(`\nAlso on this tile:\n`);
+          out = out.concat(` also: `);
           for (let i = 1; i < itemsAtTile.length; i++) {
-            out = out.concat(`${itemsAtTile[i].name}\n`);
+            out = out.concat(`${itemsAtTile[i].name}${i + 1 < itemsAtTile.length ? ', ' : ''}`);
           }
         }
-        game.debugOutput.push(out);
+        game.messages.push(out);
         game.isScreenDirty = true;
       } else if (featureAtTile) {
-        game.debugOutput.push(`${featureAtTile?.description}`);
+        game.messages.push(`here: ${featureAtTile?.description}`);
       }
 
       // copy list to prevent concurrent modification
@@ -154,6 +159,11 @@ export function movePlayer(game: Game, nextInput: any) {
         parseInt(nextInput) - 1 >= 0 &&
         parseInt(nextInput) - 1 < game.activeDialog.creatureResponses.length
       ) {
+        // perform dialog action
+        if (game.activeDialog.actions && game.activeDialog.actions.length > 0) {
+
+        }
+        // set the dialog node to the selected response (walk the tree down to the next child node)
         game.activeDialog =
           game.activeDialog.creatureResponses[parseInt(nextInput) - 1];
         game.isScreenDirty = true;
@@ -175,20 +185,20 @@ export function movePlayer(game: Game, nextInput: any) {
       } else if (game.player.inventory && nextInput) {
         if (nextInput === "d") {
           if (!game.dialogPointer || game.dialogPointer < 1) {
-            game.debugOutput.push(
-              "Use the number keys to select an item. e to eat, d to drop"
+            game.messages.push(
+              "Use the number keys to select an item. e to eat, d to drop. Esc to close"
             );
           } else if (
             !game.player.inventory ||
             game.player.inventory.length === 0
           ) {
-            game.debugOutput.push("You have nothing...");
+            game.messages.push("You have nothing...");
           } else {
             // drop the inventory item
             let item = game.player.inventory[game.dialogPointer - 1];
             removeSelectedItemFromPlayerInventory(game);
             putItemOnFloorStack(game, item);
-            game.debugOutput.push(`You dropped the ${item.name}`);
+            game.messages.push(`You dropped the ${item.name}`);
             game.turnCount++;
           }
         } else if (nextInput === "e") {
@@ -196,10 +206,10 @@ export function movePlayer(game: Game, nextInput: any) {
           let item = game.player.inventory[game.dialogPointer - 1];
           if (item.edible) {
             removeSelectedItemFromPlayerInventory(game);
-            game.debugOutput.push(`You ate the ${item.name}. Delicious!`);
+            game.messages.push(`You ate the ${item.name}. Delicious!`);
             game.turnCount++;
           } else {
-            game.debugOutput.push(`You cannot eat the ${item.name}!`);
+            game.messages.push(`You cannot eat the ${item.name}!`);
           }
         }
       }
@@ -231,4 +241,14 @@ function removeSelectedItemFromPlayerInventory(game: Game) {
     }
   }
   game.player.inventory = newInventoryListWithoutItem;
+}
+
+function removeLastItemFromFloorStack(game: Game, coords: Coords): Item | undefined {
+  let itemsAtTile = game.items.get(coordsToKey(coords));
+  // get the last in the list
+  let item = itemsAtTile?.shift();
+  if (item) {
+    game.items.set(coordsToKey(coords), itemsAtTile!);
+  }
+  return item;
 }
