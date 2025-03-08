@@ -1,20 +1,44 @@
 ---
 creatures: 
 - name: Jark
-  glyph: g
+  glyph: j
   isHostile: false
   status: AWAKE
   movementType: WANDERING
+  useDefiniteArticle: false
   branchSpawnRates: 
     - branchName: D
       level: 1
       spawnChance: 100
       maxSpawnNum: 1
-  dialog:
-    - dialog: What you want?
-      creatureResponses:
-        - playerResponse: "What do you have for sale?"
-          dialog: "Give me a skrunt egg for my cloak"
-        - playerResponse: "Nothing, just looking around."
-          dialog: "Then go away!"
-  
+  conversationBranch:
+    - creatureSpeaks: Eh? What do you want?
+      conversationBranch:
+        - playerResponse: Where am I?
+          creatureSpeaks: Give me a skrunt egg and I'll tell you!
+          conversationBranch:
+            - playerResponse: No!
+              creatureSpeaks: Fine! Then scamper off!
+            - playerResponse: Ok, here you go
+              creatureSpeaks: Ah, thank you. You are in Meggled's great cave. Meggled loves skrunt eggs
+              actionFailedBranch: 
+                playerResponse: I don't have a skrunt egg
+                creatureSpeaks: Then find one!
+              actions: 
+                - takePlayerItems:
+                  - skrunt egg
+        - playerResponse: Who are you?
+          creatureSpeaks: I am Jark, mightiest of the goblin shaman! 
+          conversationBranch:
+            - playerResponse: Prove it.
+              creatureSpeaks: I shall turn thee into a roach! *Jark mutters under his breath while flailing his arms*
+              conversationBranch:
+                playerResponse: ... I don't feel any different ...
+                creatureSpeaks: You're lucky this time! I'm out of roach legs for my spells...
+            - playerResponse: Tell me about Meggled, mighty shaman
+              creatureSpeaks: Ah, young gobline - Meggled is the mighty two-headed goblin god. One head speaks only secrets and the other speaks only lies!
+              conversationBranch:
+                - playerResponse: What does Meggled want from goblinkind?
+                  gotoBranch: Give me a skrunt egg and I'll tell you!
+
+            

@@ -30,9 +30,10 @@ export type Actor = Coords & {
   description?: string;
   inventory?: Array<Item>;
 };
+
 export type Item = Feature & {
   edible: boolean;
-}
+};
 export type Player = Actor & {
   glyph: "@";
   name: "player";
@@ -60,29 +61,22 @@ export type Level = BranchLevel & {
   items: Map<string, Array<Item>>;
 };
 
-export type Action = {
-  actionType: Array<"givePlayerItems" | "takePlayerItems" | "updatePlayer" | "updateCreature">;
-  givePlayerItems?: Array<Item>;
-  takePlayerItems?: Array<Item>;
-  updatePlayer?: Partial<Player>;
-  updateCreature?: Partial<Creature>;
-}
-
 export type Creature = Actor & {
   isHostile: boolean;
   status: CreatureStatusType;
-  dialog?: Array<CreatureDialogNode>;
+  conversationBranch?: Array<CreatureDialogNode>;
   movementType: MovementTypeValue;
   wanderingDirection?: MovementDirection;
   branchSpawnRates?: Array<BranchSpawnRate>;
   shouts?: Array<string>;
-  shoutChance?: number; // 0 to 100 chance of shouting 
+  shoutChance?: number; // 0 to 100 chance of shouting
+  useDefiniteArticle: boolean; // if the game will put "The" in front of the creature's name
 };
 
 // creatures shout randomly, requires no interaction with the player
 export type Shout = {
   shout: string;
-}
+};
 
 export type BranchSpawnRate = BranchLevel & {
   // 0 - 100, where 100 means it will spawn 100% of the time in allowed spawn boundaries
@@ -112,9 +106,19 @@ export type BranchLevel = { branchName: string; level: number };
 
 export type CreatureDialogNode = {
   playerResponse?: string;
-  dialog: string;
-  creatureResponses?: Array<CreatureDialogNode>;
+  creatureSpeaks?: string;
+  conversationBranch?: Array<CreatureDialogNode>;
   actions?: Array<Action>;
+  // Reference to the string of another node's creatureSpeaks dialog, for going back to other dialog nodes
+  gotoBranch?: string;
+  actionFailedBranch?: CreatureDialogNode;
+};
+
+export type Action = {
+  givePlayerItems?: Array<string>;
+  takePlayerItems?: Array<string>;
+  updatePlayer?: Partial<Player>;
+  updateCreature?: Partial<Creature>;
 };
 
 export enum InputKey {

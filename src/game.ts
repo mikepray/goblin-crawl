@@ -22,7 +22,7 @@ import {
 } from "./utils";
 import { movePlayer } from "./move";
 
-export const dungeonWidth = 100;
+export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
 function initGame(): Game {
@@ -70,13 +70,13 @@ function printScreen(game: Game): Game {
     if (game.activeDialog) {
       // active dialog
       out = out.concat(
-        `\n${game.interactingActor?.name} says: \n\n→ ${game.activeDialog.dialog}\n\n`
+        `\n${game.interactingActor?.name} says: \n\n${game.activeDialog.creatureSpeaks}\n\n`
       );
-      if (game.activeDialog.creatureResponses) {
-        for (let i = 0; i < game.activeDialog.creatureResponses?.length; i++) {
+      if (game.activeDialog.conversationBranch) {
+        for (let i = 0; i < game.activeDialog.conversationBranch?.length; i++) {
           out = out.concat(
             `${i + 1}: ${
-              game.activeDialog.creatureResponses[i].playerResponse
+              game.activeDialog.conversationBranch[i].playerResponse
             }\n`
           );
         }
@@ -106,21 +106,9 @@ function printScreen(game: Game): Game {
       }
     } else {
       // dungeon screen
-      for (let y = 0; y < dungeonHeight + 2; y++) {
-        for (let x = 0; x < dungeonWidth + 2; x++) {
-          if (x === 0 && y === 0) {
-            out = out.concat("┌");
-            continue;
-          } else if (x === dungeonWidth + 1 && y === 0) {
-            out = out.concat("┐");
-            continue;
-          } else if (x === 0 || x === dungeonWidth + 1) {
-            out = out.concat("│");
-            continue;
-          } else if (y === 0 || y === dungeonHeight + 1) {
-            out = out.concat("─");
-            continue;
-          }
+      for (let y = 0; y < dungeonHeight; y++) {
+        for (let x = 0; x < dungeonWidth; x++) {
+
 
           // field of vision
           if (

@@ -69,17 +69,18 @@ function interact(game: Game, object: Actor, subject: Actor): Game {
       // attack
     } else {
       // dialog with player
-      if (object.name === "player" && subjectCreature.dialog) {
-        const dialogNode =
-          subjectCreature.dialog[
-            Math.floor(Math.random() * subjectCreature.dialog.length)
+      if (object.name === "player" && subjectCreature.conversationBranch) {
+        const conversationBranch =
+          subjectCreature.conversationBranch[
+            Math.floor(Math.random() * subjectCreature.conversationBranch.length)
           ];
-        game.activeDialog = dialogNode;
+        game.activeDialog = conversationBranch;
         game.interactingActor = subjectCreature;
         game.dialogMode = "dialog";
         game.isScreenDirty = true;
-      } else {
+      } else if (object.name === "player") {
         // creature doesn't speak
+        game.messages.push(`${subjectCreature.useDefiniteArticle ? " The " : ""}${subjectCreature.name} isn't interested in discussion...`)
       }
     }
   }

@@ -1,6 +1,6 @@
 import { moveActor, getWanderingMoveDelta } from "./actors";
 import { descend, ascend } from "./levels";
-import { Game, InputKey, Coords, Creature, Item } from "./types";
+import { Game, InputKey, Coords, Creature, Item, Action } from "./types";
 import { coordsToKey, branchLevelToKey } from "./utils";
 
 export function movePlayer(game: Game, nextInput: any) {
@@ -76,26 +76,26 @@ export function movePlayer(game: Game, nextInput: any) {
       } else if (nextInput === "^") {
         let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
         if (featureAtTile && featureAtTile.glyph === "^") {
-            game.messages.push("You pray to Meggled");
-            let item = removeLastItemFromFloorStack(game, {...game.player});
-            if (item?.name === "skrunt egg") {
-              game.messages.push("Meggled accepts your sacrifice!");
-            } else if (item) {
-              putItemOnFloorStack(game, item);
-              game.messages.push("Meggled does not accept this as a sacrifice!")
-            }
-          } else {
-            game.messages.push("There's no altar here. Press ^ to sacrifice and pray at altars");
+          game.messages.push("You pray to Meggled");
+          let item = removeLastItemFromFloorStack(game, { ...game.player });
+          if (item?.name === "skrunt egg") {
+            game.messages.push("Meggled accepts your sacrifice!");
+          } else if (item) {
+            putItemOnFloorStack(game, item);
+            game.messages.push("Meggled does not accept this as a sacrifice!");
           }
-
+        } else {
+          game.messages.push(
+            "There's no altar here. Press ^ to sacrifice and pray at altars"
+          );
+        }
       } else if (nextInput === "g") {
-        
-        let item = removeLastItemFromFloorStack(game, {...game.player});
+        let item = removeLastItemFromFloorStack(game, { ...game.player });
         if (item) {
           game.player.inventory?.push(item);
           game.messages.push(`You pick up the ${item.name}`);
           game.turnCount++;
-        } else if (!game.items.get(coordsToKey({...game.player}))) {
+        } else if (!game.items.get(coordsToKey({ ...game.player }))) {
           game.messages.push("There's nothing on the ground here...");
         }
         game.isScreenDirty = true;
@@ -110,7 +110,7 @@ export function movePlayer(game: Game, nextInput: any) {
         );
         game.isScreenDirty = true;
         return game;
-     } else {
+      } else {
         return game;
       }
 
@@ -127,7 +127,9 @@ export function movePlayer(game: Game, nextInput: any) {
         if (itemsAtTile.length > 1) {
           out = out.concat(` also: `);
           for (let i = 1; i < itemsAtTile.length; i++) {
-            out = out.concat(`${itemsAtTile[i].name}${i + 1 < itemsAtTile.length ? ', ' : ''}`);
+            out = out.concat(
+              `${itemsAtTile[i].name}${i + 1 < itemsAtTile.length ? ", " : ""}`
+            );
           }
         }
         game.messages.push(out);
@@ -154,18 +156,49 @@ export function movePlayer(game: Game, nextInput: any) {
     }
   } else if (game.activeDialog) {
     // active dialog
-    if (game.activeDialog.creatureResponses && nextInput !== undefined) {
+    let creature = (game.interactingActor as Creature);
+    if (game.activeDialog.conversationBranch && nextInput !== undefined) {
       if (
         parseInt(nextInput) - 1 >= 0 &&
-        parseInt(nextInput) - 1 < game.activeDialog.creatureResponses.length
+        parseInt(nextInput) - 1 < game.activeDialog.conversationBranch.length
       ) {
-        // perform dialog action
+        // lookup branch from creatureReference branch if it exists
+        if (game.activeDialog.gotoBranch) {
+          // TODO tree traversal
+        } else {
+        game.activeDialog =
+          game.activeDialog.conversationBranch[parseInt(nextInput) - 1];
+        // perform dialog action on selected choice
         if (game.activeDialog.actions && game.activeDialog.actions.length > 0) {
-
+          game.activeDialog.actions.forEach((action: Action) => {
+            if (action.givePlayerItems) {
+            }
+            if (action.takePlayerItems) {
+              // see if the player has the item
+              action.takePlayerItems.forEach((itemName) => {
+                if (removeItemFromPlayerInventory(game, itemName)) {
+                  // player had the item, it got removed
+                  game.messages.push(`You gave ${creature.useDefiniteArticle ? "the" : ""}${creature.name} the ${itemName}`);
+                  let item = game.allItems.find((item: Item) => item.name === itemName);
+                  if (item) creature.inventory?.push(item);
+                } else {
+                  if (game.activeDialog?.actionFailedBranch) {
+                    game.activeDialog = game.activeDialog.actionFailedBranch;
+                  }
+                  game.messages.push(`You don't have a ${itemName} to give ${creature.useDefiniteArticle ? "the" : ""}${creature.name}`)
+                }
+              });
+              
+            }
+            if (action.updateCreature) {
+            }
+            if (action.updatePlayer) {
+            }
+          });
+        }
         }
         // set the dialog node to the selected response (walk the tree down to the next child node)
-        game.activeDialog =
-          game.activeDialog.creatureResponses[parseInt(nextInput) - 1];
+
         game.isScreenDirty = true;
       }
     }
@@ -243,7 +276,26 @@ function removeSelectedItemFromPlayerInventory(game: Game) {
   game.player.inventory = newInventoryListWithoutItem;
 }
 
-function removeLastItemFromFloorStack(game: Game, coords: Coords): Item | undefined {
+// attempts to remove the item and returns true if it did
+function removeItemFromPlayerInventory(
+  game: Game,
+  itemNameToRemove: string
+): boolean {
+  const originalInventoryLength = game.player.inventory?.length || 0;
+  let filteredItems = game.player.inventory?.filter((item: Item) => {
+    item.name !== itemNameToRemove;
+  });
+  game.player.inventory = filteredItems;
+  return (
+    filteredItems !== undefined &&
+    originalInventoryLength > filteredItems?.length
+  );
+}
+
+function removeLastItemFromFloorStack(
+  game: Game,
+  coords: Coords
+): Item | undefined {
   let itemsAtTile = game.items.get(coordsToKey(coords));
   // get the last in the list
   let item = itemsAtTile?.shift();

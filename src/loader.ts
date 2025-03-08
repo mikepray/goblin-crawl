@@ -72,6 +72,7 @@ function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
         status: "AWAKE" as CreatureStatusType,
         movementType: "WANDERING" as MovementTypeValue,
         branchSpawnRates: [],
+        useDefiniteArticle: true,
       };
 
       return {
@@ -79,7 +80,7 @@ function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
         ...creature,
         status: parseCreatureStatus(creature.status),
         movementType: parseMovementType(creature.movementType),
-        dialog: creature.dialog || undefined,
+        conversationBranch: creature.conversationBranch || undefined,
       } as Creature;
     });
 
