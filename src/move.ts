@@ -264,10 +264,15 @@ export function movePlayer(game: Game, nextInput: any) {
           if ("movementType" in actor) {
             const creature = actor as Creature;
             if (creature.movementType === "WANDERING") {
-              if (!creature.wasSwappedByPlayer) {
-                moveDelta = getWanderingMoveDelta(creature);
+              if (!creature.isHostile) {
+                if (!creature.wasSwappedByPlayer) {
+                  moveDelta = getWanderingMoveDelta(creature);
+                } else {
+                  creature.wasSwappedByPlayer = false;
+                }
               } else {
-                creature.wasSwappedByPlayer = false;
+                // creature is hostile, move to attack player
+                
               }
             }
           }
