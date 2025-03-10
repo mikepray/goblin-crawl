@@ -9,88 +9,59 @@ import { coordsToKey, isTileInFieldOfVision } from "./utils";
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
-type View = {
-  screen: blessed.Widgets.Screen;
-  topbar: blessed.Widgets.BoxElement;
-  map: blessed.Widgets.BoxElement;
-  log: blessed.Widgets.BoxElement;
-};
+process.stdin.setEncoding("utf8");
+process.stdin.setRawMode(true);
+process.stdin.resume();
 
-function initView(): View {
-  const screen = blessed.screen({
-    smartCSR: true, // Optimize for rendering
-    title: "GoblinCrawl",
-    tags: true,
-  });
-  screen.key(["C-c"], function () {
-    return process.exit(0);
-  });
+process.stdin.on("data", (key: Buffer) => {
+  const keyStr = key.toString();
+  // Exit on ctrl-c
+  if (keyStr === "\u0003") {
+    process.exit();
+  }
+  inputBuffer.push(keyStr);
+});
 
-  const topbar = blessed.box({
-    parent: screen,
-    top: 0,
-    left: 0,
-    height: 3,
-    border: {
-      type: "line",
-    },
-    style: {
-      border: {
-        fg: "green",
-      },
-    },
-    tags: true,
-  });
+let inputBuffer = new Array<string>();
 
+function gameLoop() {
+  let view = initView();
+  let game = initGame();
+  const FRAME_RATE = 30;
+  const INTERVAL = Math.floor(1000 / FRAME_RATE); // ~33.33ms
 
-  const map = blessed.box({
-    parent: screen,
-    top: 3,
-    left: 0,
-    height: dungeonHeight,
-    border: {
-      type: "line",
-    },
-    style: {
-      border: {
-        fg: "blue",
-      },
-    },
-    tags: true,
-  });
+  const introBox = startScreen(view);
+  view.screen.render();
 
-  const log = blessed.box({
-    parent: screen,
-    top: dungeonHeight + 3,
-    left: 0,
-    width: "100%",
-    height: 7,
-    border: {
-      type: "line",
-    },
-    style: {
-      border: {
-        fg: "green",
-      },
-    },
-    tags: true,
-    scrollable: true,
-  });
-  return {
-    topbar: topbar,
-    screen: screen,
-    map: map,
-    log: log,
-  };
+  const startScreenInterval = setInterval(() => {
+    if (inputBuffer.length > 0) {
+      inputBuffer.shift();
+      introBox.destroy();
+      clearInterval(startScreenInterval);
+      return;
+    }
+  }, INTERVAL);
+
+  const interval = setInterval(() => {
+    if (game.gameOver) {
+      clearInterval(interval);
+      return;
+    }
+
+    printScreen(game, view);
+    if (inputBuffer.length > 0) {
+      game = movePlayer(game, inputBuffer.shift());
+    }
+    view.screen.render();
+  }, INTERVAL);
 }
+
+gameLoop();
 
 function initGame(): Game {
   let items = loadItems();
   let features = loadFeatures();
   let messages = new Array<string>();
-  messages.push(
-    "Welcome to GoblinCrawl! May the two heads of Meggled speak their secrets to you!"
-  );
 
   let game: Game = {
     turnCount: 0,
@@ -220,7 +191,9 @@ function printScreen(game: Game, view: View): Game {
       // show last 5 messages
       if (i < game.messages.length - 1) {
         // Older messages are dimmed
-        logOut = logOut.concat(`{grey-fg}${game.messages[i] || ""}{/grey-fg}\n`);
+        logOut = logOut.concat(
+          `{grey-fg}${game.messages[i] || ""}{/grey-fg}\n`
+        );
       } else if (i === game.messages.length - 1) {
         // Most recent message is full brightness
         logOut = logOut.concat(`${game.messages[i] || ""}\n`);
@@ -236,41 +209,128 @@ function printScreen(game: Game, view: View): Game {
   return game;
 }
 
-function gameLoop() {
-  let view = initView();
-  let game = initGame();
-  const FRAME_RATE = 30;
-  const INTERVAL = Math.floor(1000 / FRAME_RATE); // ~33.33ms
+type View = {
+  screen: blessed.Widgets.Screen;
+  topbar: blessed.Widgets.BoxElement;
+  map: blessed.Widgets.BoxElement;
+  log: blessed.Widgets.BoxElement;
+};
 
-  const interval = setInterval(() => {
-    if (game.gameOver) {
-      clearInterval(interval);
-      console.log(`You lose!`);
-      return;
-    }
+function initView(): View {
+  const screen = blessed.screen({
+    smartCSR: true, // Optimize for rendering
+    title: "GoblinCrawl",
+    tags: true,
+  });
+  screen.key(["C-c"], function () {
+    return process.exit(0);
+  });
 
-    printScreen(game, view);
+  const topbar = blessed.box({
+    parent: screen,
+    top: 0,
+    left: 0,
+    height: 3,
+    border: {
+      type: "line",
+    },
+    style: {
+      border: {
+        fg: "green",
+      },
+    },
+    tags: true,
+  });
 
-    if (inputBuffer.length > 0) {
-      game = movePlayer(game, inputBuffer.shift());
-    }
-    view.screen.render();
-  }, INTERVAL);
+  const map = blessed.box({
+    parent: screen,
+    top: 3,
+    left: 0,
+    height: dungeonHeight,
+    border: {
+      type: "line",
+    },
+    style: {
+      border: {
+        fg: "blue",
+      },
+    },
+    tags: true,
+  });
+
+  const log = blessed.box({
+    parent: screen,
+    top: dungeonHeight + 3,
+    left: 0,
+    width: "100%",
+    height: 7,
+    border: {
+      type: "line",
+    },
+    style: {
+      border: {
+        fg: "green",
+      },
+    },
+    tags: true,
+    scrollable: true,
+  });
+  return {
+    topbar: topbar,
+    screen: screen,
+    map: map,
+    log: log,
+  };
 }
 
-process.stdin.setEncoding("utf8");
-process.stdin.setRawMode(true);
-process.stdin.resume();
+function startScreen(view: View) {
+  const introBox = blessed.box({
+    parent: view.map,
+    style: {
+      bg: "green",
+    },
+    height: "100%",
+    align: "center",
+    valign: "middle",
+  });
 
-process.stdin.on("data", (key: Buffer) => {
-  const keyStr = key.toString();
-  // Exit on ctrl-c
-  if (keyStr === "\u0003") {
-    process.exit();
-  }
-  inputBuffer.push(keyStr);
-});
+  const introText = blessed.box({
+    parent: introBox,
+    top: "20%", // Position from top
+    height: "60%", // Give it most of the space
+    style: {
+      fg: "black",
+      bold: true,
+      bg: "green",
+    },
+    align: "center",
+    valign: "middle",
+  });
 
-let inputBuffer = new Array<string>();
+  const startHint = blessed.box({
+    parent: introBox,
+    top: "80%", // Position below the intro text
+    height: "20%", // Take remaining space
+    style: {
+      fg: "black",
+      bg: "green",
+      bold: true,
+    },
+    align: "center",
+    valign: "middle",
+  });
+  // welcome screen
+  introText.setContent(`
+  ________        ___.    .__   .__         _________                         .__   
+ /  _____/   ____ \\_ |__  |  |  |__|  ____  \\_   ___ \\_______ _____  __  _  __|  |  
+/   \\  ___  /  _ \\ | __ \\ |  |  |  | /    \\ /    \\  \\/\\_  __ \\\\__  \\ \\ \\/ \\/ /|  |  
+\\    \\_\\  \\(  <_> )| \\_\\ \\|  |__|  ||   |  \\\\     \\____|  | \\/ / __ \\_\\     / |  |__
+\\______  / \\____/ |___  /|____/|__||___|  / \\______  /|__|   (____  / \\/\\_/  |____/
+       \\/             \\/                \\/         \\/             \\/               
+                      
+       `);
 
-gameLoop();
+  // welcome screen
+  startHint.setContent(`Press any key to start...`);
+  return introBox;
+}
