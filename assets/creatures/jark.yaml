@@ -11,12 +11,12 @@ creatures:
       level: 1
       spawnChance: 100
       maxSpawnNum: 1
-  conversationBranch:
+  conversationBranches:
     - creatureSpeaks: Eh? What do you want?
-      conversationBranch:
+      conversationBranches:
         - playerResponse: Where am I?
           creatureSpeaks: Give me a skrunt egg and I'll tell you!
-          conversationBranch:
+          conversationBranches:
             - playerResponse: No!
               creatureSpeaks: Fine! Then scamper off!
             - playerResponse: Ok, here you go
@@ -29,15 +29,15 @@ creatures:
                   - skrunt egg
         - playerResponse: Who are you?
           creatureSpeaks: I am Jark, mightiest of the goblin shaman! 
-          conversationBranch:
+          conversationBranches:
             - playerResponse: Prove it.
-              creatureSpeaks: I shall turn thee into a roach! *Jark mutters under his breath while flailing his arms*
-              conversationBranch:
-                playerResponse: ... I don't feel any different ...
-                creatureSpeaks: You're lucky this time! I'm out of roach legs for my spells...
+              creatureSpeaks: Feh! I shall turn thee into a roach! *Jark mutters under his breath while flailing his arms*
+              conversationBranches:
+                - playerResponse: ... I don't feel any different ...
+                  creatureSpeaks: You're lucky this time! I'm out of roach legs for my spells...
             - playerResponse: Tell me about Meggled, mighty shaman
               creatureSpeaks: Ah, young gobline - Meggled is the mighty two-headed goblin god. One head speaks only secrets and the other speaks only lies!
-              conversationBranch:
+              conversationBranches:
                 - playerResponse: What does Meggled want from goblinkind?
                   gotoBranch: Give me a skrunt egg and I'll tell you!
 

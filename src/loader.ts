@@ -80,7 +80,7 @@ function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
         ...creature,
         status: parseCreatureStatus(creature.status),
         movementType: parseMovementType(creature.movementType),
-        conversationBranch: creature.conversationBranch || undefined,
+        conversationBranches: creature.conversationBranches || undefined,
       } as Creature;
     });
 

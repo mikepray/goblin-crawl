@@ -71,12 +71,12 @@ export function buildRoom() {
   let h = Math.floor(Math.random() * 7) + 6;
 
   // randomly generate origin point of room (top left)
-  let originX = Math.floor(Math.random() * (dungeonWidth - w));
-  let originY = Math.floor(Math.random() * (dungeonHeight - h));
+  let originX = Math.floor(Math.random() * (dungeonWidth - w - 2));
+  let originY = Math.floor(Math.random() * (dungeonHeight - h - 2));
 
   // add room to tile set
-  for (let i = 0; i < h; i++) {
-    for (let j = 0; j < w; j++) {
+  for (let i = 1; i < h; i++) {
+    for (let j = 2; j < w; j++) {
       tiles.set(coordsToKey({ x: originX + j, y: originY + i }), {
         x: originX + j,
         y: originY + i,

@@ -20,11 +20,20 @@ export const moveActor = (
   const nextPosition = CoordsUtil.add(previousPosition, moveDelta);
   const nextPositionKey = coordsToKey(nextPosition);
   const whatsAtNextPosition = game.actors.get(nextPositionKey);
-
+  const subjectCreature = whatsAtNextPosition as Creature;
   // interact with adjacent actor (bump)
-  if (whatsAtNextPosition !== undefined && game.actors.has(nextPositionKey)) {
-    // TODO prevent actors from interacting with themselves
-    return interact(game, actor, whatsAtNextPosition!);
+  if (
+    whatsAtNextPosition !== undefined &&
+    game.actors.has(nextPositionKey) &&
+    "isHostile" in whatsAtNextPosition
+  ) {
+    if (subjectCreature.name === "player") {
+      // attack player
+      game.messages.push(
+        "the creature tries to attack you, but the programmer hasn't coded that yet!"
+      );
+      return game;
+    }
   }
 
   // prevent move on boundary collision
@@ -38,6 +47,10 @@ export const moveActor = (
   }
   // prevent move on wall collision
   if (!game.tiles.has(nextPositionKey)) {
+    return game;
+  }
+  // prevent move into other actors
+  if (game.actors.has(nextPositionKey)) {
     return game;
   }
   actor.x = nextPosition.x;
@@ -55,37 +68,14 @@ export const moveActor = (
     const shout = Math.floor(
       Math.random() * (actor.shouts as Array<Shout>).length
     );
-    game.messages.push(chalk.italic.dim(`(${actor.name}) ${(actor.shouts as Array<Shout>)[shout].shout}`));
+    game.messages.push(
+      chalk.italic.dim(`${(actor.shouts as Array<Shout>)[shout].shout}`)
+    );
   }
 
   game.isScreenDirty = true;
   return game;
 };
-
-function interact(game: Game, object: Actor, subject: Actor): Game {
-  if ("isHostile" in subject) {
-    const subjectCreature = subject as Creature;
-    if (subjectCreature.isHostile) {
-      // attack
-    } else {
-      // dialog with player
-      if (object.name === "player" && subjectCreature.conversationBranch) {
-        const conversationBranch =
-          subjectCreature.conversationBranch[
-            Math.floor(Math.random() * subjectCreature.conversationBranch.length)
-          ];
-        game.activeDialog = conversationBranch;
-        game.interactingActor = subjectCreature;
-        game.dialogMode = "dialog";
-        game.isScreenDirty = true;
-      } else if (object.name === "player") {
-        // creature doesn't speak
-        game.messages.push(`${subjectCreature.useDefiniteArticle ? " The " : ""}${subjectCreature.name} isn't interested in discussion...`)
-      }
-    }
-  }
-  return game;
-}
 
 export const getWanderingMoveDelta = (creature: Creature): Coords => {
   const moveDelta: Coords = { x: 0, y: 0 };

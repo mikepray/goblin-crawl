@@ -3,7 +3,7 @@ export type Game = {
   turnCount: number;
   player: Player;
   gameOver: boolean;
-  activeDialog?: CreatureDialogNode;
+  activeDialog?: ConversationBranch;
   interactingActor?: Actor;
   dialogPointer: number;
   currentBranchLevel: BranchLevel;
@@ -64,13 +64,14 @@ export type Level = BranchLevel & {
 export type Creature = Actor & {
   isHostile: boolean;
   status: CreatureStatusType;
-  conversationBranch?: Array<CreatureDialogNode>;
+  conversationBranches?: Array<ConversationBranch>;
   movementType: MovementTypeValue;
   wanderingDirection?: MovementDirection;
   branchSpawnRates?: Array<BranchSpawnRate>;
   shouts?: Array<string>;
   shoutChance?: number; // 0 to 100 chance of shouting
   useDefiniteArticle: boolean; // if the game will put "The" in front of the creature's name
+  wasSwappedByPlayer: boolean; // if the player just swapped with this creature. prevents the creature from moving for one turn
 };
 
 // creatures shout randomly, requires no interaction with the player
@@ -104,14 +105,14 @@ export type Downstairs = Feature & {
 
 export type BranchLevel = { branchName: string; level: number };
 
-export type CreatureDialogNode = {
+export type ConversationBranch = {
   playerResponse?: string;
   creatureSpeaks?: string;
-  conversationBranch?: Array<CreatureDialogNode>;
+  conversationBranches?: Array<ConversationBranch>;
   actions?: Array<Action>;
   // Reference to the string of another node's creatureSpeaks dialog, for going back to other dialog nodes
   gotoBranch?: string;
-  actionFailedBranch?: CreatureDialogNode;
+  actionFailedBranch?: ConversationBranch;
 };
 
 export type Action = {
