@@ -1,4 +1,4 @@
-import chalk from "chalk";
+
 import { dungeonHeight, dungeonWidth } from "./game";
 import {
   Actor,
@@ -69,7 +69,7 @@ export const moveActor = (
       Math.random() * (actor.shouts as Array<Shout>).length
     );
     game.messages.push(
-      chalk.italic.dim(`${(actor.shouts as Array<Shout>)[shout].shout}`)
+     `{grey-fg}${(actor.shouts as Array<Shout>)[shout].shout}{/}`
     );
   }
 

@@ -1,28 +1,97 @@
-import chalk from "chalk";
+import blessed from "blessed";
 import { printDialogScreen } from "./dialog";
 import { descend } from "./levels";
 import { loadCreatures, loadFeatures, loadItems } from "./loader";
 import { movePlayer } from "./move";
-import {
-  Actor,
-  Coords,
-  Feature,
-  Game,
-  Item,
-  Level,
-  Player
-} from "./types";
-import {
-  coordsToKey,
-  isTileInFieldOfVision
-} from "./utils";
+import { Actor, Coords, Feature, Game, Item, Level, Player } from "./types";
+import { coordsToKey, isTileInFieldOfVision } from "./utils";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
+type View = {
+  screen: blessed.Widgets.Screen;
+  topbar: blessed.Widgets.BoxElement;
+  map: blessed.Widgets.BoxElement;
+  log: blessed.Widgets.BoxElement;
+};
+
+function initView(): View {
+  const screen = blessed.screen({
+    smartCSR: true, // Optimize for rendering
+    title: "GoblinCrawl",
+    tags: true,
+  });
+  screen.key(["C-c"], function () {
+    return process.exit(0);
+  });
+
+  const topbar = blessed.box({
+    parent: screen,
+    top: 0,
+    left: 0,
+    height: 3,
+    border: {
+      type: "line",
+    },
+    style: {
+      border: {
+        fg: "green",
+      },
+    },
+    tags: true,
+  });
+
+
+  const map = blessed.box({
+    parent: screen,
+    top: 3,
+    left: 0,
+    height: dungeonHeight,
+    border: {
+      type: "line",
+    },
+    style: {
+      border: {
+        fg: "blue",
+      },
+    },
+    tags: true,
+  });
+
+  const log = blessed.box({
+    parent: screen,
+    top: dungeonHeight + 3,
+    left: 0,
+    width: "100%",
+    height: 7,
+    border: {
+      type: "line",
+    },
+    style: {
+      border: {
+        fg: "green",
+      },
+    },
+    tags: true,
+    scrollable: true,
+  });
+  return {
+    topbar: topbar,
+    screen: screen,
+    map: map,
+    log: log,
+  };
+}
+
 function initGame(): Game {
   let items = loadItems();
   let features = loadFeatures();
+  let messages = new Array<string>();
+  messages.push(
+    "Welcome to GoblinCrawl! May the two heads of Meggled speak their secrets to you!"
+  );
+
   let game: Game = {
     turnCount: 0,
     actors: new Map<string, Actor>(),
@@ -43,12 +112,14 @@ function initGame(): Game {
     allFeatures: features,
     allCreatures: loadCreatures(),
     allItems: items,
-    messages: new Array<string>(0),
+    messages: messages,
     levels: new Map<string, Level>(),
     items: new Map<string, Array<Item>>(),
     seenTiles: new Map<string, Coords>(),
     dialogMode: "game",
   };
+
+  // welcome message
 
   return descend(game, {
     branchName: "D",
@@ -56,11 +127,12 @@ function initGame(): Game {
   });
 }
 
-function printScreen(game: Game): Game {
-  console.clear();
-  let out = `${chalk.greenBright("GoblinCrawl")} | ${
-    game.currentBranchLevel.branchName
-  }:${game.currentBranchLevel.level} Turn: ${game.turnCount}\n`;
+function printScreen(game: Game, view: View): Game {
+  let topbarContent = `{bold}GoblinCrawl{/bold} | ${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level} Turn: ${game.turnCount}\n`;
+
+  view.topbar.setContent(topbarContent);
+
+  let out = "";
   if (game.dialogMode === "dialog") {
     out = out.concat(printDialogScreen(game, out));
   } else if (game.dialogMode === "inventory") {
@@ -113,7 +185,7 @@ function printScreen(game: Game): Game {
             // show the last item's glyph
             out = out.concat(itemsOnTile[0].glyph);
           } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-            out = out.concat(`${chalk.grey(".")}`);
+            out = out.concat(`{grey-fg}.{/grey-fg}`);
           } else out = out.concat("#");
         } else {
           // if not in field of vision, render the tile dimmer if the player has already seen it
@@ -121,11 +193,11 @@ function printScreen(game: Game): Game {
             if (game.features.has(coordsToKey({ x: x, y: y }))) {
               // show seen features first
               const feature = game.features.get(coordsToKey({ x: x, y: y }));
-              out = out.concat(`${chalk.grey.dim(feature?.glyph)}`);
+              out = out.concat(`{grey-fg}${feature?.glyph}{/grey-fg}`);
             } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-              out = out.concat(`${chalk.grey.dim(".")}`);
+              out = out.concat(`{grey-fg}.{/grey-fg}`);
             } else {
-              out = out.concat(`${chalk.grey.dim("#")}`);
+              out = out.concat(`{grey-fg}#{/grey-fg}`);
             }
           } else {
             out = out.concat(" ");
@@ -136,36 +208,38 @@ function printScreen(game: Game): Game {
     }
   }
 
+  view.map.setContent(out);
+
+  let logOut = "";
   if (game.dialogMode === "game" || game.dialogMode === "inventory") {
     // messages
     for (let j = 0; j < 5 - game.messages.length; j++) {
-      out = out.concat(`│\n`);
+      logOut = logOut.concat(`\n`);
     }
     for (let i = 0; i < Math.min(5, game.messages.length); i++) {
       // show last 5 messages
       if (i < game.messages.length - 1) {
-        out = out.concat(`│${chalk.dim(game.messages[i] || "")}\n`);
+        // Older messages are dimmed
+        logOut = logOut.concat(`{grey-fg}${game.messages[i] || ""}{/grey-fg}\n`);
       } else if (i === game.messages.length - 1) {
-        out = out.concat(`│${chalk.whiteBright(game.messages[i] || "")}\n`);
+        // Most recent message is full brightness
+        logOut = logOut.concat(`${game.messages[i] || ""}\n`);
       }
       if (game.messages.length > 5) {
         game.messages.shift();
       }
     }
-    out = out.concat("└");
-    for (let i = 0; i < dungeonWidth + 2; i++) {
-      out = out.concat("─");
-    }
   }
 
-  console.log(out);
-  game.isScreenDirty = false;
+  view.log.setContent(logOut);
+
   return game;
 }
 
 function gameLoop() {
+  let view = initView();
   let game = initGame();
-  const FRAME_RATE = 30; 
+  const FRAME_RATE = 30;
   const INTERVAL = Math.floor(1000 / FRAME_RATE); // ~33.33ms
 
   const interval = setInterval(() => {
@@ -175,32 +249,19 @@ function gameLoop() {
       return;
     }
 
-    if (game.isScreenDirty) {
-      printScreen(game);
-    }
+    printScreen(game, view);
+
     if (inputBuffer.length > 0) {
       game = movePlayer(game, inputBuffer.shift());
     }
+    view.screen.render();
   }, INTERVAL);
 }
 
 process.stdin.setEncoding("utf8");
 process.stdin.setRawMode(true);
 process.stdin.resume();
-// Hide the cursor
-process.stdout.write("\u001B[?25l");
 
-// When the game exits, make sure to show the cursor again
-function showCursor() {
-  process.stdout.write("\u001B[?25h");
-}
-
-// Register cleanup handlers to ensure cursor is restored
-process.on("exit", showCursor);
-process.on("SIGINT", () => {
-  showCursor();
-  process.exit();
-});
 process.stdin.on("data", (key: Buffer) => {
   const keyStr = key.toString();
   // Exit on ctrl-c

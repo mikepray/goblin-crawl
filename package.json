@@ -13,13 +13,14 @@
   "description": "GoblinCrawl",
   "keywords": [],
   "devDependencies": {
+    "@types/blessed": "^0.1.25",
     "@types/node": "^22.13.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
   "dependencies": {
     "@types/js-yaml": "^4.0.9",
-    "chalk": "^4.1.2",
+    "blessed": "^0.1.81",
     "js-yaml": "^4.1.0"
   }
 }
