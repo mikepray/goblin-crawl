@@ -1,27 +1,21 @@
 import chalk from "chalk";
-import { getWanderingMoveDelta, moveActor } from "./actors";
-import { ascend, descend } from "./levels";
+import { printDialogScreen } from "./dialog";
+import { descend } from "./levels";
 import { loadCreatures, loadFeatures, loadItems } from "./loader";
+import { movePlayer } from "./move";
 import {
   Actor,
   Coords,
-  CoordsMap,
-  Creature,
   Feature,
   Game,
-  InputKey,
   Item,
   Level,
-  Player,
+  Player
 } from "./types";
 import {
-  branchLevelToKey,
   coordsToKey,
-  getBresenhamsLine,
-  isTileInFieldOfVision,
+  isTileInFieldOfVision
 } from "./utils";
-import { movePlayer } from "./move";
-import { printDialogScreen } from "./dialog";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
