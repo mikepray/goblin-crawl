@@ -7,7 +7,8 @@
     "test:debug": "vitest --test-timeout=99999999",
     "build": "tsc",
     "start": "node dist/game.js",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "arena": "npm run build && node dist/game.js --arena"
   },
   "author": "mike pray",
   "license": "ISC",

@@ -7,12 +7,13 @@ import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
 import { ascend, descend } from "./levels";
 import {
+  Actor,
   ConversationBranch,
   Coords,
   Creature,
   Game,
   InputKey,
-  Item
+  Item,
 } from "./types";
 import { branchLevelToKey, coordsToKey, CoordsUtil } from "./utils";
 
@@ -258,40 +259,52 @@ export function movePlayer(game: Game, nextInput: any) {
         game.messages.push(`here: ${featureAtTile?.description}`);
       }
 
-      // copy list to prevent concurrent modification
-      const previousActorList = new Map(game.actors);
-
-      previousActorList.forEach((actor) => {
-        let moveDelta = { x: 0, y: 0 };
-        if (actor.name !== "player") {
+      // iterate through the list of actors and move each one
+      // uses an array ref of the game actors to prevent concurrent modifications
+      // each actor should move atomically so that subsequent actors don't path through them
+      let actorsArrayRef = Array.from(game.actors.keys());
+      for (let i = 0; i < actorsArrayRef.length; i++) {
+        let actor = game.actors.get(actorsArrayRef[i]);
+        if (actor && actor.name !== "player") {
           if ("movementType" in actor) {
             const creature = actor as Creature;
             if (creature.movementType === "WANDERING") {
               if (!creature.isHostile) {
+                let moveDelta = { x: 0, y: 0 };
                 if (!creature.wasSwappedByPlayer) {
                   moveDelta = getWanderingMoveDelta(creature);
                 } else {
                   creature.wasSwappedByPlayer = false;
                 }
-                game = moveActor(game, actor, moveDelta);
+                game = moveActor(game, creature, moveDelta);
               } else {
                 // creature is hostile, move to attack player
-                // remove actor tiles other than the player from the game tiles so the enemies don't path through each other
-                let validTiles = Array.from(game.tiles.keys()).filter(tileKey => {
-                  return !game.actors.has(tileKey) || tileKey === coordsToKey({...game.player});
-                });
+                let deconflictWith = new Map<string, Actor>();
+                for (const [tileKey, actor] of game.actors) {
+                  // make a list of other creatures to avoid pathing through them.
+                  // allow player and current actor, (target and start tiles respectively)
+                  //  so that those tiles can be considered in the pathing algorithm
+                  if (tileKey !== coordsToKey({ ...game.player }) && tileKey !== coordsToKey({...creature})) {
+                    deconflictWith.set(tileKey, actor);
+                  }
+                }
 
                 game = moveActor(
                   game,
-                  actor,
+                  creature,
                   undefined,
-                  getNextMoveToTarget(game.tiles, creature,  game.player)
+                  getNextMoveToTarget(
+                    game.tiles,
+                    creature,
+                    game.player,
+                    deconflictWith
+                  )
                 );
               }
             }
           }
         }
-      });
+      }
     }
   } else if (game.dialogMode === "dialog" && game.activeDialog) {
     handleDialogActions(game, nextInput);

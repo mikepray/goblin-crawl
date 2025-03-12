@@ -17,6 +17,22 @@
       "sourceMaps": true
     },
     {
+      "name": "Debug Arena Mode",
+      "type": "node",
+      "request": "launch",
+      "args": [
+        "src/game.ts",
+        "--arena"
+      ],
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register",
+      ],
+      "cwd": "${workspaceRoot}",
+      "console": "integratedTerminal",
+      "sourceMaps": true
+    },
+    {
       "name": "Debug Vitest",
       "type": "node",
       "request": "launch",

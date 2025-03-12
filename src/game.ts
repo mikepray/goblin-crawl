@@ -5,6 +5,7 @@ import { loadCreatures, loadFeatures, loadItems } from "./loader";
 import { movePlayer } from "./move";
 import { Actor, Coords, Feature, Game, Item, Level, Player } from "./types";
 import { coordsToKey, isTileInFieldOfVision } from "./utils";
+import { initArenaMode } from "./arenaMode";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -29,13 +30,18 @@ let inputBuffer = new Array<string>();
 
 function gameLoop() {
   let view = initView();
-  let game = initGame();
+  
+  // Check command line arguments for arena mode
+  const isArenaMode = process.argv.includes('--arena');
+  let game = isArenaMode ? initArenaMode() : initGame();
+  
   const FRAME_RATE = 30;
   const INTERVAL = Math.floor(1000 / FRAME_RATE); // ~33.33ms
 
   const introBox = startScreen(view);
   view.screen.render();
 
+  // wait for any key to be pressed to clear start screen
   const startScreenInterval = setInterval(() => {
     if (inputBuffer.length > 0) {
       inputBuffer.shift();
@@ -92,8 +98,6 @@ function initGame(): Game {
     seenTiles: new Map<string, Coords>(),
     dialogMode: "game",
   };
-
-  // welcome message
 
   return descend(game, {
     branchName: "D",
