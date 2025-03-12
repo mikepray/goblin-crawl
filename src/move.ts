@@ -1,17 +1,20 @@
-import { moveActor, getWanderingMoveDelta } from "./actors";
+import {
+  getNextMoveToTarget,
+  getWanderingMoveDelta,
+  moveActor,
+} from "./actors";
 import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
-import { descend, ascend } from "./levels";
+import { ascend, descend } from "./levels";
 import {
-  Game,
-  InputKey,
+  ConversationBranch,
   Coords,
   Creature,
-  Item,
-  Action,
-  ConversationBranch,
+  Game,
+  InputKey,
+  Item
 } from "./types";
-import { coordsToKey, branchLevelToKey, CoordsUtil } from "./utils";
+import { branchLevelToKey, coordsToKey, CoordsUtil } from "./utils";
 
 export function movePlayer(game: Game, nextInput: any) {
   if (nextInput === InputKey.ESCAPE) {
@@ -270,13 +273,23 @@ export function movePlayer(game: Game, nextInput: any) {
                 } else {
                   creature.wasSwappedByPlayer = false;
                 }
+                game = moveActor(game, actor, moveDelta);
               } else {
                 // creature is hostile, move to attack player
-                
+                // remove actor tiles other than the player from the game tiles so the enemies don't path through each other
+                let validTiles = Array.from(game.tiles.keys()).filter(tileKey => {
+                  return !game.actors.has(tileKey) || tileKey === coordsToKey({...game.player});
+                });
+
+                game = moveActor(
+                  game,
+                  actor,
+                  undefined,
+                  getNextMoveToTarget(game.tiles, creature,  game.player)
+                );
               }
             }
           }
-          game = moveActor(game, actor, moveDelta);
         }
       });
     }

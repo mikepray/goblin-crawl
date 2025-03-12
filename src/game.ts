@@ -9,9 +9,12 @@ import { coordsToKey, isTileInFieldOfVision } from "./utils";
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
-process.stdin.setEncoding("utf8");
-process.stdin.setRawMode(true);
-process.stdin.resume();
+// Only set up stdin when not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  process.stdin.setEncoding("utf8");
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+}
 
 process.stdin.on("data", (key: Buffer) => {
   const keyStr = key.toString();
@@ -284,10 +287,11 @@ function initView(): View {
 }
 
 function startScreen(view: View) {
+  const green3 = "#00af00";
   const introBox = blessed.box({
     parent: view.map,
     style: {
-      bg: "green",
+      bg: green3,
     },
     height: "100%",
     align: "center",
@@ -301,7 +305,7 @@ function startScreen(view: View) {
     style: {
       fg: "black",
       bold: true,
-      bg: "green",
+      bg: green3,
     },
     align: "center",
     valign: "middle",
@@ -313,7 +317,7 @@ function startScreen(view: View) {
     height: "20%", // Take remaining space
     style: {
       fg: "black",
-      bg: "green",
+      bg: green3,
       bold: true,
     },
     align: "center",

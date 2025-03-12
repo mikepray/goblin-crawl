@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "game.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
+    "test:debug": "vitest --test-timeout=99999999",
     "build": "tsc",
     "start": "node dist/game.js",
     "dev": "tsc -w"
@@ -16,7 +17,8 @@
     "@types/blessed": "^0.1.25",
     "@types/node": "^22.13.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
   },
   "dependencies": {
     "@types/js-yaml": "^4.0.9",

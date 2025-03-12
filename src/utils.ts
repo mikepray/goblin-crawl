@@ -1,4 +1,5 @@
 import { BranchLevel, Coords, CoordsMap } from "./types";
+import { Actor, Player } from "./types";
 
 export function isTileInFieldOfVision(
   testCoords: Coords,
@@ -107,5 +108,28 @@ export function getRandomValidTile(
     x: tiles.get(key!)!.x,
     y: tiles.get(key!)!.y,
   };
+}
+
+// Gets a map of walkable tiles by subtracting actor positions from game tiles (except for player)
+export function getWalkableTiles(
+  gameTiles: CoordsMap,
+  actors: Map<string, Actor>,
+  player: Player
+): CoordsMap {
+  const walkableTiles = new Map<string, Coords>();
+  
+  // First copy all game tiles
+  for (const [key, coords] of gameTiles) {
+    walkableTiles.set(key, coords);
+  }
+
+  // Remove all actor positions except player
+  for (const [key, actor] of actors) {
+    if (actor.name !== "player") {
+      walkableTiles.delete(key);
+    }
+  }
+
+  return walkableTiles;
 }
 
