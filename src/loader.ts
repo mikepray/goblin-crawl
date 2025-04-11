@@ -75,6 +75,7 @@ function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
         useDefiniteArticle: true,
       };
 
+      // TODO lookup inventory and item slot items by name and add object references
       return {
         ...defaults,
         ...creature,

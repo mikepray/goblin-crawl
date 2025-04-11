@@ -8,6 +8,7 @@
       "args": [
         "src/game.ts"
       ],
+      "runtimeExecutable": "/Users/mike.pray/.nvm/versions/node/v20.11.1/bin/node",
       "runtimeArgs": [
         "-r",
         "ts-node/register"
@@ -24,9 +25,10 @@
         "src/game.ts",
         "--arena"
       ],
+      "runtimeExecutable": "/Users/mike.pray/.nvm/versions/node/v20.11.1/bin/node",
       "runtimeArgs": [
         "-r",
-        "ts-node/register",
+        "ts-node/register"
       ],
       "cwd": "${workspaceRoot}",
       "console": "integratedTerminal",

@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { Coords } from './types';
 import { coordsToKey } from './utils';
-import { getNodeWithLeastDistance, getNextMoveToTarget } from './actors';
-import { Coords, CoordsMap } from './types';
+import { getNodeWithLeastDistance, getNextMoveToTarget } from './move';
 
 describe('getNodeWithLeastDistance', () => {
   it('should return undefined for empty map', () => {
@@ -36,7 +36,7 @@ describe('getNextMoveToTarget', () => {
     tiles.set(coordsToKey({x: 2, y: 0}), {x: 2, y: 0}); // target
     // No tile at {x: 1, y: 0} creates a wall
 
-    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 2, y: 0});
+    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 2, y: 0}, undefined);
     expect(result).toEqual({x: 0, y: 0});
   });
 
@@ -47,7 +47,7 @@ describe('getNextMoveToTarget', () => {
     tiles.set(coordsToKey({x: 1, y: 0}), {x: 1, y: 0}); // middle
     tiles.set(coordsToKey({x: 2, y: 0}), {x: 2, y: 0}); // target
 
-    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 2, y: 0});
+    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 2, y: 0}, undefined);
     expect(result).toEqual({x: 1, y: 0});
   });
 
@@ -60,7 +60,7 @@ describe('getNextMoveToTarget', () => {
     tiles.set(coordsToKey({x: 2, y: 1}), {x: 2, y: 1}); // path
     tiles.set(coordsToKey({x: 2, y: 0}), {x: 2, y: 0}); // target
 
-    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 2, y: 0});
+    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 2, y: 0}, undefined);
     expect(result).toEqual({x: 1, y: 1});
   });
 
@@ -69,7 +69,7 @@ describe('getNextMoveToTarget', () => {
     tiles.set(coordsToKey({x: 0, y: 0}), {x: 0, y: 0}); // start
     tiles.set(coordsToKey({x: 1, y: 0}), {x: 1, y: 0}); // target
 
-    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 1, y: 0});
+    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 1, y: 0}, undefined);
     expect(result).toEqual({x: 1, y: 0});
   });
 }); 

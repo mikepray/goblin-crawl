@@ -32,8 +32,8 @@ export function initArenaMode(): Game {
   const kobold = creatures.find(c => c.name === "kobold");
   if (kobold) {
     actors.set(coordsToKey({x:18, y: 10}), {...kobold, x: 18, y: 10});
-    actors.set(coordsToKey({x:19, y: 10}), {...kobold, x: 19, y: 10});
-    actors.set(coordsToKey({x:20, y: 10}), {...kobold, x: 20, y: 10});
+    // actors.set(coordsToKey({x:19, y: 10}), {...kobold, x: 19, y: 10});
+    // actors.set(coordsToKey({x:20, y: 10}), {...kobold, x: 20, y: 10});
   }
 
   let game: Game = {
@@ -48,6 +48,20 @@ export function initArenaMode(): Game {
       glyph: "@",
       name: "player",
       description: "It's you",
+      armor: 1,
+      dodging: 3,
+      cunning: 3,
+      savagery: 3,
+      fortitude: 1,
+      power: 1,
+      hp: 10,
+      naturalWeapon: {
+        name: "fists",
+        attackBonus: 1,
+        damageBonus: 0,
+        damageDieNum: 1,
+        damageDie: 3,
+      }
     } as Player,
     gameOver: false,
     isScreenDirty: true,
@@ -56,7 +70,8 @@ export function initArenaMode(): Game {
     allFeatures: features,
     allCreatures: creatures,
     allItems: items,
-    messages: ["Arena Mode"],
+    messages: [],
+    oldMessages: [],
     levels: new Map<string, Level>(),
     items: new Map<string, Array<Item>>(),
     seenTiles: new Map<string, Coords>(),
@@ -68,5 +83,6 @@ export function initArenaMode(): Game {
 
   // clear current level's features, actors, etc
   game.seenTiles = new Map<string, Coords>();
+
   return game;
 }

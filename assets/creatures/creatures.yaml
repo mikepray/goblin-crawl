@@ -9,6 +9,18 @@ creatures:
     status: AWAKE
     movementType: WANDERING
     shoutChance: 7
+    armor: 1
+    dodging: 3
+    cunning: 3
+    savagery: 1
+    fortitude: 1
+    power: 1
+    naturalWeapon:
+      name: fists
+      attackBonus: 1
+      damageBonus: 0
+      damageDieNum: 1
+      damageDie: 2
     branchSpawnRates: 
       - branchName: D
         level: 1
@@ -42,7 +54,18 @@ creatures:
     isHostile: false
     status: AWAKE
     movementType: WANDERING
-    shoutChance: 5 # out of 1000
+    armor: 1
+    dodging: 3
+    cunning: 0
+    savagery: 0
+    fortitude: 0
+    power: 0
+    naturalWeapon:
+      name: beak
+      attackBonus: 1
+      damageBonus: 1
+      damageDieNum: 1
+      damageDie: 2
     branchSpawnRates: 
       - branchName: D
         level: 1
@@ -52,6 +75,7 @@ creatures:
         level: 2
         spawnChance: 80
         maxSpawnNum: 5
+    shoutChance: 5 # out of 1000
     shouts: 
       - shout: skrunt skrunt skrunt
       - shout: skrunt?
@@ -66,6 +90,19 @@ creatures:
     description: >
       a small intelligent dragonlike creature with grey scaly skin. 
       it is detested by goblinkind for its base treachery and villainy
+    armor: 1
+    dodging: 3
+    cunning: 3
+    savagery: 3
+    fortitude: 1
+    power: 1
+    hp: 8
+    naturalWeapon:
+      name: fists
+      attackBonus: 1
+      damageBonus: 1
+      damageDieNum: 1
+      damageDie: 3
     branchSpawnRates: 
       - branchName: D
         level: 3

@@ -1,4 +1,4 @@
-import { BranchLevel, Coords, CoordsMap } from "./types";
+import { Actor, BranchLevel, Coords, CoordsMap, Feature, Skills } from "./types";
 
 export function isTileInFieldOfVision(
   testCoords: Coords,
@@ -61,6 +61,17 @@ export function getBresenhamsLine(x0: number, y0:number , x1: number, y1: number
   return lineCoords;
 }
 
+export const d20 = () => {
+  return Math.floor(Math.random() * 20);
+}
+
+// dice roller. rolls k-sided dice n times
+export const nDk = (n: number, k: number) => {
+  let sum = 0;
+  while (n-- + 1 > 0) sum += Math.floor(Math.random() * k);
+  return sum;
+}
+
 // converts coordinates to a string key for O(1) lookups in Maps
 export function coordsToKey(coords: Coords): string {
   return `${coords.x},${coords.y}`;
@@ -109,3 +120,52 @@ export function getRandomValidTile(
   };
 }
 
+// iterates through the given actor's slots and sums the skill multipliers for each skill
+// also calculates the static bonuses like armor and dodging
+export const getSkillMultipliers = (
+  actor: Actor
+): {
+  multipliers: Skills;
+  bonuses: { armorBonus: number; dodgingBonus: number };
+} => {
+  let skillMultipliers: Skills = {
+    armor: 1,
+    dodging: 1,
+    cunning: 1,
+    savagery: 1,
+    fortitude: 1,
+    power: 1,
+  };
+  let bonuses = { armorBonus: 0, dodgingBonus: 0 };
+
+  if (actor.slots) {
+    for (const slot of Object.keys(actor.slots) as Array<
+      keyof typeof actor.slots
+    >) {
+      if (actor.slots[slot]) {
+        skillMultipliers.cunning += actor.slots[slot].cunning ?? 1;
+        skillMultipliers.savagery += actor.slots[slot].savagery ?? 1;
+        skillMultipliers.fortitude += actor.slots[slot].fortitude ?? 1;
+        skillMultipliers.power += actor.slots[slot].power ?? 1;
+        skillMultipliers.armor += actor.slots[slot].armor ?? 1;
+        skillMultipliers.dodging += actor.slots[slot].dodging ?? 1;
+        bonuses.armorBonus += actor.slots[slot].armorBonus ?? 1;
+        bonuses.dodgingBonus += actor.slots[slot].dodgingBonus ?? 1;
+      }
+    }
+  }
+  return { multipliers: skillMultipliers, bonuses: bonuses };
+};
+
+export const defaultSkills: Skills = {
+  armor: 0, dodging: 0, cunning: 0, 
+  savagery: 0, fortitude: 0, power: 0
+};
+
+export const getCorpse = (x: number, y: number, glyph: string, name: string): Feature => {
+  return {
+    x, y, glyph, name,
+    description: `Remains of ${name}`,
+    ...defaultSkills
+  };
+}

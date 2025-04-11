@@ -1,17 +1,17 @@
 import blessed from "blessed";
+import { initArenaMode } from "./arenaMode";
 import { printDialogScreen } from "./dialog";
 import { descend } from "./levels";
 import { loadCreatures, loadFeatures, loadItems } from "./loader";
 import { movePlayer } from "./move";
 import { Actor, Coords, Feature, Game, Item, Level, Player } from "./types";
 import { coordsToKey, isTileInFieldOfVision } from "./utils";
-import { initArenaMode } from "./arenaMode";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
 
 // Only set up stdin when not in test mode
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== "test") {
   process.stdin.setEncoding("utf8");
   process.stdin.setRawMode(true);
   process.stdin.resume();
@@ -30,11 +30,13 @@ let inputBuffer = new Array<string>();
 
 function gameLoop() {
   let view = initView();
-  
+
   // Check command line arguments for arena mode
-  const isArenaMode = process.argv.includes('--arena');
+  const isArenaMode = process.argv.includes("--arena");
   let game = isArenaMode ? initArenaMode() : initGame();
-  
+
+  let startupMessages = isArenaMode ? ["Welcome to Arena Mode"] : ["Welcome to GoblinCrawl! May Meggled's heads speak only truth!"]
+
   const FRAME_RATE = 30;
   const INTERVAL = Math.floor(1000 / FRAME_RATE); // ~33.33ms
 
@@ -47,22 +49,31 @@ function gameLoop() {
       inputBuffer.shift();
       introBox.destroy();
       clearInterval(startScreenInterval);
-      return;
+      if (startupMessages.length > 0) {
+        game.messages = startupMessages;
+        startupMessages = [];
+        game.oldMessages = game.oldMessages.concat(game.messages);
+
+      }
+      printScreen(game, view);
+      const interval = setInterval(() => {
+        if (inputBuffer.length > 0 && !game.gameOver) {
+          // clear the new message buffer
+          game.messages = new Array();
+          
+          // move player
+          game = movePlayer(game, inputBuffer.shift());
+          // add all new messages to history
+          game.oldMessages = game.oldMessages.concat(game.messages);
+            
+        }
+        printScreen(game, view);
+    
+        view.screen.render();
+      }, INTERVAL);
     }
   }, INTERVAL);
 
-  const interval = setInterval(() => {
-    if (game.gameOver) {
-      clearInterval(interval);
-      return;
-    }
-
-    printScreen(game, view);
-    if (inputBuffer.length > 0) {
-      game = movePlayer(game, inputBuffer.shift());
-    }
-    view.screen.render();
-  }, INTERVAL);
 }
 
 gameLoop();
@@ -84,6 +95,19 @@ function initGame(): Game {
       glyph: "@",
       name: "player",
       description: "It's you",
+      armor: 1,
+      dodging: 3,
+      cunning: 3,
+      savagery: 3,
+      fortitude: 1,
+      power: 1,
+      naturalWeapon: {
+        name: "fists",
+        attackBonus: 1,
+        damageBonus: 0,
+        damageDieNum: 1,
+        damageDie: 3,
+      },
     } as Player,
     gameOver: false,
     isScreenDirty: true,
@@ -93,12 +117,13 @@ function initGame(): Game {
     allCreatures: loadCreatures(),
     allItems: items,
     messages: messages,
+    oldMessages: new Array<string>(),
     levels: new Map<string, Level>(),
     items: new Map<string, Array<Item>>(),
     seenTiles: new Map<string, Coords>(),
     dialogMode: "game",
   };
-
+      
   return descend(game, {
     branchName: "D",
     level: game.currentBranchLevel.level + 1,
@@ -106,7 +131,7 @@ function initGame(): Game {
 }
 
 function printScreen(game: Game, view: View): Game {
-  let topbarContent = `{bold}GoblinCrawl{/bold} | ${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level} Turn: ${game.turnCount}\n`;
+  let topbarContent = `{bold}GoblinCrawl{/bold} | ${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level} Turn: ${game.turnCount} | HP ${game.player.hp}\n`;
 
   view.topbar.setContent(topbarContent);
 
@@ -188,25 +213,21 @@ function printScreen(game: Game, view: View): Game {
 
   view.map.setContent(out);
 
+  // messages
   let logOut = "";
   if (game.dialogMode === "game" || game.dialogMode === "inventory") {
-    // messages
-    for (let j = 0; j < 5 - game.messages.length; j++) {
-      logOut = logOut.concat(`\n`);
-    }
-    for (let i = 0; i < Math.min(5, game.messages.length); i++) {
-      // show last 5 messages
-      if (i < game.messages.length - 1) {
+    // 5 most recent messages are shown in chronological order with the newest messages
+    // at the bottom of the view, and with the last turn's messages
+    // highlighted and older messages dimmed
+
+    for (let i = Math.max(0, game.oldMessages.length - 5); i < game.oldMessages.length; i++) {
+      if (i >= game.oldMessages.length - game.messages.length) {
+        logOut = logOut.concat(`${game.oldMessages[i] || ""}\n`);
+      } else {
         // Older messages are dimmed
         logOut = logOut.concat(
-          `{grey-fg}${game.messages[i] || ""}{/grey-fg}\n`
+          `{grey-fg}${game.oldMessages[i] || ""}{/grey-fg}\n`
         );
-      } else if (i === game.messages.length - 1) {
-        // Most recent message is full brightness
-        logOut = logOut.concat(`${game.messages[i] || ""}\n`);
-      }
-      if (game.messages.length > 5) {
-        game.messages.shift();
       }
     }
   }
@@ -297,7 +318,7 @@ function startScreen(view: View) {
     style: {
       bg: green3,
     },
-    height: "100%",
+    height: "95%",
     align: "center",
     valign: "middle",
   });
@@ -335,7 +356,6 @@ function startScreen(view: View) {
 \\    \\_\\  \\(  <_> )| \\_\\ \\|  |__|  ||   |  \\\\     \\____|  | \\/ / __ \\_\\     / |  |__
 \\______  / \\____/ |___  /|____/|__||___|  / \\______  /|__|   (____  / \\/\\_/  |____/
        \\/             \\/                \\/         \\/             \\/               
-                      
        `);
 
   // welcome screen

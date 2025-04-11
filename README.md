@@ -69,3 +69,38 @@ Dialog conversations can be circular or move to a different leaf in the conversa
 All items, features, and creatures use the same logic to randomly spawn. The `branchSpawnRates` is a list of branch/levels with a `spawnCHance` and `maxSpawnNum`. When the player descends a level, the game will check the branch spawn rate for that level and check the spawn chance. To force a creature to spawn in a given dungeon level, set the `spawnChance` to 100. The game will spawn up to `maxSpawnNum` (but not necessarily spawn the creature unless the `spawnChance` is 100).
 
 Currently, for a feature, item or creature to spawn in a level, it must have a `branchSpawnRate` for that level.
+
+## Combat
+
+There are the following skills that all actors (the player, NPCs, allies, and enemies) have, and can train:
+
+### Skill Descriptions
+
+- Cunning: the player's sneakiness, deceptiveness, ingenuity, and artfulness
+- Savagery: the ability of the player to inflict fearsome blows
+- Power: the natural reservoir of vital force that a player can project 
+- Fortitude: the ability to shrug off injury, persist through pain or negative status effects
+- Armor: the ability of the player to leverage body armor to resist damage
+- Dodging: the ability of the player to avoid attacks
+
+### Skill Usage
+
+- Making an attack: Cunning, Savagery
+- Overcoming a target's damage resistance and armor: Cunning, Savagery
+- Dealing damage: Power
+- Resisting damage: Fortitude, Armor
+- Avoiding an attack: Dodging
+
+The skill progression is logarithmic. Any wielded or worn item can apply any multiplier to the player's natural skill
+
+Items like weapons apply a base modifier to the roll to hit, and use a dice roll to determine damage. E.g., a dagger might have a base attack bonus of 1 and a Cunning skill multiplier of 1.5. The player's Cunning skill might be 10:
+
+`Attack bonus: ln(10 * 1.5) = 2.7 + 1 = floor(3.7) = 3`
+
+The game rolls a dice and adds the attack bonus and compares to the target's Dodge roll, which includes the target's Dodge skill and any item multipliers. E.g., the target is wearing a shield that grants a +3 bonus and a 2x multiplier to the target's Dodge skill which is 8 base:
+
+`Dodge bonus: ln(8 * 2) + 3 = floor(5.7) = 5`
+
+The result is `1d20 + attack bonus compared to 10 + dodge bonus`
+
+If the attack hits, then the game compares the attacker's Cunning, Savagery, and Power to the defender's Fortitude and Armor with a bonus from the weapon's damage bonus

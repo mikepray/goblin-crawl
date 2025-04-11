@@ -11,6 +11,7 @@ export type Game = {
   allCreatures: Array<Creature>;
   allItems: Array<Item>;
   messages: Array<string>;
+  oldMessages: Array<string>;
   levels: Map<string, Level>;
   dialogMode: "inventory" | "game" | "dialog";
 
@@ -23,17 +24,50 @@ export type Game = {
 };
 
 // a moveable, occluding game actor
-export type Actor = Coords & {
+export type Actor = Coords & Skills & {
   glyph: string;
   color?: string;
   name: string;
   description?: string;
   inventory?: Array<Item>;
+  hp?: number;
+  slots?: {
+    weapon?: Weapon | Item;
+    shield?: Item;
+    head?: Item;
+    neck?: Item;
+    body?: Item;
+    feet?: Item;
+    hands?: Item;
+  }
+  naturalWeapon?: Weapon; // trust only your fists
 };
 
-export type Item = Feature & {
-  edible: boolean;
+// when applied to an actor, these are the base stats
+// when applied to an item, they are multipliers
+export type Skills = {
+  cunning: number;
+  savagery: number;
+  fortitude: number;
+  power: number;
+  armor: number;
+  dodging: number;
 };
+
+export type Item = Feature & Skills & {
+  edible: boolean;
+  slot?: "weapon" | "shield" | "head" | "neck" | "body" | "feet" | "hands";
+  armorBonus?: number;
+  dodgingBonus?: number;
+};
+
+export type Weapon = Item & {
+  attackBonus: number;
+  damageBonus: number;
+  damageDieNum: number;
+  damageDie: number;
+}
+
 export type Player = Actor & {
   glyph: "@";
   name: "player";
@@ -82,7 +116,8 @@ export type Shout = {
 export type BranchSpawnRate = BranchLevel & {
   // 0 - 100, where 100 means it will spawn 100% of the time in allowed spawn boundaries
   spawnChance: number;
-  maxSpawnNum: number;
+  // maximum times the item can spawn. undefined means unlimited
+  maxSpawnNum?: number;
 };
 
 export enum MovementDirection {
