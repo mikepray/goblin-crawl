@@ -15,6 +15,7 @@ creatures:
     savagery: 1
     fortitude: 1
     power: 1
+    hp: 6
     naturalWeapon:
       name: fists
       attackBonus: 1
@@ -60,6 +61,7 @@ creatures:
     savagery: 0
     fortitude: 0
     power: 0
+    hp: 2
     naturalWeapon:
       name: beak
       attackBonus: 1
