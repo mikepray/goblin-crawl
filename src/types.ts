@@ -61,6 +61,16 @@ export type Item = Feature & Skills & {
   dodgingBonus?: number;
 };
 
+export type Bonuses = {
+  armorBonus: number;
+  dodgingBonus: number;
+}
+
+export type SkillMultipliers = {
+  multipliers: Skills;
+  bonuses: Bonuses;
+}
+
 export type Weapon = Item & {
   attackBonus: number;
   damageBonus: number;
