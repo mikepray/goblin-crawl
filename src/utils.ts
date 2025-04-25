@@ -1,4 +1,4 @@
-import { Actor, BranchLevel, Coords, CoordsMap, Feature, Skills } from "./types";
+import { Actor, BranchLevel, Coords, CoordsMap, Feature, Skills, SkillMultipliers } from "./types";
 
 export function isTileInFieldOfVision(
   testCoords: Coords,
@@ -36,7 +36,7 @@ export function isTileInFieldOfVision(
   return true;
 }
 
-export function getBresenhamsLine(x0: number, y0:number , x1: number, y1: number) {
+export function getBresenhamsLine(x0: number, y0: number, x1: number, y1: number) {
   let lineCoords = new Set<Coords>;
   let dx = Math.abs(x1 - x0);
   let sx = x0 < x1 ? 1 : -1;
@@ -46,15 +46,15 @@ export function getBresenhamsLine(x0: number, y0:number , x1: number, y1: number
   let error2;
 
   while (true) {
-    lineCoords.add({x: x0, y: y0});
+    lineCoords.add({ x: x0, y: y0 });
     if (x0 === x1 && y0 === y1) break;
     error2 = 2 * error;
     if (error2 >= dy) {
-      error += dy; 
-      x0 += sx; 
+      error += dy;
+      x0 += sx;
     }
     if (error2 <= dx) {
-      error += dx; 
+      error += dx;
       y0 += sy;
     }
   }
@@ -112,7 +112,7 @@ export function getRandomValidTile(
   }
 
   // get a random valid tile key
-  
+
   // get the tile by the deconflicted valid tile key
   return {
     x: tiles.get(key!)!.x,
@@ -122,12 +122,7 @@ export function getRandomValidTile(
 
 // iterates through the given actor's slots and sums the skill multipliers for each skill
 // also calculates the static bonuses like armor and dodging
-export const getSkillMultipliers = (
-  actor: Actor
-): {
-  multipliers: Skills;
-  bonuses: { armorBonus: number; dodgingBonus: number };
-} => {
+export const getSkillMultipliers = (actor: Actor): SkillMultipliers => {
   let skillMultipliers: Skills = {
     armor: 1,
     dodging: 1,
@@ -158,7 +153,7 @@ export const getSkillMultipliers = (
 };
 
 export const defaultSkills: Skills = {
-  armor: 0, dodging: 0, cunning: 0, 
+  armor: 0, dodging: 0, cunning: 0,
   savagery: 0, fortitude: 0, power: 0
 };
 
