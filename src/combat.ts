@@ -8,7 +8,6 @@ import {
   getSkillMultipliers,
   nDk
 } from "./utils";
-import { logger } from "./logger";
 import { actorAttack, actorPower, actorDodge, actorResist, actorWeaponDamage, actorAttackBonus } from "./combat/utils";
 
 export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
@@ -23,9 +22,7 @@ export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
   const actorAttackBonusVal = actorAttackVal + weaponAttackBonus;
   const targetDodgeBonusVal = actorDodge(target, targetItems) + targetItems.bonuses.dodgingBonus;
 
-  let d2 = d20();
-  const toHitRoll = d2 + actorAttackBonusVal;
-  logger.debug("TO Hit Roll ", toHitRoll);
+  const toHitRoll = d20() + actorAttackBonusVal;
 
   if (toHitRoll > 10 + targetDodgeBonusVal) {
     // attack hits
