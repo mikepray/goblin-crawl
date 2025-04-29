@@ -1,4 +1,4 @@
-import { Actor, Game, BranchLevel, Coords, CoordsMap, Feature, Skills, SkillMultipliers } from "./types";
+import { Actor, BranchLevel, Coords, CoordsMap, Feature, Skills, SkillMultipliers } from "./types";
 
 export function isTileInFieldOfVision(
   testCoords: Coords,
