@@ -4,6 +4,7 @@ import {
 import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
 import { ascend, descend } from "./levels";
+import { logger } from "./logger";
 import {
   Actor,
   ConversationBranch,
@@ -161,17 +162,10 @@ export function movePlayer(game: Game, nextInput: any) {
             // attack
             game = meleeActor(game, game.player, subjectCreature);
             // check for dead enemies
-            if ((subjectCreature.hp || 0) < 0) {
-              if ((subjectCreature.hp || 0) <= 0) {
-                // remove creature
-                game.actors.delete(coordsToKey({...subjectCreature}));
-                // add corpse
-                game.features.set(coordsToKey({...subjectCreature}), {
-                  ...getCorpse(subjectCreature.x, subjectCreature.y, subjectCreature.glyph, subjectCreature.name)
-                })
-              }
+            if ((subjectCreature.hp || 0) <= 0) {
+              actorDeath(game, subjectCreature);
             }
-            
+
             game.isScreenDirty = true;
           } else {
             // swap player and creature
@@ -195,16 +189,14 @@ export function movePlayer(game: Game, nextInput: any) {
               );
 
               game.messages.push(
-                `You swap places with${
-                  subjectCreature.useDefiniteArticle ? " the" : ""
+                `You swap places with${subjectCreature.useDefiniteArticle ? " the" : ""
                 } ${subjectCreature.name}`
               );
               game.turnCount++;
               game.isScreenDirty = true;
             } else {
               game.messages.push(
-                `${subjectCreature.useDefiniteArticle ? "The " : ""}${
-                  subjectCreature.name
+                `${subjectCreature.useDefiniteArticle ? "The " : ""}${subjectCreature.name
                 }cannot move out of your way`
               );
             }
@@ -212,9 +204,9 @@ export function movePlayer(game: Game, nextInput: any) {
             if (subjectCreature.conversationBranches) {
               const conversationBranch =
                 subjectCreature.conversationBranches[
-                  Math.floor(
-                    Math.random() * subjectCreature.conversationBranches.length
-                  )
+                Math.floor(
+                  Math.random() * subjectCreature.conversationBranches.length
+                )
                 ];
               game.activeDialog = conversationBranch;
               game.interactingActor = subjectCreature;
@@ -290,16 +282,12 @@ export function movePlayer(game: Game, nextInput: any) {
                 } else {
                   creature.wasSwappedByPlayer = false;
                 }
-                game = moveActor(game, creature, moveDelta);
                 // check dead creature
                 // this is used for npcs attacking each other
                 if (creature.name !== "player" && (creature.hp || 0) <= 0) {
-                  // remove creature
-                  game.actors.delete(actorsArrayRef[i]);
-                  // add corpse
-                  game.features.set(coordsToKey({...actor}), {
-                    ...getCorpse(actor.x, actor.y, actor.glyph, actor.name)
-                  })
+                  actorDeath(game, actor);
+                } else {
+                  game = moveActor(game, creature, moveDelta);
                 }
               } else {
                 // creature is hostile, move to attack player
@@ -308,7 +296,7 @@ export function movePlayer(game: Game, nextInput: any) {
                   // make a list of other creatures to avoid pathing through them.
                   // allow player and current actor, (target and start tiles respectively)
                   //  so that those tiles can be considered in the pathing algorithm
-                  if (tileKey !== coordsToKey({ ...game.player }) && tileKey !== coordsToKey({...creature})) {
+                  if (tileKey !== coordsToKey({ ...game.player }) && tileKey !== coordsToKey({ ...creature })) {
                     deconflictWith.set(tileKey, actor);
                   }
                 }
@@ -381,6 +369,21 @@ export function movePlayer(game: Game, nextInput: any) {
   }
 
   return game;
+}
+
+/**
+ * Removes character and replaces them with a corpse
+ *
+ * @param {Actor} actor - The character beind put down
+ * @param {Game} game - game board
+ */
+export const actorDeath = (game: Game, actor: Actor) => {
+  // remove actor
+  game.actors.delete(coordsToKey({ ...actor }));
+  // add corpse
+  game.features.set(coordsToKey({ ...actor }), {
+    ...getCorpse(actor.x, actor.y, actor.glyph, actor.name)
+  })
 }
 
 export const moveActor = (
@@ -692,6 +695,7 @@ export function removeItemFromCreatureInventory(
     originalInventoryLength > filteredItems?.length
   );
 }
+
 
 function removeLastItemFromFloorStack(
   game: Game,

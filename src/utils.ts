@@ -1,4 +1,4 @@
-import { Actor, BranchLevel, Coords, CoordsMap, Feature, Skills, SkillMultipliers } from "./types";
+import { Actor, Game, BranchLevel, Coords, CoordsMap, Feature, Skills, SkillMultipliers } from "./types";
 
 export function isTileInFieldOfVision(
   testCoords: Coords,
@@ -157,10 +157,21 @@ export const defaultSkills: Skills = {
   savagery: 0, fortitude: 0, power: 0
 };
 
+/**
+ * Converts a actor to a feature and changes the glyph to be red
+ *
+ * @param {number} x - x cord
+ * @param {number} y - y cord
+ * @param {string} glyph - character indicator
+ * @param {string} name - actor type
+ * @returns {Feature} New feature.
+ */
 export const getCorpse = (x: number, y: number, glyph: string, name: string): Feature => {
   return {
-    x, y, glyph, name,
+    x, y, glyph: `{red-fg}${glyph}{/red-fg}`, name,
     description: `Remains of ${name}`,
     ...defaultSkills
   };
 }
+
+
