@@ -40,7 +40,7 @@ export type Actor = Coords & Skills & {
     feet?: Item;
     hands?: Item;
   }
-  naturalWeapon?: Weapon; // trust only your fists
+  naturalWeapon?: Weapon; // only trust your fists
 };
 
 // when applied to an actor, these are the base stats

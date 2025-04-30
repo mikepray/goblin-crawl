@@ -99,6 +99,11 @@ creatures:
     fortitude: 1
     power: 1
     hp: 8
+    slots: 
+      weapon: dagger
+      body: leather armor
+    inventory:
+      - skrunt egg
     naturalWeapon:
       name: fists
       attackBonus: 1
