@@ -99,6 +99,9 @@ creatures:
     fortitude: 1
     power: 1
     hp: 8
+    slots: 
+      weapon: dagger
+      body: leather armor
     naturalWeapon:
       name: fists
       attackBonus: 1
