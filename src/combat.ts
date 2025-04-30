@@ -8,6 +8,7 @@ import {
   getSkillMultipliers,
   nDk
 } from "./utils";
+import { actorAttack, actorPower, actorDodge, actorResist, actorWeaponDamage, actorAttackBonus } from "./combat/utils";
 
 export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
   // attack bonus = ln((cunning skill * item cunning bonuses) +
@@ -15,26 +16,15 @@ export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
   let actorItems = getSkillMultipliers(actor);
   let targetItems = getSkillMultipliers(target);
 
-  let weaponAttackBonus = 0;
-  if (actor.slots?.weapon) {
-    weaponAttackBonus = (actor.slots?.weapon as Weapon).attackBonus ?? 0;
-  } else if (actor.naturalWeapon) {
-    weaponAttackBonus = actor.naturalWeapon.attackBonus;
-  }
+  let weaponAttackBonus = actorAttackBonus(actor);
+  let actorAttackVal = actorAttack(actor, actorItems);
 
-  const actorAttackBonus =
-    Math.floor(
-      Math.log(
-        actor.cunning * actorItems.multipliers.cunning +
-          actor.savagery * actorItems.multipliers.savagery
-      )
-    ) + weaponAttackBonus;
+  const actorAttackBonusVal = actorAttackVal + weaponAttackBonus;
+  const targetDodgeBonusVal = actorDodge(target, targetItems) + targetItems.bonuses.dodgingBonus;
 
-  const targetDodgeBonus =
-    Math.floor(Math.log(target.dodging * targetItems.multipliers.dodging)) +
-    targetItems.bonuses.dodgingBonus;
-  const toHitRoll = d20() + actorAttackBonus;
-  if (toHitRoll > 10 + targetDodgeBonus) {
+  const toHitRoll = d20() + actorAttackBonusVal;
+
+  if (toHitRoll > 10 + targetDodgeBonusVal) {
     // attack hits
 
     // damage bonus =
@@ -45,28 +35,10 @@ export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
     // this is compared to the defender's armor and fortitude skill + item bonuses
 
     // get the wielded weapon damage bonus, or the actor's natural weapon damage bonus
-    let weaponDamageBonus = 0;
-    if (actor.slots?.weapon) {
-      weaponDamageBonus = (actor.slots?.weapon as Weapon).damageBonus ?? 0;
-    } else if (actor.naturalWeapon) {
-      weaponDamageBonus = actor.naturalWeapon.damageBonus;
-    }
+    let weaponDamageBonus = actorWeaponDamage(actor);
 
-    const actorDamageBonus =
-      Math.floor(
-        Math.log(
-          actor.cunning * actorItems.multipliers.cunning +
-            actor.savagery * actorItems.multipliers.savagery
-        )
-      ) + weaponDamageBonus;
-
-    const targetResistBonus =
-      Math.floor(
-        Math.log(
-          target.fortitude * targetItems.multipliers.fortitude +
-            target.armor * targetItems.multipliers.armor
-        )
-      ) + targetItems.bonuses.armorBonus;
+    const actorDamageBonus = actorAttackVal + weaponDamageBonus;
+    const targetResistBonus = actorResist(target, targetItems) + targetItems.bonuses.armorBonus;
 
     const toDamageRoll = d20() + actorDamageBonus;
     if (toDamageRoll > 10 + targetResistBonus) {
@@ -89,22 +61,19 @@ export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
         weaponDamageDie = actor.naturalWeapon.damageDie;
       }
 
-      const weaponDamage =
-        nDk(weaponDamageDieNum, weaponDamageDie) +
-        weaponDamageBonus +
-        Math.floor(Math.log(actor.power * actorItems.multipliers.power));
+      const weaponDamage = nDk(weaponDamageDieNum, weaponDamageDie) + weaponDamageBonus + actorPower(actor, actorItems);
       game.messages.push(
-        `The ${actor.name}'s attack hits the ${target.name} and does ${weaponDamage} damage (HP left: ${target.hp}) (tohit: ${toHitRoll} > 10 + ${targetDodgeBonus}, todam: ${toDamageRoll} > 10 + ${targetResistBonus})`
+        `The ${actor.name}'s attack hits the ${target.name} and does ${weaponDamage} damage (HP left: ${target.hp}) (tohit: ${toHitRoll} > 10 + ${targetDodgeBonusVal}, todam: ${toDamageRoll} > 10 + ${targetResistBonus})`
       );
       target.hp = (target.hp || 0) - weaponDamage;
     } else {
       game.messages.push(
-        `The ${actor.name}'s attack hits the ${target.name} but does no damage (${toHitRoll} > 10 + ${targetDodgeBonus}, ${toDamageRoll} !> 10 + ${targetResistBonus} `
+        `The ${actor.name}'s attack hits the ${target.name} but does no damage (${toHitRoll} > 10 + ${targetDodgeBonusVal}, ${toDamageRoll} !> 10 + ${targetResistBonus} `
       );
     }
   } else {
     game.messages.push(
-      `The ${actor.name}'s attack misses the ${target.name} (${toHitRoll} !> 10 + ${targetDodgeBonus})`
+      `The ${actor.name}'s attack misses the ${target.name} (${toHitRoll} !> 10 + ${targetDodgeBonusVal})`
     );
   }
 
