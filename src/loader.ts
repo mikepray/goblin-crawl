@@ -61,6 +61,9 @@ function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
       return [];
     }
 
+    // Load all items first to reference them
+    const allItems = loadItems();
+
     // Convert the partial creatures to full creatures with coordinates
     const creatures: Creature[] = data.creatures.map((creature) => {
       const defaults = {
@@ -75,10 +78,45 @@ function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
         useDefiniteArticle: true,
       };
 
-      // TODO lookup inventory and item slot items by name and add object references
+      // Process inventory and slots if they exist in the YAML
+      let processedCreature = { ...defaults, ...creature };
+      
+      // Handle inventory items
+      if (creature.inventory) {
+        processedCreature.inventory = creature.inventory
+          .map(itemName => {
+            if (typeof itemName === 'string') {
+              const item = allItems.find(i => i.name === itemName);
+              if (!item) {
+                console.warn(`Warning: Item '${itemName}' not found for creature '${creature.name}'`);
+                return null; 
+              }
+              return item;
+            }
+            return null;
+          })
+          .filter((item): item is Item => item !== null); // Type predicate to ensure only Items remain
+      }
+
+      // Handle equipment slots
+      if (creature.slots) {
+        processedCreature.slots = {};
+        for (const [slot, itemName] of Object.entries(creature.slots)) {
+          if (typeof itemName === 'string') {
+            const item = allItems.find(i => i.name === itemName);
+            if (!item) {
+              console.warn(`Warning: Item '${itemName}' not found for creature '${creature.name}' slot '${slot}'`);
+            } else if (item.slot !== slot) {
+              console.warn(`Warning: Item '${itemName}' cannot be equipped in slot '${slot}' for creature '${creature.name}'`);
+            } else {
+              processedCreature.slots[slot] = item;
+            }
+          }
+        }
+      }
+
       return {
-        ...defaults,
-        ...creature,
+        ...processedCreature,
         status: parseCreatureStatus(creature.status),
         movementType: parseMovementType(creature.movementType),
         conversationBranches: creature.conversationBranches || undefined,

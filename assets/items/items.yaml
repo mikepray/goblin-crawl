@@ -52,7 +52,7 @@ items:
       level: 5
       spawnChance: 10
   - name: short sword
-    description: A bronze dagger. This weapon rewards cunning heroes
+    description: A bronze short sword. This weapon rewards cunning heroes
     glyph: (
     attackBonus: 2
     damageDie: 2
@@ -81,10 +81,40 @@ items:
     - branchName: D
       level: 5
       spawnChance: 10
+  - name: dagger
+    description: A bronze dagger. This weapon rewards cunning heroes
+    glyph: (
+    attackBonus: 1
+    damageDie: 2
+    damageDieNum: 3
+    slot: weapon
+    toHitSkillBonuses:
+      cunning: 2
+    toPenSkillBonuses:
+      cunning: 3
+    damageSkillBonuses:
+      cunning: 2
+      power: 1
+    branchSpawnRates: 
+    - branchName: D
+      level: 1
+      spawnChance: 10
+    - branchName: D
+      level: 2
+      spawnChance: 10
+    - branchName: D
+      level: 3
+      spawnChance: 10
+    - branchName: D
+      level: 4
+      spawnChance: 10
+    - branchName: D
+      level: 5
+      spawnChance: 10
   - name: khopesh
     description: A bronze sickle-shaped sword of masterwork quality. This elegant weapon is a well-balanced sidearm
     glyph: (
-    attackBonus: 2
+    attackBonus: 3
     damageDie: 2
     damageDieNum: 4
     slot: weapon
@@ -171,7 +201,7 @@ items:
   - name: leather armor
     description: Stiff cured leather bodice
     glyph: )
-    slot: head
+    slot: body
     armor: 2
     branchSpawnRates: 
     - branchName: D
