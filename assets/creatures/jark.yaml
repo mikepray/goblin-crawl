@@ -2,6 +2,7 @@
 creatures: 
 - name: Jark
   glyph: j
+  color: "{#3bd457-fg}{bold}"
   isHostile: false
   status: AWAKE
   movementType: WANDERING

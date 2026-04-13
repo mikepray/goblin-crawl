@@ -2,8 +2,9 @@
 creatures:
   - name: goblin
     glyph: g
+    color: "{#3bd457-fg}"
     description: >
-      a small greenish humanoid with long ears and large eyes. 
+      a small greenish humanoid with long ears and large eyes.
       it is fragile but cunning and well adapted to privation and darkness
     isHostile: false
     status: AWAKE
@@ -22,7 +23,7 @@ creatures:
       damageBonus: 0
       damageDieNum: 1
       damageDie: 2
-    branchSpawnRates: 
+    branchSpawnRates:
       - branchName: D
         level: 1
         spawnChance: 100
@@ -39,7 +40,7 @@ creatures:
       - shout: the goblin complains about the humidity
       - shout: the goblin looks around for something to eat
       - shout: the goblin pulls on its earring
-      - shout: the goblin scratches itself 
+      - shout: the goblin scratches itself
       - shout: the goblin complains about kobolds' shifty eyes
       - shout: the goblin grumbles about tough skrunt meat
       - shout: the goblin eats some skrunt jerky
@@ -47,11 +48,12 @@ creatures:
       - shout: the goblin offers a half-hearted prayer to Meggled
       - shout: the goblin says "sorry" but doesn't mean it
       - shout: the goblin suddenly farts
-  
+
   - name: skrunt
     glyph: s
+    color: "{#78ad36-fg}"
     description: >
-      a tame featherless bird favored by goblinkind for its flesh and eggs 
+      a tame featherless bird favored by goblinkind for its flesh and eggs
     isHostile: false
     status: AWAKE
     movementType: WANDERING
@@ -68,7 +70,7 @@ creatures:
       damageBonus: 1
       damageDieNum: 1
       damageDie: 2
-    branchSpawnRates: 
+    branchSpawnRates:
       - branchName: D
         level: 1
         spawnChance: 100
@@ -78,7 +80,7 @@ creatures:
         spawnChance: 80
         maxSpawnNum: 5
     shoutChance: 5 # out of 1000
-    shouts: 
+    shouts:
       - shout: skrunt skrunt skrunt
       - shout: skrunt?
       - shout: skrunt skrunt
@@ -86,11 +88,12 @@ creatures:
 
   - name: kobold
     glyph: k
+    color: "{#d92124-fg}"
     isHostile: true
     status: AWAKE
     movementType: WANDERING
     description: >
-      a small intelligent dragonlike creature with grey scaly skin. 
+      a small intelligent dragonlike creature with grey scaly skin.
       it is detested by goblinkind for its base treachery and villainy
     armor: 1
     dodging: 3
@@ -99,7 +102,7 @@ creatures:
     fortitude: 1
     power: 1
     hp: 8
-    slots: 
+    slots:
       weapon: dagger
       body: leather armor
     inventory:
@@ -110,7 +113,7 @@ creatures:
       damageBonus: 1
       damageDieNum: 1
       damageDie: 3
-    branchSpawnRates: 
+    branchSpawnRates:
       - branchName: D
         level: 3
         spawnChance: 20
@@ -138,4 +141,3 @@ creatures:
       - shout: the kobold flicks its tongue
       - shout: the kobold asks "kwak akab?" but doesn't expect an answer
       - shout: the kobold points at you and says "iik fak akab!"
- 

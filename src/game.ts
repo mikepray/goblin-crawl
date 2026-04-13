@@ -35,7 +35,9 @@ function gameLoop() {
   const isArenaMode = process.argv.includes("--arena");
   let game = isArenaMode ? initArenaMode() : initGame();
 
-  let startupMessages = isArenaMode ? ["Welcome to Arena Mode"] : ["Welcome to GoblinCrawl! May Meggled's heads speak only truth!"]
+  let startupMessages = isArenaMode
+    ? ["Welcome to Arena Mode"]
+    : ["Welcome to GoblinCrawl! May Meggled's heads speak only truth!"];
 
   const FRAME_RATE = 30;
   const INTERVAL = Math.floor(1000 / FRAME_RATE); // ~33.33ms
@@ -53,27 +55,24 @@ function gameLoop() {
         game.messages = startupMessages;
         startupMessages = [];
         game.oldMessages = game.oldMessages.concat(game.messages);
-
       }
       printScreen(game, view);
       const interval = setInterval(() => {
         if (inputBuffer.length > 0 && !game.gameOver) {
           // clear the new message buffer
           game.messages = new Array();
-          
+
           // move player
           game = movePlayer(game, inputBuffer.shift());
           // add all new messages to history
           game.oldMessages = game.oldMessages.concat(game.messages);
-            
         }
         printScreen(game, view);
-    
+
         view.screen.render();
       }, INTERVAL);
     }
   }, INTERVAL);
-
 }
 
 gameLoop();
@@ -93,6 +92,7 @@ function initGame(): Game {
       y: 0,
       inventory: [items.find((item) => item.name === "skrunt egg")],
       glyph: "@",
+      color: "{white-fg}{bold}",
       name: "player",
       description: "It's you",
       armor: 1,
@@ -123,7 +123,7 @@ function initGame(): Game {
     seenTiles: new Map<string, Coords>(),
     dialogMode: "game",
   };
-      
+
   return descend(game, {
     branchName: "D",
     level: game.currentBranchLevel.level + 1,
@@ -148,7 +148,7 @@ function printScreen(game: Game, view: View): Game {
       out = out.concat(
         `${game.dialogPointer === i + 1 ? "→ " : ""}${i + 1}: ${
           game.player.inventory[i].name
-        } - ${game.player.inventory[i].description}\n`
+        } - ${game.player.inventory[i].description}\n`,
       );
     }
 
@@ -170,7 +170,7 @@ function printScreen(game: Game, view: View): Game {
             { x: x, y: y },
             { ...game.player },
             8,
-            game.tiles
+            game.tiles,
           )
         ) {
           // add tile to seen tiles
@@ -181,29 +181,33 @@ function printScreen(game: Game, view: View): Game {
           const feature = game.features.get(coordsToKey({ x: x, y: y }));
           const itemsOnTile = game.items.get(coordsToKey({ x: x, y: y }));
           if (actor) {
-            out = out.concat(actor.glyph);
+            if (actor.color) {
+              out = out.concat(`${actor.color}${actor.glyph}{/}`);
+            } else {
+              out = out.concat(`{#000000-bg}${actor.glyph}{/}`);
+            }
           } else if (feature) {
-            out = out.concat(feature.glyph);
+            out = out.concat(`{#000000-bg}${feature.glyph}{/}`);
           } else if (itemsOnTile && itemsOnTile.length >= 0 && itemsOnTile[0]) {
             // show the last item's glyph
-            out = out.concat(itemsOnTile[0].glyph);
+            out = out.concat(`{#000000-bg}${itemsOnTile[0].glyph}`);
           } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-            out = out.concat(`{grey-fg}.{/grey-fg}`);
-          } else out = out.concat("#");
+            out = out.concat(`{white-fg}{#000000-bg}.{/}`);
+          } else out = out.concat("{white-fg}{#000000-bg}#{/}");
         } else {
           // if not in field of vision, render the tile dimmer if the player has already seen it
           if (game.seenTiles.has(coordsToKey({ x: x, y: y }))) {
             if (game.features.has(coordsToKey({ x: x, y: y }))) {
               // show seen features first
               const feature = game.features.get(coordsToKey({ x: x, y: y }));
-              out = out.concat(`{grey-fg}${feature?.glyph}{/grey-fg}`);
+              out = out.concat(`{#858282-fg}{#000000-bg}${feature?.glyph}{/}`);
             } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-              out = out.concat(`{grey-fg}.{/grey-fg}`);
+              out = out.concat(`{#858282-fg}{#000000-bg}.{/}`);
             } else {
-              out = out.concat(`{grey-fg}#{/grey-fg}`);
+              out = out.concat("{#858282-fg}{#000000-bg}#{/}");
             }
           } else {
-            out = out.concat(" ");
+            out = out.concat("{black-bg} {/}");
           }
         }
       }
@@ -220,13 +224,17 @@ function printScreen(game: Game, view: View): Game {
     // at the bottom of the view, and with the last turn's messages
     // highlighted and older messages dimmed
 
-    for (let i = Math.max(0, game.oldMessages.length - 5); i < game.oldMessages.length; i++) {
+    for (
+      let i = Math.max(0, game.oldMessages.length - 5);
+      i < game.oldMessages.length;
+      i++
+    ) {
       if (i >= game.oldMessages.length - game.messages.length) {
         logOut = logOut.concat(`${game.oldMessages[i] || ""}\n`);
       } else {
         // Older messages are dimmed
         logOut = logOut.concat(
-          `{grey-fg}${game.oldMessages[i] || ""}{/grey-fg}\n`
+          `{grey-fg}${game.oldMessages[i] || ""}{/grey-fg}\n`,
         );
       }
     }
@@ -282,6 +290,7 @@ function initView(): View {
       border: {
         fg: "blue",
       },
+      bg: "black",
     },
     tags: true,
   });
@@ -350,12 +359,12 @@ function startScreen(view: View) {
   });
   // welcome screen
   introText.setContent(`
-  ________        ___.    .__   .__         _________                         .__   
- /  _____/   ____ \\_ |__  |  |  |__|  ____  \\_   ___ \\_______ _____  __  _  __|  |  
-/   \\  ___  /  _ \\ | __ \\ |  |  |  | /    \\ /    \\  \\/\\_  __ \\\\__  \\ \\ \\/ \\/ /|  |  
+  ________        ___.    .__   .__         _________                         .__
+ /  _____/   ____ \\_ |__  |  |  |__|  ____  \\_   ___ \\_______ _____  __  _  __|  |
+/   \\  ___  /  _ \\ | __ \\ |  |  |  | /    \\ /    \\  \\/\\_  __ \\\\__  \\ \\ \\/ \\/ /|  |
 \\    \\_\\  \\(  <_> )| \\_\\ \\|  |__|  ||   |  \\\\     \\____|  | \\/ / __ \\_\\     / |  |__
 \\______  / \\____/ |___  /|____/|__||___|  / \\______  /|__|   (____  / \\/\\_/  |____/
-       \\/             \\/                \\/         \\/             \\/               
+       \\/             \\/                \\/         \\/             \\/
        `);
 
   // welcome screen

@@ -5,52 +5,35 @@
       "name": "Debug GoblinCrawl",
       "type": "node",
       "request": "launch",
-      "args": [
-        "src/game.ts"
-      ],
-      "runtimeExecutable": "/Users/mike.pray/.nvm/versions/node/v20.11.1/bin/node",
-      "runtimeArgs": [
-        "-r",
-        "ts-node/register"
-      ],
+      "args": ["src/game.ts"],
+      "runtimeExecutable": "/Users/mike.pray/.nvm/versions/node/v22.17.0/bin/node",
+      "runtimeArgs": ["-r", "ts-node/register"],
       "cwd": "${workspaceRoot}",
       "console": "integratedTerminal",
-      "sourceMaps": true
+      "sourceMaps": true,
     },
     {
       "name": "Debug Arena Mode",
       "type": "node",
       "request": "launch",
-      "args": [
-        "src/game.ts",
-        "--arena"
-      ],
-      "runtimeExecutable": "/Users/mike.pray/.nvm/versions/node/v20.11.1/bin/node",
-      "runtimeArgs": [
-        "-r",
-        "ts-node/register"
-      ],
+      "args": ["src/game.ts", "--arena"],
+      "runtimeExecutable": "/Users/mike.pray/.nvm/versions/node/v22.17.0/bin/node",
+      "runtimeArgs": ["-r", "ts-node/register"],
       "cwd": "${workspaceRoot}",
       "console": "integratedTerminal",
-      "sourceMaps": true
+      "sourceMaps": true,
     },
     {
       "name": "Debug Vitest",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/vitest",
-      "args": [
-        "run",
-        "--test-timeout=999999"
-      ],
+      "args": ["run", "--test-timeout=999999"],
       "cwd": "${workspaceRoot}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": [
-        "<node_internals>/**",
-        "**/node_modules/**"
-      ],
-      "sourceMaps": true
-    }
-  ]
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "sourceMaps": true,
+    },
+  ],
 }
