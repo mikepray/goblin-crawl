@@ -5,6 +5,7 @@ creatures:
   color: "{#3bd457-fg}{bold}"
   isHostile: false
   status: AWAKE
+  hp: 5
   movementType: WANDERING
   useDefiniteArticle: false
   branchSpawnRates: 

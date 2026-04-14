@@ -64,6 +64,7 @@ function gameLoop() {
 
           // move player
           game = movePlayer(game, inputBuffer.shift());
+
           // add all new messages to history
           game.oldMessages = game.oldMessages.concat(game.messages);
         }
@@ -90,6 +91,7 @@ function initGame(): Game {
     player: {
       x: 0,
       y: 0,
+      hp: 10,
       inventory: [items.find((item) => item.name === "skrunt egg")],
       glyph: "@",
       color: "{white-fg}{bold}",
@@ -184,27 +186,27 @@ function printScreen(game: Game, view: View): Game {
             if (actor.color) {
               out = out.concat(`${actor.color}${actor.glyph}{/}`);
             } else {
-              out = out.concat(`{#000000-bg}${actor.glyph}{/}`);
+              out = out.concat(`{white-fg}${actor.glyph}{/}`);
             }
           } else if (feature) {
-            out = out.concat(`{#000000-bg}${feature.glyph}{/}`);
+            out = out.concat(`{white-fg}${feature.glyph}{/}`);
           } else if (itemsOnTile && itemsOnTile.length >= 0 && itemsOnTile[0]) {
             // show the last item's glyph
-            out = out.concat(`{#000000-bg}${itemsOnTile[0].glyph}`);
+            out = out.concat(`{white-fg}${itemsOnTile[0].glyph}{/}`);
           } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-            out = out.concat(`{white-fg}{#000000-bg}.{/}`);
-          } else out = out.concat("{white-fg}{#000000-bg}#{/}");
+            out = out.concat(`{white-fg}.{/}`);
+          } else out = out.concat("{white-fg}#{/}");
         } else {
           // if not in field of vision, render the tile dimmer if the player has already seen it
           if (game.seenTiles.has(coordsToKey({ x: x, y: y }))) {
             if (game.features.has(coordsToKey({ x: x, y: y }))) {
               // show seen features first
               const feature = game.features.get(coordsToKey({ x: x, y: y }));
-              out = out.concat(`{#858282-fg}{#000000-bg}${feature?.glyph}{/}`);
+              out = out.concat(`{#858282-fg}${feature?.glyph}{/}`);
             } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-              out = out.concat(`{#858282-fg}{#000000-bg}.{/}`);
+              out = out.concat(`{#858282-fg}.{/}`);
             } else {
-              out = out.concat("{#858282-fg}{#000000-bg}#{/}");
+              out = out.concat("{#858282-fg}#{/}");
             }
           } else {
             out = out.concat("{black-bg} {/}");
@@ -291,6 +293,7 @@ function initView(): View {
         fg: "blue",
       },
       bg: "black",
+      fg: "white",
     },
     tags: true,
   });
@@ -350,7 +353,7 @@ function startScreen(view: View) {
     top: "80%", // Position below the intro text
     height: "20%", // Take remaining space
     style: {
-      fg: "black",
+      fg: "#000000",
       bg: green3,
       bold: true,
     },
@@ -359,13 +362,13 @@ function startScreen(view: View) {
   });
   // welcome screen
   introText.setContent(`
-  ________        ___.    .__   .__         _________                         .__
+ ________        ___.    .__   .__         _________                         .__
  /  _____/   ____ \\_ |__  |  |  |__|  ____  \\_   ___ \\_______ _____  __  _  __|  |
 /   \\  ___  /  _ \\ | __ \\ |  |  |  | /    \\ /    \\  \\/\\_  __ \\\\__  \\ \\ \\/ \\/ /|  |
-\\    \\_\\  \\(  <_> )| \\_\\ \\|  |__|  ||   |  \\\\     \\____|  | \\/ / __ \\_\\     / |  |__
-\\______  / \\____/ |___  /|____/|__||___|  / \\______  /|__|   (____  / \\/\\_/  |____/
-       \\/             \\/                \\/         \\/             \\/
-       `);
+ \\    \\_\\  \\(  <_> )| \\_\\ \\|  |__|  ||   |  \\\\     \\____|  | \\/ / __ \\_\\     / |  |__
+  \\________/ \\____/ |___  /|____/|__||___|  / \\______  /|__|   (____  / \\/\\_/  |____/
+         \\/                \\/         \\/             \\/
+   `);
 
   // welcome screen
   startHint.setContent(`Press any key to start...`);

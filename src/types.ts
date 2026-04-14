@@ -24,24 +24,26 @@ export type Game = {
 };
 
 // a moveable, occluding game actor
-export type Actor = Coords & Skills & {
-  glyph: string;
-  color?: string;
-  name: string;
-  description?: string;
-  inventory?: Array<Item>;
-  hp?: number;
-  slots?: {
-    weapon?: Weapon | Item;
-    shield?: Item;
-    head?: Item;
-    neck?: Item;
-    body?: Item;
-    feet?: Item;
-    hands?: Item;
-  }
-  naturalWeapon?: Weapon; // only trust your fists
-};
+export type Actor = Coords &
+  Skills & {
+    glyph: string;
+    color?: string;
+    name: string;
+    description?: string;
+    inventory?: Array<Item>;
+    hp?: number;
+    hpRegen?: number; // hp regenerate per turn
+    slots?: {
+      weapon?: Weapon | Item;
+      shield?: Item;
+      head?: Item;
+      neck?: Item;
+      body?: Item;
+      feet?: Item;
+      hands?: Item;
+    };
+    naturalWeapon?: Weapon; // only trust your fists
+  };
 
 // when applied to an actor, these are the base stats
 // when applied to an item, they are multipliers

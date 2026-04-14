@@ -1,6 +1,4 @@
-import {
-  meleeActor,
-} from "./combat";
+import { meleeActor } from "./combat";
 import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
 import { ascend, descend } from "./levels";
@@ -29,7 +27,6 @@ export function movePlayer(game: Game, nextInput: any) {
     return game;
   }
 
-
   if (game.dialogMode === "game") {
     let playerMove: Coords = { x: 0, y: 0 };
     if (nextInput) {
@@ -38,15 +35,13 @@ export function movePlayer(game: Game, nextInput: any) {
         let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
         if (featureAtTile && featureAtTile.name === "Downstairs") {
           // descend level
-          // take an extra turn
-          game.turnCount++;
           return descend(game, {
             branchName: "D",
             level: game.currentBranchLevel.level + 1,
           });
         } else {
           game.messages.push(
-            "Press > to go downstairs while standing on a > tile"
+            "Press > to go downstairs while standing on a > tile",
           );
           game.isScreenDirty = true;
           return game;
@@ -58,7 +53,7 @@ export function movePlayer(game: Game, nextInput: any) {
           // ascend level
           // get parent level
           let parentBranch = game.levels.get(
-            branchLevelToKey(game.currentBranchLevel)
+            branchLevelToKey(game.currentBranchLevel),
           )?.parentLevel;
           if (parentBranch) {
             // take an extra turn
@@ -67,7 +62,7 @@ export function movePlayer(game: Game, nextInput: any) {
           }
         } else {
           game.messages.push(
-            "Press < to go upstairs while standing on a < tile"
+            "Press < to go upstairs while standing on a < tile",
           );
           game.isScreenDirty = true;
           return game;
@@ -97,7 +92,6 @@ export function movePlayer(game: Game, nextInput: any) {
         playerMove.x++;
         playerMove.y++;
       } else if (nextInput === ".") {
-
         // wait one turn
       } else if (nextInput === "^") {
         let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
@@ -106,7 +100,7 @@ export function movePlayer(game: Game, nextInput: any) {
           let item = removeLastItemFromFloorStack(game, { ...game.player });
           if (item?.name === "skrunt egg") {
             game.messages.push(
-              "The skrunt egg is engulfed in green flame. Meggled accepts your sacrifice!"
+              "The skrunt egg is engulfed in green flame. Meggled accepts your sacrifice!",
             );
           } else if (item) {
             putItemOnFloorStack(game, item);
@@ -114,7 +108,7 @@ export function movePlayer(game: Game, nextInput: any) {
           }
         } else {
           game.messages.push(
-            "There's no altar here. Press ^ to sacrifice and pray at altars"
+            "There's no altar here. Press ^ to sacrifice and pray at altars",
           );
           game.isScreenDirty = true;
           return game;
@@ -132,10 +126,11 @@ export function movePlayer(game: Game, nextInput: any) {
       } else if (nextInput === "i") {
         game.dialogMode = "inventory";
         game.isScreenDirty = true;
+        game.messages.push("(e)at, (d)rop, (w)ear or (w)ield, esc to exit");
         return game;
       } else if (nextInput === "?") {
         game.messages.push(
-          "You are the @ symbol, arrow keys and vim keys move, period waits one turn, < and > go up and down stairs. Move into other creatures to interact or attack\ni for inventory, g to interact with what's on the floor"
+          "You are the @ symbol, arrow keys and vim keys move, period waits one turn, < and > go up and down stairs. Move into other creatures to interact or attack\ni for inventory, g to interact with what's on the floor",
         );
         game.isScreenDirty = true;
         return game;
@@ -181,32 +176,34 @@ export function movePlayer(game: Game, nextInput: any) {
               subjectCreature.wasSwappedByPlayer = true;
               game.actors.set(
                 coordsToKey({ x: game.player.x, y: game.player.y }),
-                game.player
+                game.player,
               );
               game.actors.set(
                 coordsToKey({ x: subjectCreature.x, y: subjectCreature.y }),
-                subjectCreature
+                subjectCreature,
               );
 
               game.messages.push(
-                `You swap places with${subjectCreature.useDefiniteArticle ? " the" : ""
-                } ${subjectCreature.name}`
+                `You swap places with${
+                  subjectCreature.useDefiniteArticle ? " the" : ""
+                } ${subjectCreature.name}`,
               );
               game.turnCount++;
               game.isScreenDirty = true;
             } else {
               game.messages.push(
-                `${subjectCreature.useDefiniteArticle ? "The " : ""}${subjectCreature.name
-                }cannot move out of your way`
+                `${subjectCreature.useDefiniteArticle ? "The " : ""}${
+                  subjectCreature.name
+                } cannot move out of your way`,
               );
             }
 
             if (subjectCreature.conversationBranches) {
               const conversationBranch =
                 subjectCreature.conversationBranches[
-                Math.floor(
-                  Math.random() * subjectCreature.conversationBranches.length
-                )
+                  Math.floor(
+                    Math.random() * subjectCreature.conversationBranches.length,
+                  )
                 ];
               game.activeDialog = conversationBranch;
               game.interactingActor = subjectCreature;
@@ -255,7 +252,7 @@ export function movePlayer(game: Game, nextInput: any) {
           out = out.concat(` also: `);
           for (let i = 1; i < itemsAtTile.length; i++) {
             out = out.concat(
-              `${itemsAtTile[i].name}${i + 1 < itemsAtTile.length ? ", " : ""}`
+              `${itemsAtTile[i].name}${i + 1 < itemsAtTile.length ? ", " : ""}`,
             );
           }
         }
@@ -296,7 +293,10 @@ export function movePlayer(game: Game, nextInput: any) {
                   // make a list of other creatures to avoid pathing through them.
                   // allow player and current actor, (target and start tiles respectively)
                   //  so that those tiles can be considered in the pathing algorithm
-                  if (tileKey !== coordsToKey({ ...game.player }) && tileKey !== coordsToKey({ ...creature })) {
+                  if (
+                    tileKey !== coordsToKey({ ...game.player }) &&
+                    tileKey !== coordsToKey({ ...creature })
+                  ) {
                     deconflictWith.set(tileKey, actor);
                   }
                 }
@@ -309,8 +309,8 @@ export function movePlayer(game: Game, nextInput: any) {
                     game.tiles,
                     creature,
                     game.player,
-                    deconflictWith
-                  )
+                    deconflictWith,
+                  ),
                 );
               }
             }
@@ -337,7 +337,7 @@ export function movePlayer(game: Game, nextInput: any) {
         if (nextInput === "d") {
           if (!game.dialogPointer || game.dialogPointer < 1) {
             game.messages.push(
-              "Use the number keys to select an item. e to eat, d to drop. Esc to close"
+              "Use the number keys to select an item. e to eat, d to drop. Esc to close",
             );
           } else if (
             !game.player.inventory ||
@@ -362,6 +362,26 @@ export function movePlayer(game: Game, nextInput: any) {
           } else {
             game.messages.push(`You cannot eat the ${item.name}!`);
           }
+        } else if (nextInput === "w") {
+          // wear or wield the inventory item
+          let item = game.player.inventory[game.dialogPointer - 1];
+          if (!item.slot) {
+            game.messages.push(`You cannot wear or weild the ${item.name}!`);
+          } else {
+            // if there's already something in the slot, put it in the inventory
+            if (game.player.slots) {
+              if (game.player.slots[item.slot]) {
+                let swappedItem = game.player.slots[item.slot];
+                if (swappedItem) {
+                  game.player.inventory?.push(swappedItem);
+                }
+              }
+              // remove the weilded/worn item from inventory since it's in the slot now
+              removeSelectedItemFromPlayerInventory(game);
+              // weild/wear the item
+              game.player.slots[item.slot] = item;
+            }
+          }
         }
       }
       game.isScreenDirty = true;
@@ -382,15 +402,15 @@ export const actorDeath = (game: Game, actor: Actor) => {
   game.actors.delete(coordsToKey({ ...actor }));
   // add corpse
   game.features.set(coordsToKey({ ...actor }), {
-    ...getCorpse(actor.x, actor.y, actor.glyph, actor.name)
-  })
-}
+    ...getCorpse(actor.x, actor.y, actor.glyph, actor.name),
+  });
+};
 
 export const moveActor = (
   game: Game,
   actor: Actor,
   moveDelta?: Coords,
-  nextCoords?: Coords
+  nextCoords?: Coords,
 ): Game => {
   const previousPosition = { ...actor };
   let nextPosition;
@@ -451,10 +471,10 @@ export const moveActor = (
     Math.floor(Math.random() * 1000) <= (actor.shoutChance as number)
   ) {
     const shout = Math.floor(
-      Math.random() * (actor.shouts as Array<Shout>).length
+      Math.random() * (actor.shouts as Array<Shout>).length,
     );
     game.messages.push(
-      `{grey-fg}${(actor.shouts as Array<Shout>)[shout].shout}{/}`
+      `{grey-fg}${(actor.shouts as Array<Shout>)[shout].shout}{/}`,
     );
   }
 
@@ -506,7 +526,7 @@ export const getNextMoveToTarget = (
   tiles: CoordsMap,
   startingTile: Coords,
   targetTile: Coords,
-  deconflictWith: Map<string, Actor> | undefined // actors to deconflict with
+  deconflictWith: Map<string, Actor> | undefined, // actors to deconflict with
 ): Coords | undefined => {
   // If we're already adjacent to the target, return the target's coords
   if (
@@ -557,7 +577,7 @@ export const getNextMoveToTarget = (
           coordsToKey({
             x: currentNode.coords.x + i,
             y: currentNode.coords.y + j,
-          })
+          }),
         );
         if (neighbor) {
           // all edges are length 1 because this is a grid-based game, so we don't need to check edge length
@@ -593,7 +613,7 @@ export const getNextMoveToTarget = (
     shortestAncestorNode.shortestPathAncestor &&
     !CoordsUtil.equals(
       shortestAncestorNode.shortestPathAncestor.coords,
-      startingTile
+      startingTile,
     )
   ) {
     shortestAncestorNode = shortestAncestorNode.shortestPathAncestor;
@@ -604,7 +624,7 @@ export const getNextMoveToTarget = (
 // returns the node with the least distance or undefined if every node distance is Infinity
 // this would be more optimal as a heap/priority queue
 export function getNodeWithLeastDistance(
-  nodes: Map<string, PathfindingNode>
+  nodes: Map<string, PathfindingNode>,
 ): PathfindingNode | undefined {
   let returnValue = undefined;
   let minDist = Infinity;
@@ -617,12 +637,11 @@ export function getNodeWithLeastDistance(
   return returnValue;
 }
 
-
 // Depth-first search of conversation branch tree looking for a branch by the 'creatureSpeaks' string
 // returns undefined if no branch was found
 export function findConversationBranchByCreatureSpeaks(
   conversationBranches: ConversationBranch[] | undefined,
-  creatureSpeaks: string
+  creatureSpeaks: string,
 ): ConversationBranch | undefined {
   if (conversationBranches !== undefined && conversationBranches.length > 0) {
     for (const seek of conversationBranches) {
@@ -631,7 +650,7 @@ export function findConversationBranchByCreatureSpeaks(
       }
       let conversationBranchFound = findConversationBranchByCreatureSpeaks(
         seek.conversationBranches,
-        creatureSpeaks
+        creatureSpeaks,
       );
       if (conversationBranchFound !== undefined) {
         return conversationBranchFound;
@@ -667,7 +686,7 @@ function removeSelectedItemFromPlayerInventory(game: Game) {
 // attempts to remove the item and returns true if it did
 export function removeItemFromPlayerInventory(
   game: Game,
-  itemNameToRemove: string
+  itemNameToRemove: string,
 ): boolean {
   const originalInventoryLength = game.player.inventory?.length || 0;
   let filteredItems = game.player.inventory?.filter((item: Item) => {
@@ -683,7 +702,7 @@ export function removeItemFromPlayerInventory(
 // attempts to remove the item and returns true if it did
 export function removeItemFromCreatureInventory(
   creature: Creature,
-  itemNameToRemove: string
+  itemNameToRemove: string,
 ): boolean {
   const originalInventoryLength = creature.inventory?.length || 0;
   let filteredItems = creature.inventory?.filter((item: Item) => {
@@ -696,10 +715,9 @@ export function removeItemFromCreatureInventory(
   );
 }
 
-
 function removeLastItemFromFloorStack(
   game: Game,
-  coords: Coords
+  coords: Coords,
 ): Item | undefined {
   let itemsAtTile = game.items.get(coordsToKey(coords));
   // get the last in the list
