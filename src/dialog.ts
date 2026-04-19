@@ -1,21 +1,25 @@
-import { findConversationBranchByCreatureSpeaks, removeItemFromCreatureInventory, removeItemFromPlayerInventory } from "./move";
-import { Action, Creature, Game, Item } from "./types";
+import {
+  findConversationBranchByCreatureSpeaks,
+  removeItemFromCreatureInventory,
+  removeItemFromPlayerInventory,
+} from "./move";
+import { Action, Creature, Game, Item, InputKey } from "./types";
 
 export function printDialogScreen(game: Game, out: string) {
   if (game.dialogMode === "dialog" && game.activeDialog) {
     out = out.concat(
-      `\n${game.interactingActor?.name} says: \n\n${game.activeDialog.creatureSpeaks}\n\n`
+      `\n${game.interactingActor?.name} says: \n\n${game.activeDialog.creatureSpeaks}\n\n`,
     );
     if (game.activeDialog.conversationBranches) {
       for (let i = 0; i < game.activeDialog.conversationBranches?.length; i++) {
         out = out.concat(
           `${i + 1}: ${
             game.activeDialog.conversationBranches[i].playerResponse
-          }\n`
+          }\n`,
         );
       }
       out = out.concat(
-        "\nPress Number keys to answer or Escape to exit dialog..."
+        "\nPress Number keys to answer or Escape to exit dialog...",
       );
     } else {
       out = out.concat("\n\nPress Escape to exit dialog...");
@@ -26,6 +30,17 @@ export function printDialogScreen(game: Game, out: string) {
 
 export function handleDialogActions(game: Game, nextInput: string) {
   if (game.dialogMode === "dialog" && game.activeDialog) {
+    if (nextInput === InputKey.ESCAPE) {
+      game.dialogMode = "game";
+      game.activeDialog = undefined;
+      game.interactingActor = undefined;
+      game.isScreenDirty = true;
+      game.dialogPointer = -1;
+      game.messages.push(
+        "{underline}i{/underline}nventory, {underline}g{/underline} to pick up from the ground, {underline}>{/underline} down stair, {underline}<{/underline} up stair, {underline}^{/underline} pray at altar",
+      );
+      return game;
+    }
     // active dialog
     let creature = game.interactingActor as Creature;
     if (game.activeDialog.conversationBranches && nextInput !== undefined) {
@@ -35,11 +50,11 @@ export function handleDialogActions(game: Game, nextInput: string) {
       ) {
         // lookup branch from creatureReference branch if it exists
         game.activeDialog =
-        game.activeDialog.conversationBranches[parseInt(nextInput) - 1];
+          game.activeDialog.conversationBranches[parseInt(nextInput) - 1];
         if (game.activeDialog.gotoBranch) {
           let foundConversationBranch = findConversationBranchByCreatureSpeaks(
             creature.conversationBranches,
-            game.activeDialog.gotoBranch
+            game.activeDialog.gotoBranch,
           );
           if (foundConversationBranch) {
             game.activeDialog = foundConversationBranch;
@@ -52,18 +67,21 @@ export function handleDialogActions(game: Game, nextInput: string) {
           ) {
             game.activeDialog.actions.forEach((action: Action) => {
               if (action.givePlayerItems) {
-                action.givePlayerItems.forEach(itemName => {
+                action.givePlayerItems.forEach((itemName) => {
                   let item = game.allItems.find(
-                    (item: Item) => item.name === itemName
+                    (item: Item) => item.name === itemName,
                   );
-                  if (item) {game.player.inventory?.push(item);
-                    game.messages.push( `${creature.useDefiniteArticle ? "The" : ""}${
-                      creature.name
-                    } gives you the ${itemName}`)
+                  if (item) {
+                    game.player.inventory?.push(item);
+                    game.messages.push(
+                      `${creature.useDefiniteArticle ? "The" : ""}${
+                        creature.name
+                      } gives you the ${itemName}`,
+                    );
                   }
                   // optionally remove the item from the creature
                   removeItemFromCreatureInventory(creature, itemName);
-                })
+                });
               }
               if (action.takePlayerItems) {
                 // see if the player has the item
@@ -73,10 +91,10 @@ export function handleDialogActions(game: Game, nextInput: string) {
                     game.messages.push(
                       `You gave ${creature.useDefiniteArticle ? "the" : ""}${
                         creature.name
-                      } the ${itemName}`
+                      } the ${itemName}`,
                     );
                     let item = game.allItems.find(
-                      (item: Item) => item.name === itemName
+                      (item: Item) => item.name === itemName,
                     );
                     if (item) creature.inventory?.push(item);
                   } else {
@@ -86,7 +104,7 @@ export function handleDialogActions(game: Game, nextInput: string) {
                     game.messages.push(
                       `You don't have a ${itemName} to give ${
                         creature.useDefiniteArticle ? "the" : ""
-                      }${creature.name}`
+                      }${creature.name}`,
                     );
                   }
                 });

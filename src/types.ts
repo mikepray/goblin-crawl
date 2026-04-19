@@ -56,29 +56,30 @@ export type Skills = {
   dodging: number;
 };
 
-export type Item = Feature & Skills & {
-  edible: boolean;
-  slot?: "weapon" | "shield" | "head" | "neck" | "body" | "feet" | "hands";
-  armorBonus?: number;
-  dodgingBonus?: number;
-};
+export type Item = Feature &
+  Skills & {
+    edible: boolean;
+    slot?: "weapon" | "shield" | "head" | "neck" | "body" | "feet" | "hands";
+    armorBonus?: number;
+    dodgingBonus?: number;
+  };
 
 export type Bonuses = {
   armorBonus: number;
   dodgingBonus: number;
-}
+};
 
 export type SkillMultipliers = {
   multipliers: Skills;
   bonuses: Bonuses;
-}
+};
 
 export type Weapon = Item & {
   attackBonus: number;
   damageBonus: number;
   damageDieNum: number;
   damageDie: number;
-}
+};
 
 export type Player = Actor & {
   glyph: "@";
@@ -175,6 +176,7 @@ export enum InputKey {
   RIGHT = "\u001b[C",
   LEFT = "\u001b[D",
   ESCAPE = "\u001b",
+  TAB = "\x09",
 }
 
 // Define status and movement types as string literals for type safety

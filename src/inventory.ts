@@ -4,7 +4,7 @@ import { dungeonHeight } from "./game";
 
 export const printInventoryScreen = (game: Game, out: string): string => {
   out = out.concat(
-    `${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level} Turn: ${game.turnCount} | HP ${game.player.hp}\n\n`,
+    `${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level} \nHP ${game.player.hp}\n\n`,
   );
   out = out.concat(`{bold}Inventory{/}\n`);
   // extra 7 for slots
@@ -61,6 +61,20 @@ export const printInventoryScreen = (game: Game, out: string): string => {
 };
 
 export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
+  if (
+    game.dialogMode === "inventory" &&
+    (nextInput === InputKey.ESCAPE || nextInput === InputKey.TAB)
+  ) {
+    game.dialogMode = "game";
+    game.activeDialog = undefined;
+    game.interactingActor = undefined;
+    game.isScreenDirty = true;
+    game.dialogPointer = -1;
+    // game.messages.push(
+    //   "{underline}i{/underline}nventory, {underline}g{/underline} to pick up from the ground, {underline}>{/underline} down stair, {underline}<{/underline} up stair, {underline}^{/underline} pray at altar",
+    // );
+    return game;
+  }
   // if the next input is a number
   if (game.player.inventory && Number.isInteger(Number.parseInt(nextInput))) {
     // if the number is a valid choice, set the pointer to it
@@ -69,12 +83,20 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
       game.dialogPointer = num;
     }
   } else if (game.player.inventory && nextInput) {
-    if (nextInput === InputKey.DOWN || nextInput === "\x1bOB") {
+    if (
+      nextInput === InputKey.DOWN ||
+      nextInput === "\x1bOB" ||
+      nextInput === "j"
+    ) {
       game.dialogPointer++;
       if (game.dialogPointer > game.player.inventory.length + 7) {
         game.dialogPointer = 1;
       }
-    } else if (nextInput === InputKey.UP || nextInput === "\x1bOA") {
+    } else if (
+      nextInput === InputKey.UP ||
+      nextInput === "\x1bOA" ||
+      nextInput === "k"
+    ) {
       game.dialogPointer--;
       if (game.dialogPointer < 1) {
         game.dialogPointer = game.player.inventory.length + 7;
@@ -156,7 +178,7 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
               );
             }
           }
-        } 
+        }
       }
     } else if (nextInput === "e") {
       // eat the inventory item

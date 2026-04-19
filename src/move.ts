@@ -3,7 +3,6 @@ import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
 import { handleInventoryScreenAction } from "./inventory";
 import { ascend, descend } from "./levels";
-import { logger } from "./logger";
 import {
   Actor,
   ConversationBranch,
@@ -19,18 +18,6 @@ import {
 import { branchLevelToKey, coordsToKey, CoordsUtil, getCorpse } from "./utils";
 
 export function movePlayer(game: Game, nextInput: any) {
-  if (nextInput === InputKey.ESCAPE) {
-    game.dialogMode = "game";
-    game.activeDialog = undefined;
-    game.interactingActor = undefined;
-    game.isScreenDirty = true;
-    game.dialogPointer = -1;
-    game.messages.push(
-      "{underline}i{/underline}nventory, {underline}g{/underline} to pick up from the ground, {underline}>{/underline} down stair, {underline}<{/underline} up stair, {underline}^{/underline} pray at altar",
-    );
-    return game;
-  }
-
   if (game.dialogMode === "game") {
     let playerMove: Coords = { x: 0, y: 0 };
     if (nextInput) {
@@ -127,11 +114,13 @@ export function movePlayer(game: Game, nextInput: any) {
           game.messages.push("There's nothing on the ground here...");
         }
         game.isScreenDirty = true;
-      } else if (nextInput === "i") {
+      } else if (nextInput === "i" || "\x09") {
         game.dialogMode = "inventory";
         game.dialogPointer = 1;
         game.isScreenDirty = true;
-        game.messages.push("(e)at, (d)rop, (w)ear or (w)ield, esc to exit");
+        game.messages.push(
+          "{underline}e{/underline}at, {underline}d{/underline}rop, {underline}w{/underline}ear or {underline}w{/underline}ield, esc to exit",
+        );
         return game;
       } else if (nextInput === "?") {
         game.messages.push(
