@@ -1,6 +1,7 @@
 import { meleeActor } from "./combat";
 import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
+import { handleInventoryScreenAction } from "./inventory";
 import { ascend, descend } from "./levels";
 import { logger } from "./logger";
 import {
@@ -24,6 +25,9 @@ export function movePlayer(game: Game, nextInput: any) {
     game.interactingActor = undefined;
     game.isScreenDirty = true;
     game.dialogPointer = -1;
+    game.messages.push(
+      "{underline}i{/underline}nventory, {underline}g{/underline} to pick up from the ground, {underline}>{/underline} down stair, {underline}<{/underline} up stair, {underline}^{/underline} pray at altar",
+    );
     return game;
   }
 
@@ -100,7 +104,7 @@ export function movePlayer(game: Game, nextInput: any) {
           let item = removeLastItemFromFloorStack(game, { ...game.player });
           if (item?.name === "skrunt egg") {
             game.messages.push(
-              "The skrunt egg is engulfed in green flame. Meggled accepts your sacrifice!",
+              "{green-fg}The skrunt egg is engulfed in green flame. Meggled accepts your sacrifice!{/}",
             );
           } else if (item) {
             putItemOnFloorStack(game, item);
@@ -125,6 +129,7 @@ export function movePlayer(game: Game, nextInput: any) {
         game.isScreenDirty = true;
       } else if (nextInput === "i") {
         game.dialogMode = "inventory";
+        game.dialogPointer = 1;
         game.isScreenDirty = true;
         game.messages.push("(e)at, (d)rop, (w)ear or (w)ield, esc to exit");
         return game;
@@ -320,72 +325,8 @@ export function movePlayer(game: Game, nextInput: any) {
     }
   } else if (game.dialogMode === "dialog" && game.activeDialog) {
     handleDialogActions(game, nextInput);
-  } else if (game.dialogMode === "inventory") {
-    if (nextInput) {
-      // inventory
-      // if the next input is a number
-      if (
-        game.player.inventory &&
-        Number.isInteger(Number.parseInt(nextInput))
-      ) {
-        // if the number is a valid choice, set the pointer to it
-        let num = Number.parseInt(nextInput);
-        if (num <= game.player.inventory.length) {
-          game.dialogPointer = num;
-        }
-      } else if (game.player.inventory && nextInput) {
-        if (nextInput === "d") {
-          if (!game.dialogPointer || game.dialogPointer < 1) {
-            game.messages.push(
-              "Use the number keys to select an item. e to eat, d to drop. Esc to close",
-            );
-          } else if (
-            !game.player.inventory ||
-            game.player.inventory.length === 0
-          ) {
-            game.messages.push("You have nothing...");
-          } else {
-            // drop the inventory item
-            let item = game.player.inventory[game.dialogPointer - 1];
-            removeSelectedItemFromPlayerInventory(game);
-            putItemOnFloorStack(game, item);
-            game.messages.push(`You dropped the ${item.name}`);
-            game.turnCount++;
-          }
-        } else if (nextInput === "e") {
-          // eat the inventory item
-          let item = game.player.inventory[game.dialogPointer - 1];
-          if (item.edible) {
-            removeSelectedItemFromPlayerInventory(game);
-            game.messages.push(`You ate the ${item.name}. Delicious!`);
-            game.turnCount++;
-          } else {
-            game.messages.push(`You cannot eat the ${item.name}!`);
-          }
-        } else if (nextInput === "w") {
-          // wear or wield the inventory item
-          let item = game.player.inventory[game.dialogPointer - 1];
-          if (!item.slot) {
-            game.messages.push(`You cannot wear or weild the ${item.name}!`);
-          } else {
-            // if there's already something in the slot, put it in the inventory
-            if (game.player.slots) {
-              if (game.player.slots[item.slot]) {
-                let swappedItem = game.player.slots[item.slot];
-                if (swappedItem) {
-                  game.player.inventory?.push(swappedItem);
-                }
-              }
-              // remove the weilded/worn item from inventory since it's in the slot now
-              removeSelectedItemFromPlayerInventory(game);
-              // weild/wear the item
-              game.player.slots[item.slot] = item;
-            }
-          }
-        }
-      }
-      game.isScreenDirty = true;
-    }
+  } else if (game.dialogMode === "inventory" && nextInput) {
+    handleInventoryScreenAction(game, nextInput);
   }
 
   return game;
@@ -431,7 +372,7 @@ export const moveActor = (
     game.actors.has(nextPositionKey) &&
     "isHostile" in actor
   ) {
-    if (subjectCreature.name === "player") {
+    if (subjectCreature.name === "player" && actor.isHostile) {
       // attack player
       game = meleeActor(game, actor, subjectCreature);
       if ((game.player.hp || 0) <= 0) {
@@ -660,7 +601,7 @@ export function findConversationBranchByCreatureSpeaks(
   return undefined;
 }
 
-function putItemOnFloorStack(game: Game, item: Item) {
+export function putItemOnFloorStack(game: Game, item: Item) {
   // put the item on the floor in the tile stack
   let itemStack = game.items.get(coordsToKey({ ...game.player }));
   if (!itemStack) {
@@ -668,19 +609,6 @@ function putItemOnFloorStack(game: Game, item: Item) {
   }
   itemStack.push(item);
   game.items.set(coordsToKey({ ...game.player }), itemStack);
-}
-
-function removeSelectedItemFromPlayerInventory(game: Game) {
-  let newInventoryListWithoutItem = new Array<Item>();
-  if (game.player.inventory) {
-    // rebuild the list without the item
-    for (let i = 0; i < game.player.inventory.length; i++) {
-      if (i !== game.dialogPointer - 1) {
-        newInventoryListWithoutItem.push(game.player.inventory[i]);
-      }
-    }
-  }
-  game.player.inventory = newInventoryListWithoutItem;
 }
 
 // attempts to remove the item and returns true if it did

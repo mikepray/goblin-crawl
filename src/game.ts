@@ -6,6 +6,7 @@ import { loadCreatures, loadFeatures, loadItems } from "./loader";
 import { movePlayer } from "./move";
 import { Actor, Coords, Feature, Game, Item, Level, Player } from "./types";
 import { coordsToKey, isTileInFieldOfVision } from "./utils";
+import { printInventoryScreen } from "./inventory";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -103,6 +104,7 @@ function initGame(): Game {
       savagery: 3,
       fortitude: 1,
       power: 1,
+      slots: {},
       naturalWeapon: {
         name: "fists",
         attackBonus: 1,
@@ -133,36 +135,29 @@ function initGame(): Game {
 }
 
 function printScreen(game: Game, view: View): Game {
-  let topbarContent = `{bold}GoblinCrawl{/bold} | ${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level} Turn: ${game.turnCount} | HP ${game.player.hp}\n`;
+  let topbarContent = `{bold}GoblinCrawl{/bold}\n`;
 
   view.topbar.setContent(topbarContent);
 
-  let out = "";
-  if (game.dialogMode === "dialog") {
-    out = out.concat(printDialogScreen(game, out));
-  } else if (game.dialogMode === "inventory") {
-    out = out.concat(`Inventory\n`);
-    for (
-      let i = 0;
-      game.player.inventory && i < game.player.inventory?.length;
-      i++
-    ) {
-      out = out.concat(
-        `${game.dialogPointer === i + 1 ? "→ " : ""}${i + 1}: ${
-          game.player.inventory[i].name
-        } - ${game.player.inventory[i].description}\n`,
-      );
-    }
-
-    // fill the rest of the screen with whitespace (start at 1 for inventory screen title)
-    for (
-      let i = 1;
-      i < dungeonHeight - (game.player.inventory?.length || 0);
-      i++
-    ) {
-      out = out.concat("\n");
-    }
+  view.status.setContent(`{left}${printInventoryScreen(game, "")}{/left}`);
+  if (game.dialogMode !== "inventory") {
+    view.status.style = {
+      border: {
+        fg: "black",
+      },
+    };
   } else {
+    view.status.style = {
+      border: {
+        fg: "white",
+      },
+    };
+  }
+  if (game.dialogMode === "dialog") {
+    view.map.setContent(`{left}${printDialogScreen(game, "")}{/left}`);
+  } else {
+    let out = "";
+
     // dungeon screen
     for (let y = 0; y < dungeonHeight; y++) {
       for (let x = 0; x < dungeonWidth; x++) {
@@ -214,10 +209,23 @@ function printScreen(game: Game, view: View): Game {
         }
       }
       out = out.concat("\n");
+      if (game.dialogMode !== "game") {
+        view.map.style = {
+          border: {
+            fg: "black",
+          },
+        };
+        view.map.setContent(`{center}${out}{/center}`);
+      } else {
+        view.map.style = {
+          border: {
+            fg: "white",
+          },
+        };
+        view.map.setContent(`{center}${out}{/center}`);
+      }
     }
   }
-
-  view.map.setContent(out);
 
   // messages
   let logOut = "";
@@ -250,7 +258,9 @@ function printScreen(game: Game, view: View): Game {
 type View = {
   screen: blessed.Widgets.Screen;
   topbar: blessed.Widgets.BoxElement;
+  gameContainer: blessed.Widgets.BoxElement;
   map: blessed.Widgets.BoxElement;
+  status: blessed.Widgets.BoxElement;
   log: blessed.Widgets.BoxElement;
 };
 
@@ -280,10 +290,37 @@ function initView(): View {
     tags: true,
   });
 
-  const map = blessed.box({
+  const mainGameContainer = blessed.box({
     parent: screen,
     top: 3,
     left: 0,
+    height: dungeonHeight,
+    tags: true,
+  });
+
+  const map = blessed.box({
+    parent: mainGameContainer,
+    top: 0,
+    left: 0,
+    height: dungeonHeight,
+    width: 70,
+    border: {
+      type: "line",
+    },
+    style: {
+      border: {
+        fg: "blue",
+      },
+      bg: "black",
+      fg: "white",
+    },
+    tags: true,
+  });
+
+  const status = blessed.box({
+    parent: mainGameContainer,
+    top: 0,
+    left: 70,
     height: dungeonHeight,
     border: {
       type: "line",
@@ -318,7 +355,9 @@ function initView(): View {
   return {
     topbar: topbar,
     screen: screen,
+    gameContainer: mainGameContainer,
     map: map,
+    status: status,
     log: log,
   };
 }
@@ -326,7 +365,7 @@ function initView(): View {
 function startScreen(view: View) {
   const green3 = "#00af00";
   const introBox = blessed.box({
-    parent: view.map,
+    parent: view.gameContainer,
     style: {
       bg: green3,
     },
@@ -353,7 +392,7 @@ function startScreen(view: View) {
     top: "80%", // Position below the intro text
     height: "20%", // Take remaining space
     style: {
-      fg: "#000000",
+      fg: "#000001",
       bg: green3,
       bold: true,
     },
@@ -361,13 +400,14 @@ function startScreen(view: View) {
     valign: "middle",
   });
   // welcome screen
+  // prettier-ignore
   introText.setContent(`
  ________        ___.    .__   .__         _________                         .__
  /  _____/   ____ \\_ |__  |  |  |__|  ____  \\_   ___ \\_______ _____  __  _  __|  |
 /   \\  ___  /  _ \\ | __ \\ |  |  |  | /    \\ /    \\  \\/\\_  __ \\\\__  \\ \\ \\/ \\/ /|  |
- \\    \\_\\  \\(  <_> )| \\_\\ \\|  |__|  ||   |  \\\\     \\____|  | \\/ / __ \\_\\     / |  |__
-  \\________/ \\____/ |___  /|____/|__||___|  / \\______  /|__|   (____  / \\/\\_/  |____/
-         \\/                \\/         \\/             \\/
+  \\    \\_\\  \\(  <_> )| \\_\\ \\|  |__|  ||   |  \\\\     \\____|  | \\/ / __ \\_\\     / |  |__
+   \\________/ \\____/ |___  /|____/|__||___|  / \\______  /|__|   (____  / \\/\\_/  |____/
+          \\/                \\/         \\/             \\/
    `);
 
   // welcome screen
