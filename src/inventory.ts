@@ -144,13 +144,19 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
             game.player.slots.shield = undefined;
             putItemOnFloorStack(game, item);
             game.turnCount++;
-          } else if (slotIndex === 7 && game.player.slots.weapon) {
-            const item = game.player.slots.weapon;
-            game.player.slots.weapon = undefined;
-            putItemOnFloorStack(game, item);
-            game.turnCount++;
+          } else if (slotIndex === 7) {
+            if (game.player.slots.weapon) {
+              const item = game.player.slots.weapon;
+              game.player.slots.weapon = undefined;
+              putItemOnFloorStack(game, item);
+              game.turnCount++;
+            } else {
+              game.messages.push(
+                `You cannot drop your ${game.player.naturalWeapon?.name}!`,
+              );
+            }
           }
-        }
+        } 
       }
     } else if (nextInput === "e") {
       // eat the inventory item
@@ -202,6 +208,52 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
         } else if (game.player.slots) {
           // unwield slot item
           const slotIndex = game.dialogPointer - game.player.inventory.length;
+          if (slotIndex === 0 && game.player.slots.head) {
+            const item = game.player.slots.head;
+            game.player.slots.head = undefined;
+            game.player.inventory?.push(item);
+            game.turnCount++;
+          } else if (slotIndex === 1 && game.player.slots.neck) {
+            const item = game.player.slots.neck;
+            game.player.slots.neck = undefined;
+            game.player.inventory?.push(item);
+            game.turnCount++;
+          } else if (slotIndex === 2 && game.player.slots.body) {
+            const item = game.player.slots.body;
+            game.player.slots.body = undefined;
+            game.player.inventory?.push(item);
+            game.turnCount++;
+          } else if (slotIndex === 3 && game.player.slots.feet) {
+            const item = game.player.slots.feet;
+            game.player.slots.feet = undefined;
+            game.player.inventory?.push(item);
+            game.turnCount++;
+          } else if (slotIndex === 4 && game.player.slots.hands) {
+            const item = game.player.slots.hands;
+            game.player.slots.hands = undefined;
+            game.player.inventory?.push(item);
+            game.turnCount++;
+          } else if (slotIndex === 5 && game.player.slots.neck) {
+            const item = game.player.slots.neck;
+            game.player.slots.neck = undefined;
+            game.player.inventory?.push(item);
+            game.turnCount++;
+          } else if (slotIndex === 6 && game.player.slots.shield) {
+            const item = game.player.slots.shield;
+            game.player.slots.shield = undefined;
+            putItemOnFloorStack(game, item);
+            game.turnCount++;
+          } else if (slotIndex === 7)
+            if (game.player.slots.weapon) {
+              const item = game.player.slots.weapon;
+              game.player.slots.weapon = undefined;
+              game.player.inventory?.push(item);
+              game.turnCount++;
+            } else {
+              game.messages.push(
+                `You cannot unwield your ${game.player.naturalWeapon?.name}! Find a weapon to use`,
+              );
+            }
         }
       }
     }
