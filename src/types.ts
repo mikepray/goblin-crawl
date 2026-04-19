@@ -4,6 +4,7 @@ export type Game = {
   player: Player;
   gameOver: boolean;
   activeDialog?: ConversationBranch;
+  storyScreen?: LevelUpScreen;
   interactingActor?: Actor;
   dialogPointer: number;
   currentBranchLevel: BranchLevel;
@@ -13,7 +14,7 @@ export type Game = {
   messages: Array<string>;
   oldMessages: Array<string>;
   levels: Map<string, Level>;
-  dialogMode: "inventory" | "game" | "dialog";
+  dialogMode: "inventory" | "game" | "dialog" | "levelUp";
 
   // these objects are updated per level
   items: Map<string, Array<Item>>;
@@ -21,17 +22,23 @@ export type Game = {
   actors: Map<string, Actor>;
   features: Map<string, Feature>;
   seenTiles: CoordsMap;
+  visibleActors: Array<Actor>;
 };
+
+export type LevelUpScreen = {};
 
 // a moveable, occluding game actor
 export type Actor = Coords &
   Skills & {
+    level: number;
+    hitDie: number;
     glyph: string;
     color?: string;
     name: string;
     description?: string;
     inventory?: Array<Item>;
-    hp?: number;
+    maxHp: number;
+    currentHp: number;
     hpRegen?: number; // hp regenerate per turn
     slots?: {
       weapon?: Weapon | Item;
@@ -85,6 +92,7 @@ export type Player = Actor & {
   glyph: "@";
   name: "player";
   description: "It's you";
+  XP: number;
 };
 
 // an unmoving, non-occluding game feature (staircase, trap)

@@ -6,7 +6,9 @@ import { loadCreatures, loadFeatures, loadItems } from "./loader";
 import { movePlayer } from "./move";
 import { Actor, Coords, Feature, Game, Item, Level, Player } from "./types";
 import { coordsToKey, isTileInFieldOfVision } from "./utils";
-import { printInventoryScreen } from "./inventory";
+import { printInventoryScreen, printStatusScreen } from "./inventory";
+import { printLevelUpScreen } from "./levelUpScreen";
+import { levelUp } from "./player";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -69,6 +71,7 @@ function gameLoop() {
           // add all new messages to history
           game.oldMessages = game.oldMessages.concat(game.messages);
         }
+        levelUp(game);
         printScreen(game, view);
 
         view.screen.render();
@@ -92,7 +95,11 @@ function initGame(): Game {
     player: {
       x: 0,
       y: 0,
-      hp: 10,
+      maxHp: 10,
+      currentHp: 10,
+      level: 1,
+      XP: 0,
+      hitDie: 3,
       inventory: [items.find((item) => item.name === "skrunt egg")],
       glyph: "@",
       color: "{white-fg}{bold}",
@@ -126,6 +133,7 @@ function initGame(): Game {
     items: new Map<string, Array<Item>>(),
     seenTiles: new Map<string, Coords>(),
     dialogMode: "game",
+    visibleActors: new Array<Actor>(),
   };
 
   return descend(game, {
@@ -135,29 +143,33 @@ function initGame(): Game {
 }
 
 function printScreen(game: Game, view: View): Game {
-  let topbarContent = `{bold}GoblinCrawl{/bold}\n`;
+  let topbarContent = `{bold}GoblinCrawl{/bold} > ${game.dialogMode}\n`;
 
   view.topbar.setContent(topbarContent);
 
-  view.status.setContent(`{left}${printInventoryScreen(game, "")}{/left}`);
+  view.statusRight.setContent(printInventoryScreen(game, ""));
+  view.statusLeft.setContent(printStatusScreen(game, ""));
   if (game.dialogMode !== "inventory") {
-    view.status.style = {
+    view.statusContainer.style = {
       border: {
         fg: "black",
       },
     };
   } else {
-    view.status.style = {
+    view.statusContainer.style = {
       border: {
         fg: "white",
       },
     };
   }
+
   if (game.dialogMode === "dialog") {
     view.map.setContent(`{left}${printDialogScreen(game, "")}{/left}`);
+  } else if (game.dialogMode === "levelUp") {
+    view.map.setContent(`{left}${printLevelUpScreen(game, "")}{/left}`);
   } else {
     let out = "";
-
+    let visibleActors = [];
     // dungeon screen
     for (let y = 0; y < dungeonHeight; y++) {
       for (let x = 0; x < dungeonWidth; x++) {
@@ -183,6 +195,7 @@ function printScreen(game: Game, view: View): Game {
             } else {
               out = out.concat(`{white-fg}${actor.glyph}{/}`);
             }
+            visibleActors.push(actor);
           } else if (feature) {
             out = out.concat(`{white-fg}${feature.glyph}{/}`);
           } else if (itemsOnTile && itemsOnTile.length >= 0 && itemsOnTile[0]) {
@@ -225,6 +238,7 @@ function printScreen(game: Game, view: View): Game {
         view.map.setContent(`{center}${out}{/center}`);
       }
     }
+    game.visibleActors = visibleActors;
   }
 
   // messages
@@ -260,7 +274,9 @@ type View = {
   topbar: blessed.Widgets.BoxElement;
   gameContainer: blessed.Widgets.BoxElement;
   map: blessed.Widgets.BoxElement;
-  status: blessed.Widgets.BoxElement;
+  statusContainer: blessed.Widgets.BoxElement;
+  statusRight: blessed.Widgets.BoxElement;
+  statusLeft: blessed.Widgets.BoxElement;
   log: blessed.Widgets.BoxElement;
 };
 
@@ -317,7 +333,7 @@ function initView(): View {
     tags: true,
   });
 
-  const status = blessed.box({
+  const statusContainer = blessed.box({
     parent: mainGameContainer,
     top: 0,
     left: 70,
@@ -332,6 +348,23 @@ function initView(): View {
       bg: "black",
       fg: "white",
     },
+    tags: true,
+  });
+
+  const statusLeft = blessed.box({
+    parent: statusContainer,
+    top: 0,
+    left: 0,
+    height: dungeonHeight - 2,
+    tags: true,
+  });
+
+  const statusRight = blessed.box({
+    parent: statusContainer,
+    top: 0,
+    left: 30,
+    height: dungeonHeight - 2,
+
     tags: true,
   });
 
@@ -357,7 +390,9 @@ function initView(): View {
     screen: screen,
     gameContainer: mainGameContainer,
     map: map,
-    status: status,
+    statusContainer: statusContainer,
+    statusLeft: statusLeft,
+    statusRight: statusRight,
     log: log,
   };
 }

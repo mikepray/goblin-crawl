@@ -2,6 +2,8 @@
 creatures:
   - name: goblin
     glyph: g
+    level: 1
+    hitDie: 3
     color: "{#3bd457-fg}"
     description: >
       a small greenish humanoid with long ears and large eyes.
@@ -16,7 +18,8 @@ creatures:
     savagery: 1
     fortitude: 1
     power: 1
-    hp: 6
+    currentHp: 6
+    maxHp: 6
     naturalWeapon:
       name: fists
       attackBonus: 1
@@ -51,6 +54,8 @@ creatures:
 
   - name: skrunt
     glyph: s
+    level: 1
+    hitDie: 2
     color: "{#78ad36-fg}"
     description: >
       a tame featherless bird favored by goblinkind for its flesh and eggs
@@ -63,7 +68,8 @@ creatures:
     savagery: 0
     fortitude: 0
     power: 0
-    hp: 2
+    currentHp: 2
+    maxHp: 2
     naturalWeapon:
       name: beak
       attackBonus: 1
@@ -86,8 +92,45 @@ creatures:
       - shout: skrunt skrunt
       - shout: SKRUUUUUNT!!
 
+  - name: rat
+    glyph: r
+    level: 1
+    hitDie: 1
+    color: "{#9e4c15-fg}"
+    description: >
+      a large angry rat
+    isHostile: true
+    status: AWAKE
+    movementType: WANDERING
+    armor: 1
+    dodging: 1
+    cunning: 0
+    savagery: 0
+    fortitude: 0
+    power: 0
+    currentHp: 2
+    maxHp: 2
+    naturalWeapon:
+      name: bite
+      attackBonus: 1
+      damageBonus: 1
+      damageDieNum: 1
+      damageDie: 2
+    branchSpawnRates:
+      - branchName: D
+        level: 2
+        spawnChance: 80
+        maxSpawnNum: 5
+    shoutChance: 5 # out of 1000
+    shouts:
+      - shout: skitter
+
   - name: kobold
     glyph: k
+    level: 3
+    hitDie: 3
+    maxHp: 8
+    currentHp: 8
     color: "{#d92124-fg}"
     isHostile: true
     status: AWAKE
@@ -101,7 +144,6 @@ creatures:
     savagery: 3
     fortitude: 1
     power: 1
-    hp: 8
     slots:
       weapon: dagger
       body: leather armor
@@ -114,10 +156,6 @@ creatures:
       damageDieNum: 1
       damageDie: 3
     branchSpawnRates:
-      - branchName: D
-        level: 3
-        spawnChance: 20
-        maxSpawnNum: 3
       - branchName: D
         level: 4
         spawnChance: 40

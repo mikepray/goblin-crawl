@@ -1,12 +1,39 @@
-import { Game, InputKey, Item } from "./types";
+import { Game, InputKey, Item, Creature } from "./types";
 import { putItemOnFloorStack } from "./move";
 import { dungeonHeight } from "./game";
 
+export function printStatusScreen(game: Game, out: string): string {
+  for (let i = 0; i < game.visibleActors.length; i++) {
+    const actor = game.visibleActors.at(i);
+    if (actor && actor.name !== "player") {
+      if (actor.color) {
+        out = out.concat(`${actor.color}${actor.glyph}{/}`);
+      } else {
+        out = out.concat(`{white-fg}${actor.glyph}{/}`);
+      }
+      if ((actor as Creature).isHostile) {
+        out = out.concat(` {red-fg}${actor.name}{/red-fg}`);
+      } else {
+        out = out.concat(` {grey-fg}${actor.name}{/grey-fg}`);
+      }
+      out = out.concat(`\n`);
+    }
+  }
+  return out;
+}
+
 export const printInventoryScreen = (game: Game, out: string): string => {
   out = out.concat(
-    `${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level} \nHP ${game.player.hp}\n\n`,
+    `{bold}HP{/bold} ${game.player.currentHp}/${game.player.maxHp}\t`,
   );
-  out = out.concat(`{bold}Inventory{/}\n`);
+  out = out.concat(
+    `{bold}Lvl{/bold} ${game.player.level}\t{bold}XP{/bold} ${game.player.XP}\t`,
+  );
+  out = out.concat(
+    `${game.currentBranchLevel.branchName}:${game.currentBranchLevel.level}`,
+  );
+
+  out = out.concat(`\n\n{bold}Inventory{/}\n`);
   // extra 7 for slots
   let disp = "";
   for (

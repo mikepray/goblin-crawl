@@ -1,14 +1,13 @@
+import { Actor, Game, Weapon } from "./types";
+import { d20, getSkillMultipliers, nDk } from "./utils";
 import {
-  Actor,
-  Game,
-  Weapon
-} from "./types";
-import {
-  d20,
-  getSkillMultipliers,
-  nDk
-} from "./utils";
-import { actorAttack, actorPower, actorDodge, actorResist, actorWeaponDamage, actorAttackBonus } from "./combat/utils";
+  actorAttack,
+  actorPower,
+  actorDodge,
+  actorResist,
+  actorWeaponDamage,
+  actorAttackBonus,
+} from "./combat/utils";
 
 export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
   // attack bonus = ln((cunning skill * item cunning bonuses) +
@@ -20,7 +19,8 @@ export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
   let actorAttackVal = actorAttack(actor, actorItems);
 
   const actorAttackBonusVal = actorAttackVal + weaponAttackBonus;
-  const targetDodgeBonusVal = actorDodge(target, targetItems) + targetItems.bonuses.dodgingBonus;
+  const targetDodgeBonusVal =
+    actorDodge(target, targetItems) + targetItems.bonuses.dodgingBonus;
 
   const toHitRoll = d20() + actorAttackBonusVal;
 
@@ -38,7 +38,8 @@ export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
     let weaponDamageBonus = actorWeaponDamage(actor);
 
     const actorDamageBonus = actorAttackVal + weaponDamageBonus;
-    const targetResistBonus = actorResist(target, targetItems) + targetItems.bonuses.armorBonus;
+    const targetResistBonus =
+      actorResist(target, targetItems) + targetItems.bonuses.armorBonus;
 
     const toDamageRoll = d20() + actorDamageBonus;
     if (toDamageRoll > 10 + targetResistBonus) {
@@ -61,19 +62,22 @@ export const meleeActor = (game: Game, actor: Actor, target: Actor): Game => {
         weaponDamageDie = actor.naturalWeapon.damageDie;
       }
 
-      const weaponDamage = nDk(weaponDamageDieNum, weaponDamageDie) + weaponDamageBonus + actorPower(actor, actorItems);
+      const weaponDamage =
+        nDk(weaponDamageDieNum, weaponDamageDie) +
+        weaponDamageBonus +
+        actorPower(actor, actorItems);
       game.messages.push(
-        `The ${actor.name}'s attack hits the ${target.name} and does ${weaponDamage} damage (HP left: ${target.hp}) (tohit: ${toHitRoll} > 10 + ${targetDodgeBonusVal}, todam: ${toDamageRoll} > 10 + ${targetResistBonus})`
+        `The ${actor.name}'s attack hits the ${target.name} and does ${weaponDamage} damage (HP left: ${target.currentHp}) (tohit: ${toHitRoll} > 10 + ${targetDodgeBonusVal}, todam: ${toDamageRoll} > 10 + ${targetResistBonus})`,
       );
-      target.hp = (target.hp || 0) - weaponDamage;
+      target.currentHp = (target.currentHp || 0) - weaponDamage;
     } else {
       game.messages.push(
-        `The ${actor.name}'s attack hits the ${target.name} but does no damage (${toHitRoll} > 10 + ${targetDodgeBonusVal}, ${toDamageRoll} !> 10 + ${targetResistBonus} `
+        `The ${actor.name}'s attack hits the ${target.name} but does no damage (${toHitRoll} > 10 + ${targetDodgeBonusVal}, ${toDamageRoll} !> 10 + ${targetResistBonus} `,
       );
     }
   } else {
     game.messages.push(
-      `The ${actor.name}'s attack misses the ${target.name} (${toHitRoll} !> 10 + ${targetDodgeBonusVal})`
+      `The ${actor.name}'s attack misses the ${target.name} (${toHitRoll} !> 10 + ${targetDodgeBonusVal})`,
     );
   }
 

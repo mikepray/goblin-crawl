@@ -1,10 +1,18 @@
-import { Actor, BranchLevel, Coords, CoordsMap, Feature, Skills, SkillMultipliers } from "./types";
+import {
+  Actor,
+  BranchLevel,
+  Coords,
+  CoordsMap,
+  Feature,
+  Skills,
+  SkillMultipliers,
+} from "./types";
 
 export function isTileInFieldOfVision(
   testCoords: Coords,
   playerCoords: Coords,
   viewRadius: number,
-  gameTiles: CoordsMap
+  gameTiles: CoordsMap,
 ): boolean {
   // if test coord is not within player view radius
   if (
@@ -20,7 +28,7 @@ export function isTileInFieldOfVision(
     playerCoords.x,
     playerCoords.y,
     testCoords.x,
-    testCoords.y
+    testCoords.y,
   );
 
   let i = 0;
@@ -36,8 +44,13 @@ export function isTileInFieldOfVision(
   return true;
 }
 
-export function getBresenhamsLine(x0: number, y0: number, x1: number, y1: number) {
-  let lineCoords = new Set<Coords>;
+export function getBresenhamsLine(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+) {
+  let lineCoords = new Set<Coords>();
   let dx = Math.abs(x1 - x0);
   let sx = x0 < x1 ? 1 : -1;
   let dy = -Math.abs(y1 - y0);
@@ -63,14 +76,16 @@ export function getBresenhamsLine(x0: number, y0: number, x1: number, y1: number
 
 export const d20 = () => {
   return Math.floor(Math.random() * 20);
-}
+};
 
 // dice roller. rolls k-sided dice n times
 export const nDk = (n: number, k: number) => {
   let sum = 0;
-  while (n-- + 1 > 0) sum += Math.floor(Math.random() * k);
+  for (let i = 0; i < n; i++) {
+    sum += Math.floor(Math.random() * k) + 1;
+  }
   return sum;
-}
+};
 
 // converts coordinates to a string key for O(1) lookups in Maps
 export function coordsToKey(coords: Coords): string {
@@ -95,17 +110,19 @@ export const CoordsUtil = {
 // gets a random valid tile in the given list of tiles.
 export function getRandomValidTile(
   tiles: Map<string, Coords>,
-  deconflictWith?: Map<string, Coords>
+  deconflictWith?: Map<string, Coords>,
 ): Coords {
-
   let key;
 
   if (deconflictWith) {
     // subtract deconfliction tiles from tiles
-    let deconflictedTiles: Array<string> = Array.from(tiles.keys()).filter(tile => {
-      return !deconflictWith.has(tile);
-    });
-    key = deconflictedTiles[Math.floor(Math.random() * deconflictedTiles.length)];
+    let deconflictedTiles: Array<string> = Array.from(tiles.keys()).filter(
+      (tile) => {
+        return !deconflictWith.has(tile);
+      },
+    );
+    key =
+      deconflictedTiles[Math.floor(Math.random() * deconflictedTiles.length)];
   } else {
     // if nothing to deconflict with, just use the base tile map
     key = Array.from(tiles.keys()).at(Math.floor(Math.random() * tiles.size));
@@ -153,8 +170,12 @@ export const getSkillMultipliers = (actor: Actor): SkillMultipliers => {
 };
 
 export const defaultSkills: Skills = {
-  armor: 0, dodging: 0, cunning: 0,
-  savagery: 0, fortitude: 0, power: 0
+  armor: 0,
+  dodging: 0,
+  cunning: 0,
+  savagery: 0,
+  fortitude: 0,
+  power: 0,
 };
 
 /**
@@ -166,12 +187,22 @@ export const defaultSkills: Skills = {
  * @param {string} name - actor type
  * @returns {Feature} New feature.
  */
-export const getCorpse = (x: number, y: number, glyph: string, name: string): Feature => {
+export const getCorpse = (
+  x: number,
+  y: number,
+  glyph: string,
+  name: string,
+): Feature => {
   return {
-    x, y, glyph: `{red-fg}${glyph}{/red-fg}`, name,
-    description: `Remains of ${name}`,
-    ...defaultSkills
+    x,
+    y,
+    glyph: `{#4f4640-fg}${glyph}{/#4f4640-fg}`,
+    name,
+    description: `${name} remains`,
+    level: 0,
+    currentHp: 0,
+    maxHp: 0,
+    hitDie: 0,
+    ...defaultSkills,
   };
-}
-
-
+};

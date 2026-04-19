@@ -2,6 +2,7 @@ import { meleeActor } from "./combat";
 import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
 import { handleInventoryScreenAction } from "./inventory";
+import { handleLevelUpScreenAction } from "./levelUpScreen";
 import { ascend, descend } from "./levels";
 import {
   Actor,
@@ -151,7 +152,7 @@ export function movePlayer(game: Game, nextInput: any) {
             // attack
             game = meleeActor(game, game.player, subjectCreature);
             // check for dead enemies
-            if ((subjectCreature.hp || 0) <= 0) {
+            if ((subjectCreature.currentHp || 0) <= 0) {
               actorDeath(game, subjectCreature);
             }
 
@@ -275,7 +276,10 @@ export function movePlayer(game: Game, nextInput: any) {
                 }
                 // check dead creature
                 // this is used for npcs attacking each other
-                if (creature.name !== "player" && (creature.hp || 0) <= 0) {
+                if (
+                  creature.name !== "player" &&
+                  (creature.currentHp || 0) <= 0
+                ) {
                   actorDeath(game, actor);
                 } else {
                   game = moveActor(game, creature, moveDelta);
@@ -316,25 +320,30 @@ export function movePlayer(game: Game, nextInput: any) {
     handleDialogActions(game, nextInput);
   } else if (game.dialogMode === "inventory" && nextInput) {
     handleInventoryScreenAction(game, nextInput);
+  } else if (game.dialogMode === "levelUp" && nextInput) {
+    handleLevelUpScreenAction(game, nextInput);
   }
 
   return game;
 }
 
 /**
- * Removes character and replaces them with a corpse
+ * Removes actor and replaces them with a corpse
  *
  * @param {Actor} actor - The character beind put down
  * @param {Game} game - game board
  */
 export const actorDeath = (game: Game, actor: Actor) => {
   // remove actor
+  game.messages.push(`The ${actor.name} dies`);
   game.actors.delete(coordsToKey({ ...actor }));
   // add corpse
   game.features.set(coordsToKey({ ...actor }), {
     ...getCorpse(actor.x, actor.y, actor.glyph, actor.name),
   });
-};
+  // gain player xp
+  game.player.XP += actor.level * 100;
+};;
 
 export const moveActor = (
   game: Game,
@@ -364,7 +373,7 @@ export const moveActor = (
     if (subjectCreature.name === "player" && actor.isHostile) {
       // attack player
       game = meleeActor(game, actor, subjectCreature);
-      if ((game.player.hp || 0) <= 0) {
+      if ((game.player.currentHp || 0) <= 0) {
         game.messages.push("You die...");
         game.gameOver = true;
       }
