@@ -2,6 +2,7 @@ import { dungeonHeight, dungeonWidth } from "./game";
 import {
   Actor,
   BranchLevel,
+  SpawnInfo,
   Coords,
   CoordsMap,
   Creature,
@@ -16,7 +17,7 @@ import { branchLevelToKey, coordsToKey, getRandomValidTile } from "./utils";
 
 export function buildRoomsAndHallways(
   game: Game,
-  branch: BranchLevel
+  branch: BranchLevel,
 ): Map<string, Coords> {
   // a level consists of an unordered Map of (coordKey => coords) which represents the empty tiles
   let tiles = new Map<string, Coords>();
@@ -100,7 +101,7 @@ export function saveLevel(game: Game) {
     game.currentBranchLevel.level !== 0
   ) {
     let currentLevel = game.levels.get(
-      branchLevelToKey(game.currentBranchLevel)
+      branchLevelToKey(game.currentBranchLevel),
     );
     if (currentLevel) {
       // copy map
@@ -138,7 +139,7 @@ export function loadLevel(game: Game, nextBranchLevel: BranchLevel) {
 export function teleportPlayer(game: Game, spawnAtFeature: string) {
   // find feature to spawn player at (downstairs, upstairs, portal, etc)
   let featureToSpawnAt = Array.from(game.features.values()).find(
-    (feature) => feature.name === spawnAtFeature
+    (feature) => feature.name === spawnAtFeature,
   );
   if (featureToSpawnAt) {
     // move the player to the spawn tile
@@ -148,7 +149,7 @@ export function teleportPlayer(game: Game, spawnAtFeature: string) {
     game.actors.set(coordsToKey({ ...game.player }), game.player);
   } else {
     game.messages.push(
-      `error - could not find feature ${spawnAtFeature} to spawn player`
+      `error - could not find feature ${spawnAtFeature} to spawn player`,
     );
   }
   return game;
@@ -195,7 +196,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
       ...upstairsTile,
       glyph: "<",
       name: "Upstairs",
-      description: "Stairs going up one level. Press < to ascend"
+      description: "Stairs going up one level. Press < to ascend",
     } as Upstairs;
     // set the player to that tile as if they had just come from upstairs
     game.features.set(coordsToKey(upstairsTile), upstairs);
@@ -209,7 +210,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     ...downstairsTile,
     glyph: ">",
     name: "Downstairs",
-    description: "Stairs going down to the next level. Press > to descend"
+    description: "Stairs going down to the next level. Press > to descend",
   } as Downstairs;
   game.features.set(coordsToKey(downstairsTile), downstairs);
 
@@ -224,7 +225,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     nextBranchLevel,
     game.tiles,
     new Map([...game.actors, ...game.features]), // union of actors and features
-  )
+  );
   for (let i = 0; i < features.length; i++) {
     game.features.set(features[i].coords, features[i].thing);
   }
@@ -273,56 +274,97 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   return game;
 }
 
+function chanceToSpawn(
+  thing: SpawnInfo,
+  branchLevel: BranchLevel,
+  maxLevel: number,
+) {
+  const t = Math.ceil(Math.random() * 100);
+  let spawnRateWeight = 0;
+  if (thing.distribution === "early") {
+    // reduce spawn chance by the bigger level numbers
+    spawnRateWeight = 0.03 * (maxLevel - branchLevel.level);
+  } else if (thing.distribution === "late") {
+    spawnRateWeight = 0.03 * branchLevel.level;
+  } else if (thing.distribution === "mid") {
+    if (branchLevel.level < maxLevel / 2) {
+      spawnRateWeight = 0.03 * (maxLevel / 2 - branchLevel.level);
+    } else {
+      spawnRateWeight = 0.03 * branchLevel.level - (maxLevel - maxLevel / 2);
+    }
+  }
+
+  // determined spawn level logic handled elsewhere
+
+  return t < thing.spawnRate - thing.spawnRate * spawnRateWeight;
+}
+
+function canThingSpawn(thing: SpawnInfo, branchLevel: BranchLevel) {
+  const atDeterminedSpawn =
+    thing.distribution === "determined" &&
+    branchLevel.level === thing.determinedSpawnLevel &&
+    branchLevel.branchName === branchLevel.branchName;
+
+  // if the thing is between the min/max levels, or if those levels are undefined
+  const inSpawnableLevels =
+    (thing.minLevel === undefined || branchLevel.level >= thing.minLevel) &&
+    (thing.maxLevel === undefined || branchLevel.level <= thing.maxLevel);
+
+  const isUniquelySpawnedAlready = thing.unique && thing.spawnedNum > 0;
+
+  return (
+    thing.branchName === branchLevel.branchName &&
+    (atDeterminedSpawn || inSpawnableLevels) &&
+    !isUniquelySpawnedAlready
+  );
+}
+
 function spawnThings(
   spawnableThings: Array<Creature | Item | Feature>, // the list of possible things that can be spawned
   branchLevel: BranchLevel, // the branch level to spawn into
   tiles: CoordsMap, // the valid set of tiles in the current level
   deconflictWith: Map<string, Actor> | undefined, // things to deconflict with
 ) {
-  let spawnedThings = new Array<{coords: string, thing: Creature | Item | Feature}>();
-  // get possible spawnables
-  let possibleSpawnables = spawnableThings.filter((spawnable) => {
-    return spawnable.branchSpawnRates?.some(
-      (rate: BranchLevel) => rate.branchName === branchLevel.branchName
-    );
-  });
+  const spawnedThings = new Array<{
+    coords: string;
+    thing: Creature | Item | Feature;
+  }>();
+  const thingsToSpawn = new Array<Creature | Item | Feature>();
+  const spawnIterations = Math.ceil(Math.random() * 3);
+  for (let i = 0; i < spawnIterations; i++) {
+    for (const thing of spawnableThings) {
+      if (canThingSpawn(thing.spawnInfo, branchLevel)) {
+        // if it hasn't spawned yet at the final level, spawn it
+        // if it's at the determined spawn level (ignore chance)
+        const mustFinallySpawn =
+          thing.spawnInfo.mustSpawn &&
+          thing.spawnInfo.spawnedNum < 1 &&
+          branchLevel.level === thing.spawnInfo.maxLevel;
+        const determinedToSpawn =
+          thing.spawnInfo.distribution === "determined" &&
+          thing.spawnInfo.determinedSpawnLevel === branchLevel.level;
 
-  let spawnedThingNums = new Map<string, number>();
-  let attemptedSpawnedThingNums = new Map<string, number>();
-  // Place spawned things randomly on the map
-  for (let i = 0; i < possibleSpawnables.length; i++) {
-    let spawnable = possibleSpawnables[i];
-    // determine if the thing should spawn
-    const branchSpawnRate = spawnable.branchSpawnRates?.find(
-      (rate: BranchLevel) =>
-        rate.branchName === branchLevel.branchName &&
-        rate.level === branchLevel.level
-    );
-
-    // if there's not more than the max allowable spawned already
-    // use a frequency map of spawned things by their name
-    let spawnedThing = (spawnedThingNums.get(spawnable.name) || 0) + 1;
-    if (spawnedThing > (branchSpawnRate?.maxSpawnNum || 1)) {
-      continue;
-    }
-    spawnedThingNums.set(spawnable.name, spawnedThing);
-
-    // try to spawn as many times as maxSpawnNum (even if it doesn't spawn)
-    let attemptedSpawnedThing =
-      (attemptedSpawnedThingNums.get(spawnable.name) || 0) + 1;
-    if (attemptedSpawnedThing > (branchSpawnRate?.maxSpawnNum || 1)) {
-      continue;
-    }
-    attemptedSpawnedThingNums.set(spawnable.name, attemptedSpawnedThing);
-    // spawn this thing again until it hits the max spawn rate
-    i--;
-    // and if the RNG says it should spawn
-    if (branchSpawnRate && Math.random() * 100 <= branchSpawnRate.spawnChance) {
-      let spawnedThingCoords = getRandomValidTile(tiles, deconflictWith);
-      spawnable.x = spawnedThingCoords.x;
-      spawnable.y = spawnedThingCoords.y;
-      spawnedThings.push({coords: coordsToKey(spawnedThingCoords), thing: { ...spawnable }});
+        if (
+          mustFinallySpawn ||
+          determinedToSpawn ||
+          chanceToSpawn(thing.spawnInfo, branchLevel, 10)
+        ) {
+          thing.spawnInfo.spawnedNum++;
+          thingsToSpawn.push(thing);
+        }
+      }
     }
   }
+
+  for (const thing of thingsToSpawn) {
+    let spawnedThingCoords = getRandomValidTile(tiles, deconflictWith);
+    thing.x = spawnedThingCoords.x;
+    thing.y = spawnedThingCoords.y;
+    spawnedThings.push({
+      coords: coordsToKey(spawnedThingCoords),
+      thing: { ...thing },
+    });
+  }
+
   return spawnedThings;
 }

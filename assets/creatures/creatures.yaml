@@ -26,15 +26,12 @@ creatures:
       damageBonus: 0
       damageDieNum: 1
       damageDie: 2
-    branchSpawnRates:
-      - branchName: D
-        level: 1
-        spawnChance: 100
-        maxSpawnNum: 4
-      - branchName: D
-        level: 2
-        spawnChance: 100
-        maxSpawnNum: 3
+    spawnInfo:
+      branchName: D
+      minLevel: 1
+      maxLevel: 2
+      spawnRate: 90
+      distribution: early
     shouts:
       - shout: the goblin mutters "where's my skrunt?"
       - shout: the goblin says "yeek!" to no one in particular
@@ -76,21 +73,16 @@ creatures:
       damageBonus: 1
       damageDieNum: 1
       damageDie: 2
-    branchSpawnRates:
-      - branchName: D
-        level: 1
-        spawnChance: 100
-        maxSpawnNum: 3
-      - branchName: D
-        level: 2
-        spawnChance: 80
-        maxSpawnNum: 5
+    spawnInfo:
+      branchName: D
+      maxLevel: 3
+      spawnRate: 100
+      distribution: early
     shoutChance: 5 # out of 1000
     shouts:
-      - shout: skrunt skrunt skrunt
-      - shout: skrunt?
-      - shout: skrunt skrunt
-      - shout: SKRUUUUUNT!!
+      - shout: <skrunt skrunt skrunt>
+      - shout: <skrunt...>
+      - shout: <skrunt skrunt>
 
   - name: rat
     glyph: r
@@ -116,11 +108,11 @@ creatures:
       damageBonus: 1
       damageDieNum: 1
       damageDie: 2
-    branchSpawnRates:
-      - branchName: D
-        level: 2
-        spawnChance: 80
-        maxSpawnNum: 5
+    spawnInfo:
+      branchName: D
+      minLevel: 3
+      spawnRate: 50
+      distribution: early
     shoutChance: 5 # out of 1000
     shouts:
       - shout: skitter
@@ -155,19 +147,11 @@ creatures:
       damageBonus: 1
       damageDieNum: 1
       damageDie: 3
-    branchSpawnRates:
-      - branchName: D
-        level: 4
-        spawnChance: 40
-        maxSpawnNum: 5
-      - branchName: D
-        level: 5
-        spawnChance: 60
-        maxSpawnNum: 6
-      - branchName: D
-        level: 6
-        spawnChance: 80
-        maxSpawnNum: 8
+    spawnInfo:
+      branchName: D
+      minLevel: 4
+      spawnRate: 70
+      distribution: earl
     shoutChance: 5
     shouts:
       - shout: krek begrak!

@@ -96,9 +96,7 @@ export type Player = Actor & {
 };
 
 // an unmoving, non-occluding game feature (staircase, trap)
-export type Feature = Actor & {
-  branchSpawnRates?: Array<BranchSpawnRate>;
-};
+export type Feature = Actor & Spawnable;
 
 export type Coords = {
   x: number;
@@ -116,29 +114,43 @@ export type Level = BranchLevel & {
   items: Map<string, Array<Item>>;
 };
 
-export type Creature = Actor & {
-  isHostile: boolean;
-  status: CreatureStatusType;
-  conversationBranches?: Array<ConversationBranch>;
-  movementType: MovementTypeValue;
-  wanderingDirection?: MovementDirection;
-  branchSpawnRates?: Array<BranchSpawnRate>;
-  shouts?: Array<string>;
-  shoutChance?: number; // 0 to 100 chance of shouting
-  useDefiniteArticle: boolean; // if the game will put "The" in front of the creature's name
-  wasSwappedByPlayer: boolean; // if the player just swapped with this creature. prevents the creature from moving for one turn
-};
+export type Creature = Actor &
+  Spawnable & {
+    isHostile: boolean;
+    status: CreatureStatusType;
+    conversationBranches?: Array<ConversationBranch>;
+    movementType: MovementTypeValue;
+    wanderingDirection?: MovementDirection;
+    shouts?: Array<string>;
+    shoutChance?: number; // 0 to 100 chance of shouting
+    useDefiniteArticle: boolean; // if the game will put "The" in front of the creature's name
+    wasSwappedByPlayer: boolean; // if the player just swapped with this creature. prevents the creature from moving for one turn
+  };
 
 // creatures shout randomly, requires no interaction with the player
 export type Shout = {
   shout: string;
 };
 
-export type BranchSpawnRate = BranchLevel & {
-  // 0 - 100, where 100 means it will spawn 100% of the time in allowed spawn boundaries
-  spawnChance: number;
-  // maximum times the item can spawn. undefined means unlimited
-  maxSpawnNum?: number;
+export type Spawnable = {
+  spawnInfo: SpawnInfo;
+};
+
+export type SpawnInfo = {
+  branchName: string;
+  minLevel?: number; // if undefined, can spawn at first level
+  maxLevel?: number; // if undefined, can spawn at last level
+  determinedSpawnLevel?: number;
+  spawnRate: number; // percent chance to spawn in any given level
+  distribution: "early" | "mid" | "late" | "even" | "determined";
+  // early branch distribution will more heavily weight spawn rates
+  // for earlier levels in the branch. similar with mid and late
+  // even distribution is even across all levels in the branch
+  // determined will only spawn the thing at a specific branchLevel
+  // as specified in determinedSpawnLevel
+  mustSpawn: boolean; // if the thing must spawn somewhere
+  unique: boolean; // if true, only one can ever be spawned.
+  spawnedNum: number; // number of times the thing has spawned
 };
 
 export enum MovementDirection {

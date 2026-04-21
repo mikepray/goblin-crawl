@@ -1,10 +1,19 @@
 ---
 features:
   - name: altar to Meggled
-    description: A sacred bone altar to Meggled, the two-headed goblin god
+    description: An altar to Meggled. It's made of goblin bones
     glyph: ^
-    branchSpawnRates: 
-    - branchName: D
-      level: 1
-      spawnChance: 100
-      maxSpawnNum: 1
+    spawnInfo:
+      branchName: D
+      determinedSpawnLevel: 1
+      spawnRate: 100
+      distribution: determined
+      mustSpawn: true
+  - name: haunted shrine
+    description: A shrine to a spirit long-since passed
+    glyph: ^
+    spawnInfo:
+      branchName: D
+      minLevel: 3
+      spawnRate: 20
+      distribution: late

@@ -1,7 +1,17 @@
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import path from "path";
-import { Creature, CreatureStatusMap, CreatureStatusType, Feature, Item, MovementTypeMap, MovementTypeValue } from "./types";
+import {
+  Creature,
+  CreatureStatusMap,
+  CreatureStatusType,
+  Feature,
+  Item,
+  MovementTypeMap,
+  MovementTypeValue,
+  SpawnInfo,
+} from "./types";
+import { defaultSpawnInfo } from "./utils";
 
 export function loadCreatures() {
   let creatures: Creature[] = [];
@@ -74,10 +84,9 @@ function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
         isHostile: false,
         status: "AWAKE" as CreatureStatusType,
         movementType: "WANDERING" as MovementTypeValue,
-        branchSpawnRates: [],
         useDefiniteArticle: true,
       };
-
+      creature.spawnInfo = { ...defaultSpawnInfo, ...creature.spawnInfo };
       // Process inventory and slots if they exist in the YAML
       let processedCreature = { ...defaults, ...creature };
       
@@ -145,9 +154,9 @@ function loadItemsFromFile(fileName:string, file: string): Item[] {
 
     const items: Item[] = data.items.map((item) => {
       const defaults = {
-        branchSpawnRates: [],
         edible: false,
       };
+      item.spawnInfo = { ...defaultSpawnInfo, ...item.spawnInfo };
 
       return {
         ...defaults,
@@ -176,12 +185,8 @@ function loadFeaturesFromFile(fileName: string, file: string): Feature[] {
     }
 
     const features: Feature[] = data.features.map((feature) => {
-      const defaults = {
-        branchSpawnRates: [],
-      };
-
+      feature.spawnInfo = { ...defaultSpawnInfo, ...feature.spawnInfo };
       return {
-        ...defaults,
         ...feature,
       } as Feature;
     });

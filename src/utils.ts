@@ -6,6 +6,7 @@ import {
   Feature,
   Skills,
   SkillMultipliers,
+  SpawnInfo,
 } from "./types";
 
 export function isTileInFieldOfVision(
@@ -203,6 +204,23 @@ export const getCorpse = (
     currentHp: 0,
     maxHp: 0,
     hitDie: 0,
+    spawnInfo: {
+      branchName: "D",
+      distribution: "determined",
+      unique: false,
+      spawnedNum: 0,
+      spawnRate: 0,
+      mustSpawn: false,
+    },
     ...defaultSkills,
   };
+};
+
+export const defaultSpawnInfo: SpawnInfo = {
+  branchName: "D",
+  distribution: "determined",
+  unique: false,
+  spawnedNum: 0,
+  spawnRate: 0,
+  mustSpawn: false,
 };
