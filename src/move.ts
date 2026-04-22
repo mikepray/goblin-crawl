@@ -28,7 +28,7 @@ export function movePlayer(game: Game, nextInput: any) {
         if (featureAtTile && featureAtTile.name === "Downstairs") {
           // descend level
           return descend(game, {
-            branchName: "D",
+            branchName: game.currentBranchLevel.branchName,
             level: game.currentBranchLevel.level + 1,
           });
         } else {
@@ -343,7 +343,7 @@ export const actorDeath = (game: Game, actor: Actor) => {
   });
   // gain player xp
   game.player.XP += actor.level * 100;
-};;
+};
 
 export const moveActor = (
   game: Game,

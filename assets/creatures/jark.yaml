@@ -12,12 +12,12 @@ creatures:
     movementType: GUARDING
     useDefiniteArticle: false
     spawnInfo:
-      branchName: D
-      determinedSpawnLevel: 1
-      spawnRate: 100
-      distribution: determined
-      mustSpawn: true
-      unique: true
+      - branchName: D
+        determinedSpawnLevel: 1
+        spawnRate: 100
+        distribution: determined
+        mustSpawn: true
+        unique: true
     conversationBranches:
       - creatureSpeaks: Eh? What do you want?
         conversationBranches:

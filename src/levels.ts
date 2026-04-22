@@ -12,13 +12,11 @@ import {
   Item,
   Player,
   Upstairs,
+  DungeonBranch,
 } from "./types";
 import { branchLevelToKey, coordsToKey, getRandomValidTile } from "./utils";
 
-export function buildRoomsAndHallways(
-  game: Game,
-  branch: BranchLevel,
-): Map<string, Coords> {
+export function buildRoomsAndHallways(): Map<string, Coords> {
   // a level consists of an unordered Map of (coordKey => coords) which represents the empty tiles
   let tiles = new Map<string, Coords>();
   let midpoints = new Array();
@@ -96,24 +94,18 @@ export function buildRoom() {
 
 export function saveLevel(game: Game) {
   // save the current state
-  if (
-    game.currentBranchLevel.branchName === "D" &&
-    game.currentBranchLevel.level !== 0
-  ) {
-    let currentLevel = game.levels.get(
-      branchLevelToKey(game.currentBranchLevel),
-    );
-    if (currentLevel) {
-      // copy map
-      currentLevel.actors = new Map(game.actors);
-      currentLevel.tiles = new Map(game.tiles);
-      currentLevel.features = new Map(game.features);
-      currentLevel.seenTiles = new Map(game.seenTiles);
-      currentLevel.items = new Map(game.items);
-    } else {
-      game.messages.push("error - could not save current level");
-    }
+  let currentLevel = game.levels.get(branchLevelToKey(game.currentBranchLevel));
+  if (currentLevel) {
+    // copy map
+    currentLevel.actors = new Map(game.actors);
+    currentLevel.tiles = new Map(game.tiles);
+    currentLevel.features = new Map(game.features);
+    currentLevel.seenTiles = new Map(game.seenTiles);
+    currentLevel.items = new Map(game.items);
+  } else {
+    game.messages.push("error - could not save current level");
   }
+
   return game;
 }
 
@@ -181,12 +173,15 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   game.actors = new Map<string, Actor>();
   game.seenTiles = new Map<string, Coords>();
   game.items = new Map<string, Array<Item>>();
-  game.tiles = buildRoomsAndHallways(game, nextBranchLevel);
+  game.tiles = buildRoomsAndHallways();
   game.messages = new Array<string>();
 
   let playerTile;
   // place stairs
-  if (nextBranchLevel.branchName === "D" && nextBranchLevel.level === 1) {
+  if (
+    game.currentBranchLevel.branchName.name === "D" &&
+    nextBranchLevel.level === 1
+  ) {
     // if the player is on the first level, don't show the upstairs and place the player randomly
     playerTile = getRandomValidTile(game.tiles, game.actors);
   } else {
@@ -274,11 +269,8 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   return game;
 }
 
-function chanceToSpawn(
-  thing: SpawnInfo,
-  branchLevel: BranchLevel,
-  maxLevel: number,
-) {
+function chanceToSpawn(thing: SpawnInfo, branchLevel: BranchLevel) {
+  const maxLevel = branchLevel.branchName.maxLevel;
   const t = Math.ceil(Math.random() * 100);
   let spawnRateWeight = 0;
   if (thing.distribution === "early") {
@@ -295,11 +287,16 @@ function chanceToSpawn(
   }
 
   // determined spawn level logic handled elsewhere
-
   return t < thing.spawnRate - thing.spawnRate * spawnRateWeight;
 }
 
-function canThingSpawn(thing: SpawnInfo, branchLevel: BranchLevel) {
+function canThingSpawn(spawnArray: Array<SpawnInfo>, branchLevel: BranchLevel) {
+  const thing = spawnArray.find(
+    (s) => s.branchName === branchLevel.branchName.name,
+  );
+  if (!thing) {
+    return false;
+  }
   const atDeterminedSpawn =
     thing.distribution === "determined" &&
     branchLevel.level === thing.determinedSpawnLevel &&
@@ -313,7 +310,7 @@ function canThingSpawn(thing: SpawnInfo, branchLevel: BranchLevel) {
   const isUniquelySpawnedAlready = thing.unique && thing.spawnedNum > 0;
 
   return (
-    thing.branchName === branchLevel.branchName &&
+    thing.branchName === branchLevel.branchName.name &&
     (atDeterminedSpawn || inSpawnableLevels) &&
     !isUniquelySpawnedAlready
   );
@@ -336,21 +333,27 @@ function spawnThings(
       if (canThingSpawn(thing.spawnInfo, branchLevel)) {
         // if it hasn't spawned yet at the final level, spawn it
         // if it's at the determined spawn level (ignore chance)
+        const spawnInfo = thing.spawnInfo.find(
+          (s) => s.branchName === branchLevel.branchName.name,
+        );
+        if (!spawnInfo) {
+          continue;
+        }
         const mustFinallySpawn =
-          thing.spawnInfo.mustSpawn &&
-          thing.spawnInfo.spawnedNum < 1 &&
-          branchLevel.level === thing.spawnInfo.maxLevel;
+          spawnInfo.mustSpawn &&
+          spawnInfo.spawnedNum < 1 &&
+          branchLevel.level === spawnInfo.maxLevel;
         const determinedToSpawn =
-          thing.spawnInfo.distribution === "determined" &&
-          thing.spawnInfo.determinedSpawnLevel === branchLevel.level &&
-          thing.spawnInfo.spawnedNum < 1;
+          spawnInfo.distribution === "determined" &&
+          spawnInfo.determinedSpawnLevel === branchLevel.level &&
+          spawnInfo.spawnedNum < 1;
 
         if (
           mustFinallySpawn ||
           determinedToSpawn ||
-          chanceToSpawn(thing.spawnInfo, branchLevel, 10)
+          chanceToSpawn(spawnInfo, branchLevel)
         ) {
-          thing.spawnInfo.spawnedNum++;
+          spawnInfo.spawnedNum++;
           thingsToSpawn.push(thing);
         }
       }

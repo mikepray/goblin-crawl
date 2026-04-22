@@ -86,7 +86,15 @@ function initGame(): Game {
   let items = loadItems();
   let features = loadFeatures();
   let messages = new Array<string>();
-
+  const branches = {
+    name: "D",
+    description: "The dungeon",
+    maxLevel: 5,
+    childBranches: [
+      { maxLevel: 3, name: "K", description: "Kobold Kave" },
+      { maxLevel: 3, name: "A", description: "Goblin Apostate Refuge" },
+    ],
+  };
   let game: Game = {
     turnCount: 0,
     actors: new Map<string, Actor>(),
@@ -123,7 +131,6 @@ function initGame(): Game {
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
-    currentBranchLevel: { branchName: "D", level: 0 },
     allFeatures: features,
     allCreatures: loadCreatures(),
     allItems: items,
@@ -134,10 +141,15 @@ function initGame(): Game {
     seenTiles: new Map<string, Coords>(),
     dialogMode: "game",
     visibleActors: new Array<Actor>(),
+    currentBranchLevel: {
+      branchName: branches,
+      level: 0,
+    },
+    allBranches: branches,
   };
 
   return descend(game, {
-    branchName: "D",
+    branchName: game.currentBranchLevel.branchName,
     level: game.currentBranchLevel.level + 1,
   });
 }
@@ -197,13 +209,26 @@ function printScreen(game: Game, view: View): Game {
             }
             visibleActors.push(actor);
           } else if (feature) {
-            out = out.concat(`{white-fg}${feature.glyph}{/}`);
+            if (feature.color) {
+              out = out.concat(`${feature.color}${feature.glyph}{/}`);
+            } else {
+              out = out.concat(`{white-fg}${feature.glyph}{/}`);
+            }
           } else if (itemsOnTile && itemsOnTile.length >= 0 && itemsOnTile[0]) {
             // show the last item's glyph
-            out = out.concat(`{white-fg}${itemsOnTile[0].glyph}{/}`);
+
+            if (itemsOnTile[0].color) {
+              out = out.concat(
+                `${itemsOnTile[0].color}${itemsOnTile[0].glyph}{/}`,
+              );
+            } else {
+              out = out.concat(`{white-fg}${itemsOnTile[0].glyph}{/}`);
+            }
           } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
             out = out.concat(`{white-fg}.{/}`);
-          } else out = out.concat("{white-fg}#{/}");
+          } else {
+            out = out.concat("{white-fg}#{/}");
+          }
         } else {
           // if not in field of vision, render the tile dimmer if the player has already seen it
           if (game.seenTiles.has(coordsToKey({ x: x, y: y }))) {

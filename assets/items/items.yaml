@@ -3,26 +3,29 @@ items:
   - name: skrunt egg
     description: A skrunt egg. Delicious!
     glyph: o
+    color: "{#78ad36-fg}"
     edible: true
     spawnInfo:
-      branchName: D
-      maxLevel: 5
-      distribution: early
-      spawnRate: 70
-      mustSpawn: true
+      - branchName: D
+        maxLevel: 5
+        distribution: early
+        spawnRate: 70
+        mustSpawn: true
   - name: marbled skrunt egg
     description: A unique skrunt egg
     glyph: o
+    color: "{#a440d6-fg}"
     spawnInfo:
-      branchName: D
-      maxLevel: 5
-      distribution: early
-      spawnRate: 70
-      mustSpawn: true
-      unique: true
+      - branchName: D
+        maxLevel: 5
+        distribution: early
+        spawnRate: 70
+        mustSpawn: true
+        unique: true
   - name: short sword
     description: A bronze short sword. This weapon rewards cunning heroes
     glyph: (
+    color: "{#d45f11-fg}"
     attackBonus: 2
     damageDieNum: 1
     damageDie: 6
@@ -35,10 +38,10 @@ items:
       cunning: 1
       power: 1
     spawnInfo:
-      branchName: D
-      maxLevel: 5
-      distribution: early
-      spawnRate: 20
+      - branchName: D
+        maxLevel: 5
+        distribution: early
+        spawnRate: 20
   - name: club
     description: A clumsy and savage weapon
     glyph: (
@@ -46,6 +49,7 @@ items:
     damageDieNum: 2
     damageDie: 4
     slot: weapon
+    color: "{#916649-fg}"
     toHitSkillBonuses:
       savagery: 2
     toPenSkillBonuses:
@@ -54,12 +58,13 @@ items:
       savagery: 2
       power: 1
     spawnInfo:
-      branchName: D
-      distribution: early
-      spawnRate: 60
+      - branchName: D
+        distribution: early
+        spawnRate: 60
   - name: dagger
     description: A bronze dagger. This weapon rewards cunning heroes
     glyph: (
+    color: "{#d45f11-fg}"
     attackBonus: 2
     damageDieNum: 1
     damageDie: 4
@@ -72,12 +77,13 @@ items:
       cunning: 2
       power: 1
     spawnInfo:
-      branchName: D
-      spawnRate: 30
-      distribution: even
+      - branchName: D
+        spawnRate: 30
+        distribution: even
   - name: khopesh
     description: A bronze sickle-shaped sword of masterwork quality. This elegant weapon is a well-balanced sidearm
     glyph: (
+    color: "{#d45f11-fg}"
     attackBonus: 3
     damageDieNum: 2
     damageDie: 4
@@ -93,12 +99,13 @@ items:
       savagery: 2
       power: 1
     spawnInfo:
-      branchName: D
-      spawnRate: 4
-      distribution: late
+      - branchName: D
+        spawnRate: 4
+        distribution: late
   - name: palm axe
     description: A vicious, savage weapon with an iron handle and bronze palm-shaped blade at the top
     glyph: (
+    color: "{#d19317-fg}"
     slot: weapon
     attackBonus: 2
     damageDieNum: 1
@@ -114,24 +121,26 @@ items:
       savagery: 4
       power: 2
     spawnInfo:
-      branchName: D
-      spawnRate: 4
-      distribution: late
+      - branchName: D
+        spawnRate: 4
+        distribution: late
   - name: helmet
     description: A bronze helmet
     glyph: )
+    color: "{#d45f11-fg}"
     slot: head
     armor: 2
     spawnInfo:
-      branchName: D
-      spawnRate: 30
-      distribution: even
+      - branchName: D
+        spawnRate: 30
+        distribution: even
   - name: leather armor
     description: Stiff cured leather bodice
     glyph: )
+    color: "{#d19317-fg}"
     slot: body
     armor: 2
     spawnInfo:
-      branchName: D
-      spawnRate: 30
-      distribution: early
+      - branchName: D
+        spawnRate: 30
+        distribution: early

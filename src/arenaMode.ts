@@ -48,7 +48,11 @@ export function initArenaMode(): Game {
     actors.set(coordsToKey({ x: 26, y: 10 }), { ...rat, x: 26, y: 10 });
     actors.set(coordsToKey({ x: 27, y: 10 }), { ...rat, x: 27, y: 10 });
   }
-
+  const branches = {
+    name: "Arena",
+    description: "The Arena",
+    maxLevel: 1,
+  };
   let game: Game = {
     turnCount: 0,
     actors: actors,
@@ -84,7 +88,7 @@ export function initArenaMode(): Game {
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
-    currentBranchLevel: { branchName: "Arena", level: 1 },
+    currentBranchLevel: { branchName: branches, level: 1 },
     allFeatures: features,
     allCreatures: creatures,
     allItems: items,
@@ -95,6 +99,7 @@ export function initArenaMode(): Game {
     seenTiles: new Map<string, Coords>(),
     visibleActors: new Array<Actor>(),
     dialogMode: "game",
+    allBranches: branches,
   };
 
   const khopesh = items.find((i) => i.name === "khopesh");

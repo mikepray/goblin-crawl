@@ -7,7 +7,6 @@ export type Game = {
   storyScreen?: LevelUpScreen;
   interactingActor?: Actor;
   dialogPointer: number;
-  currentBranchLevel: BranchLevel;
   allFeatures: Array<Feature>;
   allCreatures: Array<Creature>;
   allItems: Array<Item>;
@@ -15,7 +14,6 @@ export type Game = {
   oldMessages: Array<string>;
   levels: Map<string, Level>;
   dialogMode: "inventory" | "game" | "dialog" | "levelUp";
-
   // these objects are updated per level
   items: Map<string, Array<Item>>;
   tiles: CoordsMap;
@@ -23,6 +21,17 @@ export type Game = {
   features: Map<string, Feature>;
   seenTiles: CoordsMap;
   visibleActors: Array<Actor>;
+  currentBranchLevel: BranchLevel;
+  allBranches: DungeonBranch;
+};
+
+export type DungeonBranch = {
+  maxLevel: number;
+  name: string;
+  description: string;
+  staircase?: Feature;
+  childBranches?: Array<DungeonBranch>;
+  parentBranch?: DungeonBranch; // TODO ?
 };
 
 export type LevelUpScreen = {};
@@ -133,7 +142,7 @@ export type Shout = {
 };
 
 export type Spawnable = {
-  spawnInfo: SpawnInfo;
+  spawnInfo: Array<SpawnInfo>;
 };
 
 export type SpawnInfo = {
@@ -172,7 +181,10 @@ export type Downstairs = Feature & {
   name: "Downstairs";
 };
 
-export type BranchLevel = { branchName: string; level: number };
+export type BranchLevel = {
+  branchName: DungeonBranch;
+  level: number;
+};
 
 export type ConversationBranch = {
   playerResponse?: string;

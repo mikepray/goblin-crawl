@@ -58,6 +58,23 @@ function loadAssetDirectory(directoryName: string): Array<string> {
     .filter(isFile);
 }
 
+/** YAML may supply spawnInfo as one object (legacy) or an array of branch configs. */
+function normalizeSpawnInfo(raw: unknown): SpawnInfo[] {
+  if (raw == null) {
+    return [{ ...defaultSpawnInfo }];
+  }
+  if (Array.isArray(raw)) {
+    if (raw.length === 0) {
+      return [{ ...defaultSpawnInfo }];
+    }
+    return raw.map((entry) => ({
+      ...defaultSpawnInfo,
+      ...(entry as Partial<SpawnInfo>),
+    }));
+  }
+  return [{ ...defaultSpawnInfo, ...(raw as Partial<SpawnInfo>) }];
+}
+
 function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
   try {
     const data = yaml.load(file) as { creatures: Partial<Creature>[] };
@@ -86,7 +103,7 @@ function loadCreaturesFromFile(fileName: string, file: string): Creature[] {
         movementType: "WANDERING" as MovementTypeValue,
         useDefiniteArticle: true,
       };
-      creature.spawnInfo = { ...defaultSpawnInfo, ...creature.spawnInfo };
+      creature.spawnInfo = normalizeSpawnInfo(creature.spawnInfo);
       // Process inventory and slots if they exist in the YAML
       let processedCreature = { ...defaults, ...creature };
       
@@ -156,7 +173,7 @@ function loadItemsFromFile(fileName:string, file: string): Item[] {
       const defaults = {
         edible: false,
       };
-      item.spawnInfo = { ...defaultSpawnInfo, ...item.spawnInfo };
+      item.spawnInfo = normalizeSpawnInfo(item.spawnInfo);
 
       return {
         ...defaults,
@@ -185,7 +202,7 @@ function loadFeaturesFromFile(fileName: string, file: string): Feature[] {
     }
 
     const features: Feature[] = data.features.map((feature) => {
-      feature.spawnInfo = { ...defaultSpawnInfo, ...feature.spawnInfo };
+      feature.spawnInfo = normalizeSpawnInfo(feature.spawnInfo);
       return {
         ...feature,
       } as Feature;
