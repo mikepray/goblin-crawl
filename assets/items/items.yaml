@@ -4,23 +4,22 @@ items:
     description: A skrunt egg. Delicious!
     glyph: o
     edible: true
-    branchSpawnRates:
-      - branchName: D
-        level: 1
-        spawnChance: 100
-        maxSpawnNum: 4
-      - branchName: D
-        level: 2
-        spawnChance: 100
-        maxSpawnNum: 3
+    spawnInfo:
+      branchName: D
+      maxLevel: 5
+      distribution: early
+      spawnRate: 70
+      mustSpawn: true
   - name: marbled skrunt egg
     description: A unique skrunt egg
     glyph: o
-    branchSpawnRates:
-      - branchName: D
-        level: 2
-        spawnChance: 100
-        maxSpawnNum: 1
+    spawnInfo:
+      branchName: D
+      maxLevel: 5
+      distribution: early
+      spawnRate: 70
+      mustSpawn: true
+      unique: true
   - name: short sword
     description: A bronze short sword. This weapon rewards cunning heroes
     glyph: (
@@ -39,8 +38,7 @@ items:
       branchName: D
       maxLevel: 5
       distribution: early
-      spawnRate: 70
-      mustSpawn: true
+      spawnRate: 20
   - name: club
     description: A clumsy and savage weapon
     glyph: (
@@ -75,7 +73,7 @@ items:
       power: 1
     spawnInfo:
       branchName: D
-      spawnRate: 40
+      spawnRate: 30
       distribution: even
   - name: khopesh
     description: A bronze sickle-shaped sword of masterwork quality. This elegant weapon is a well-balanced sidearm
@@ -96,7 +94,7 @@ items:
       power: 1
     spawnInfo:
       branchName: D
-      spawnRate: 10
+      spawnRate: 4
       distribution: late
   - name: palm axe
     description: A vicious, savage weapon with an iron handle and bronze palm-shaped blade at the top
@@ -117,8 +115,8 @@ items:
       power: 2
     spawnInfo:
       branchName: D
-      spawnRate: 10
-      distribution: mid
+      spawnRate: 4
+      distribution: late
   - name: helmet
     description: A bronze helmet
     glyph: )

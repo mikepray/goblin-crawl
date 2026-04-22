@@ -9,7 +9,7 @@ creatures:
     status: AWAKE
     maxHp: 5
     currentHp: 5
-    movementType: WANDERING
+    movementType: GUARDING
     useDefiniteArticle: false
     spawnInfo:
       branchName: D
@@ -17,6 +17,7 @@ creatures:
       spawnRate: 100
       distribution: determined
       mustSpawn: true
+      unique: true
     conversationBranches:
       - creatureSpeaks: Eh? What do you want?
         conversationBranches:

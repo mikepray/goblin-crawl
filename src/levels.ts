@@ -342,7 +342,8 @@ function spawnThings(
           branchLevel.level === thing.spawnInfo.maxLevel;
         const determinedToSpawn =
           thing.spawnInfo.distribution === "determined" &&
-          thing.spawnInfo.determinedSpawnLevel === branchLevel.level;
+          thing.spawnInfo.determinedSpawnLevel === branchLevel.level &&
+          thing.spawnInfo.spawnedNum < 1;
 
         if (
           mustFinallySpawn ||

@@ -17,3 +17,19 @@ features:
       minLevel: 3
       spawnRate: 20
       distribution: late
+  - name: shadow shrine
+    description: An altar dedicated to darkness
+    glyph: ^
+    spawnInfo:
+      branchName: D 
+      minLevel: 5
+      spawnRate: 1
+      distribution: late
+  - name: dragon shrine
+    description: An altar dedicated to a draconic diety worshipped by kobolds
+    glyph: ^
+    spawnInfo:
+      branchName: D
+      minLevel: 4
+      spawnRate: 10
+      distribution: mid
