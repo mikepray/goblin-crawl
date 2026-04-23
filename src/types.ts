@@ -178,11 +178,11 @@ export type Upstairs = Feature & {
 
 export type Downstairs = Feature & {
   glyph: ">";
-  name: "Downstairs";
+  name: string;
 };
 
 export type BranchLevel = {
-  branchName: DungeonBranch;
+  branch: DungeonBranch;
   level: number;
 };
 

@@ -25,18 +25,25 @@ export function movePlayer(game: Game, nextInput: any) {
       if (nextInput === ">") {
         // get feature at coords
         let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
-        if (featureAtTile && featureAtTile.name === "Downstairs") {
-          // descend level
-          return descend(game, {
-            branchName: game.currentBranchLevel.branchName,
-            level: game.currentBranchLevel.level + 1,
-          });
-        } else {
-          game.messages.push(
-            "Press > to go downstairs while standing on a > tile",
+        // descend to other branch
+        if (featureAtTile && featureAtTile.glyph === ">") {
+          // look up branch by name on the feature (see descend code for name assignment to the feature)
+          const nextBranch = game.currentBranchLevel.branch.childBranches?.find(
+            (b) => b.name === featureAtTile.name,
           );
-          game.isScreenDirty = true;
-          return game;
+          if (nextBranch) {
+            return descend(game, {
+              branch: nextBranch,
+              level: 1,
+            });
+          }
+          if (featureAtTile.name === "Downstairs") {
+            // descend level in the same branch
+            return descend(game, {
+              branch: game.currentBranchLevel.branch,
+              level: game.currentBranchLevel.level + 1,
+            });
+          }
         }
       } else if (nextInput === "<") {
         // get feature at coords
@@ -90,9 +97,9 @@ export function movePlayer(game: Game, nextInput: any) {
         if (featureAtTile && featureAtTile.glyph === "^") {
           game.messages.push("You pray to Meggled");
           let item = removeLastItemFromFloorStack(game, { ...game.player });
-          if (item?.name === "skrunt egg") {
+          if (item?.name === "egg") {
             game.messages.push(
-              "{green-fg}The skrunt egg is engulfed in green flame. Meggled accepts your sacrifice!{/}",
+              "{green-fg}The egg is engulfed in green flame. Meggled accepts your sacrifice!{/}",
             );
           } else if (item) {
             putItemOnFloorStack(game, item);

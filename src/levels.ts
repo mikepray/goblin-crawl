@@ -179,7 +179,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   let playerTile;
   // place stairs
   if (
-    game.currentBranchLevel.branchName.name === "D" &&
+    game.currentBranchLevel.branch.name === "Dungeon" &&
     nextBranchLevel.level === 1
   ) {
     // if the player is on the first level, don't show the upstairs and place the player randomly
@@ -199,15 +199,38 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
 
     game.messages.push("You climb down the stairs");
   }
-  // set the downstairs tile
-  let downstairsTile = getRandomValidTile(game.tiles, game.actors);
-  const downstairs = {
-    ...downstairsTile,
-    glyph: ">",
-    name: "Downstairs",
-    description: "Stairs going down to the next level. Press > to descend",
-  } as Downstairs;
-  game.features.set(coordsToKey(downstairsTile), downstairs);
+
+  // if it's the last level in the branch, spawn all child branch staircases
+  if (
+    game.currentBranchLevel.level === game.currentBranchLevel.branch.maxLevel
+  ) {
+    if (
+      game.currentBranchLevel.branch.childBranches &&
+      game.currentBranchLevel.branch.childBranches.length > 0
+    ) {
+      for (const branch of game.currentBranchLevel.branch.childBranches) {
+        let downstairsTile = getRandomValidTile(game.tiles, game.actors);
+        const downstairs = {
+          ...downstairsTile,
+          glyph: ">",
+          name: `Stairs to the ${branch.name}`,
+          description: `Descending here will enter the ${branch.name} - ${branch.description}`,
+        } as Downstairs;
+        game.features.set(coordsToKey(downstairsTile), downstairs);
+        branch.staircase;
+      }
+    }
+  } else {
+    // set the downstairs tile
+    let downstairsTile = getRandomValidTile(game.tiles, game.actors);
+    const downstairs = {
+      ...downstairsTile,
+      glyph: ">",
+      name: "Downstairs",
+      description: `Stairs to the next level of the ${game.currentBranchLevel.branch.name}. Press > to descend`,
+    } as Downstairs;
+    game.features.set(coordsToKey(downstairsTile), downstairs);
+  }
 
   // place player
   game.player.x = playerTile.x;
@@ -270,7 +293,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
 }
 
 function chanceToSpawn(thing: SpawnInfo, branchLevel: BranchLevel) {
-  const maxLevel = branchLevel.branchName.maxLevel;
+  const maxLevel = branchLevel.branch.maxLevel;
   const t = Math.ceil(Math.random() * 100);
   let spawnRateWeight = 0;
   if (thing.distribution === "early") {
@@ -292,7 +315,7 @@ function chanceToSpawn(thing: SpawnInfo, branchLevel: BranchLevel) {
 
 function canThingSpawn(spawnArray: Array<SpawnInfo>, branchLevel: BranchLevel) {
   const thing = spawnArray.find(
-    (s) => s.branchName === branchLevel.branchName.name,
+    (s) => s.branchName === branchLevel.branch.name,
   );
   if (!thing) {
     return false;
@@ -300,7 +323,7 @@ function canThingSpawn(spawnArray: Array<SpawnInfo>, branchLevel: BranchLevel) {
   const atDeterminedSpawn =
     thing.distribution === "determined" &&
     branchLevel.level === thing.determinedSpawnLevel &&
-    branchLevel.branchName === branchLevel.branchName;
+    branchLevel.branch === branchLevel.branch;
 
   // if the thing is between the min/max levels, or if those levels are undefined
   const inSpawnableLevels =
@@ -310,7 +333,7 @@ function canThingSpawn(spawnArray: Array<SpawnInfo>, branchLevel: BranchLevel) {
   const isUniquelySpawnedAlready = thing.unique && thing.spawnedNum > 0;
 
   return (
-    thing.branchName === branchLevel.branchName.name &&
+    thing.branchName === branchLevel.branch.name &&
     (atDeterminedSpawn || inSpawnableLevels) &&
     !isUniquelySpawnedAlready
   );
@@ -334,7 +357,7 @@ function spawnThings(
         // if it hasn't spawned yet at the final level, spawn it
         // if it's at the determined spawn level (ignore chance)
         const spawnInfo = thing.spawnInfo.find(
-          (s) => s.branchName === branchLevel.branchName.name,
+          (s) => s.branchName === branchLevel.branch.name,
         );
         if (!spawnInfo) {
           continue;

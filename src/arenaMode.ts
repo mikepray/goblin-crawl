@@ -61,7 +61,7 @@ export function initArenaMode(): Game {
     player: {
       x: 2,
       y: 2,
-      inventory: [items.find((item) => item.name === "skrunt egg")],
+      inventory: [items.find((item) => item.name === "egg")],
       glyph: "@",
       name: "player",
       description: "It's you",
@@ -88,7 +88,7 @@ export function initArenaMode(): Game {
     gameOver: false,
     isScreenDirty: true,
     dialogPointer: 0,
-    currentBranchLevel: { branchName: branches, level: 1 },
+    currentBranchLevel: { branch: branches, level: 1 },
     allFeatures: features,
     allCreatures: creatures,
     allItems: items,

@@ -95,7 +95,7 @@ export function coordsToKey(coords: Coords): string {
 
 // converts coordinates to a string key for O(1) lookups in Maps
 export function branchLevelToKey(branchLevel: BranchLevel): string {
-  return `${branchLevel.branchName.name}:${branchLevel.level}`;
+  return `${branchLevel.branch.name}:${branchLevel.level}`;
 }
 
 export const CoordsUtil = {
@@ -206,7 +206,7 @@ export const getCorpse = (
     hitDie: 0,
     spawnInfo: [
       {
-        branchName: "D",
+        branchName: "Dungeon",
         distribution: "determined",
         unique: false,
         spawnedNum: 0,
@@ -219,7 +219,7 @@ export const getCorpse = (
 };
 
 export const defaultSpawnInfo: SpawnInfo = {
-  branchName: "D",
+  branchName: "Dungeon",
   distribution: "determined",
   unique: false,
   spawnedNum: 0,

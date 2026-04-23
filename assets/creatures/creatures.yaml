@@ -27,13 +27,13 @@ creatures:
       damageDieNum: 1
       damageDie: 2
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         minLevel: 1
         maxLevel: 2
         spawnRate: 90
         distribution: early
     shouts:
-      - shout: the goblin mutters "where's my skrunt?"
+      - shout: the goblin mutters "where's my chicken?"
       - shout: the goblin says "yeek!" to no one in particular
       - shout: the goblin falls asleep, but wakes up immediately
       - shout: the goblin shouts "blasted kobolds!"
@@ -42,14 +42,14 @@ creatures:
       - shout: the goblin pulls on its earring
       - shout: the goblin scratches itself
       - shout: the goblin complains about kobolds' shifty eyes
-      - shout: the goblin grumbles about tough skrunt meat
-      - shout: the goblin eats some skrunt jerky
+      - shout: the goblin grumbles about tough chicken meat
+      - shout: the goblin eats some chicken jerky
       - shout: the goblin proclaims "Ugh!"
       - shout: the goblin offers a half-hearted prayer to Meggled
       - shout: the goblin says "sorry" but doesn't mean it
       - shout: the goblin suddenly farts
 
-  - name: skrunt
+  - name: cave chicken
     glyph: s
     level: 1
     hitDie: 2
@@ -74,15 +74,10 @@ creatures:
       damageDieNum: 1
       damageDie: 2
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         maxLevel: 3
         spawnRate: 100
         distribution: early
-    shoutChance: 5 # out of 1000
-    shouts:
-      - shout: <skrunt skrunt skrunt>
-      - shout: <skrunt...>
-      - shout: <skrunt skrunt>
 
   - name: rat
     glyph: r
@@ -109,7 +104,7 @@ creatures:
       damageDieNum: 1
       damageDie: 2
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         minLevel: 3
         spawnRate: 50
         distribution: early
@@ -140,7 +135,7 @@ creatures:
       weapon: dagger
       body: leather armor
     inventory:
-      - skrunt egg
+      - egg
     naturalWeapon:
       name: fists
       attackBonus: 1
@@ -148,10 +143,10 @@ creatures:
       damageDieNum: 1
       damageDie: 3
     spawnInfo:
-      - branchName: D
-        minLevel: 4
+      - branchName: Kobold Cave
+        minLevel: 1
         spawnRate: 70
-        distribution: earl
+        distribution: even
     shoutChance: 5
     shouts:
       - shout: krek begrak!

@@ -12,7 +12,7 @@ creatures:
     movementType: GUARDING
     useDefiniteArticle: false
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         determinedSpawnLevel: 1
         spawnRate: 100
         distribution: determined
@@ -22,18 +22,18 @@ creatures:
       - creatureSpeaks: Eh? What do you want?
         conversationBranches:
           - playerResponse: Where am I?
-            creatureSpeaks: Give me a skrunt egg and I'll tell you!
+            creatureSpeaks: Give me an egg and I'll tell you!
             conversationBranches:
               - playerResponse: No!
                 creatureSpeaks: Fine! Then scamper off!
               - playerResponse: Ok, here you go
-                creatureSpeaks: Ah, thank you. You are in Meggled's great cave. Meggled loves skrunt eggs
+                creatureSpeaks: Ah, thank you. You are in Meggled's great cave. Meggled loves  eggs
                 actionFailedBranch:
-                  playerResponse: I don't have a skrunt egg
+                  playerResponse: I don't have an egg
                   creatureSpeaks: Then find one!
                 actions:
                   - takePlayerItems:
-                      - skrunt egg
+                      - egg
           - playerResponse: Who are you?
             creatureSpeaks: I am Jark, mightiest of the goblin shaman!
             conversationBranches:
@@ -46,4 +46,4 @@ creatures:
                 creatureSpeaks: Ah, young gobline - Meggled is the mighty two-headed goblin god. One head speaks only secrets and the other speaks only lies!
                 conversationBranches:
                   - playerResponse: What does Meggled want from goblinkind?
-                    gotoBranch: Give me a skrunt egg and I'll tell you!
+                    gotoBranch: Give me an egg and I'll tell you!

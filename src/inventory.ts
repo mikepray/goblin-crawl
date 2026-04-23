@@ -30,7 +30,7 @@ export const printInventoryScreen = (game: Game, out: string): string => {
     `{bold}Lvl{/bold} ${game.player.level}\t{bold}XP{/bold} ${game.player.XP}\t`,
   );
   out = out.concat(
-    `${game.currentBranchLevel.branchName.name}:${game.currentBranchLevel.level}`,
+    `${game.currentBranchLevel.branch.name}:${game.currentBranchLevel.level}`,
   );
 
   out = out.concat(`\n\n{bold}Inventory{/}\n`);

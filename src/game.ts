@@ -87,12 +87,23 @@ function initGame(): Game {
   let features = loadFeatures();
   let messages = new Array<string>();
   const branches = {
-    name: "D",
-    description: "The dungeon",
+    name: "Dungeon",
+    description:
+      "A sprawling system of caverns, mines, and tunnels. Full of things to eat, and which want to eat you",
     maxLevel: 5,
     childBranches: [
-      { maxLevel: 3, name: "K", description: "Kobold Kave" },
-      { maxLevel: 3, name: "A", description: "Goblin Apostate Refuge" },
+      {
+        maxLevel: 3,
+        name: "Kobold Cave",
+        description:
+          "The Kobold Cave is home to scurrilous and treacherous kobolds. They are the sworm enemy of goblins!",
+      },
+      {
+        maxLevel: 3,
+        name: "Apostate Refuge",
+        description:
+          "The refuge of goblins who have fallen from the grace of Meggled",
+      },
     ],
   };
   let game: Game = {
@@ -108,7 +119,7 @@ function initGame(): Game {
       level: 1,
       XP: 0,
       hitDie: 3,
-      inventory: [items.find((item) => item.name === "skrunt egg")],
+      inventory: [items.find((item) => item.name === "egg")],
       glyph: "@",
       color: "{white-fg}{bold}",
       name: "player",
@@ -142,14 +153,14 @@ function initGame(): Game {
     dialogMode: "game",
     visibleActors: new Array<Actor>(),
     currentBranchLevel: {
-      branchName: branches,
+      branch: branches,
       level: 0,
     },
     allBranches: branches,
   };
 
   return descend(game, {
-    branchName: game.currentBranchLevel.branchName,
+    branch: game.currentBranchLevel.branch,
     level: game.currentBranchLevel.level + 1,
   });
 }

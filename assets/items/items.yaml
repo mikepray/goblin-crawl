@@ -1,22 +1,22 @@
 ---
 items:
-  - name: skrunt egg
-    description: A skrunt egg. Delicious!
+  - name: egg
+    description: A cave chicken egg. Delicious!
     glyph: o
     color: "{#78ad36-fg}"
     edible: true
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         maxLevel: 5
         distribution: early
         spawnRate: 70
         mustSpawn: true
-  - name: marbled skrunt egg
-    description: A unique skrunt egg
+  - name: marbled egg
+    description: A unique cave chicken egg
     glyph: o
     color: "{#a440d6-fg}"
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         maxLevel: 5
         distribution: early
         spawnRate: 70
@@ -38,7 +38,7 @@ items:
       cunning: 1
       power: 1
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         maxLevel: 5
         distribution: early
         spawnRate: 20
@@ -58,7 +58,7 @@ items:
       savagery: 2
       power: 1
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         distribution: early
         spawnRate: 60
   - name: dagger
@@ -77,7 +77,7 @@ items:
       cunning: 2
       power: 1
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         spawnRate: 30
         distribution: even
   - name: khopesh
@@ -99,7 +99,7 @@ items:
       savagery: 2
       power: 1
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         spawnRate: 4
         distribution: late
   - name: palm axe
@@ -121,7 +121,7 @@ items:
       savagery: 4
       power: 2
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         spawnRate: 4
         distribution: late
   - name: helmet
@@ -131,7 +131,7 @@ items:
     slot: head
     armor: 2
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         spawnRate: 30
         distribution: even
   - name: leather armor
@@ -141,6 +141,6 @@ items:
     slot: body
     armor: 2
     spawnInfo:
-      - branchName: D
+      - branchName: Dungeon
         spawnRate: 30
         distribution: early
