@@ -149,9 +149,14 @@ export function teleportPlayer(game: Game, spawnAtFeature: string) {
 }
 
 export function ascend(game: Game, nextBranchLevel: BranchLevel) {
+  const formerBranch = game.currentBranchLevel.branch.name;
   game = saveLevel(game);
   game = loadLevel(game, nextBranchLevel);
-  game = teleportPlayer(game, "Downstairs");
+  if (nextBranchLevel.branch.name !== formerBranch) {
+    game = teleportPlayer(game, `Stairs to the ${formerBranch}`);
+  } else {
+    game = teleportPlayer(game, "Downstairs");
+  }
   game.messages = new Array<string>();
   game.messages.push("You climb up the stairs");
   game.isScreenDirty = true;
@@ -180,7 +185,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   let playerTile;
   // place stairs
   if (nextBranchLevel.level === 1) {
-    if (game.currentBranchLevel.branch.name === "Dungeon") {
+    if (nextBranchLevel.branch.name === "Dungeon") {
       // if the player is on the first level of the Dungeon, don't show the upstairs and place the player randomly
       playerTile = getRandomValidTile(game.tiles, game.actors);
     } else {
@@ -190,7 +195,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
         ...upstairsTile,
         glyph: "<",
         name: "Upstairs",
-        description: `Stairs returning to the ${nextBranchLevel.branch.parentBranch}. Press < to ascend`,
+        description: `Stairs returning to the ${nextBranchLevel.branch.parentBranch?.name}. Press < to ascend`,
       } as Upstairs;
       // set the player to that tile as if they had just come from upstairs
       game.features.set(coordsToKey(upstairsTile), upstairs);
