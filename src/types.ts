@@ -131,6 +131,7 @@ export type Creature = Actor &
     wanderingDirection?: MovementDirection;
     shouts?: Array<string>;
     shoutChance?: number; // 0 to 100 chance of shouting
+    shoutGenerator?: "kobold"; // use a hardcoded generator
     useDefiniteArticle: boolean; // if the game will put "The" in front of the creature's name
     wasSwappedByPlayer: boolean; // if the player just swapped with this creature. prevents the creature from moving for one turn
   };

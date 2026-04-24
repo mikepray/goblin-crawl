@@ -148,13 +148,4 @@ creatures:
         spawnRate: 70
         distribution: even
     shoutChance: 5
-    shouts:
-      - shout: krek begrak!
-      - shout: iik kweba fak kwa
-      - shout: awk kabak?
-      - shout: kobol kabwak...
-      - shout: the kobold bares its teeth at you
-      - shout: the kobod draws a claw across its neck while glaring at you
-      - shout: the kobold flicks its tongue
-      - shout: the kobold asks "kwak akab?" but doesn't expect an answer
-      - shout: the kobold points at you and says "iik fak akab!"
+    shoutGenerator: kobold

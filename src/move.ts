@@ -19,6 +19,7 @@ import {
   Shout,
 } from "./types";
 import { branchLevelToKey, coordsToKey, CoordsUtil, getCorpse } from "./utils";
+import { getKoboldPhrase } from "./words";
 
 export function movePlayer(game: Game, nextInput: any) {
   if (game.dialogMode === "game") {
@@ -418,12 +419,18 @@ export const moveActor = (
     "shouts" in actor &&
     Math.floor(Math.random() * 1000) <= (actor.shoutChance as number)
   ) {
-    const shout = Math.floor(
-      Math.random() * (actor.shouts as Array<Shout>).length,
-    );
-    game.messages.push(
-      `{grey-fg}${(actor.shouts as Array<Shout>)[shout].shout}{/}`,
-    );
+    if ("shoutGenerator" in actor && actor.shoutGenerator) {
+      if (actor.shoutGenerator === "kobold") {
+        game.messages.push(`{grey-fg}${getKoboldPhrase()}{/}`);
+      }
+    } else {
+      const shout = Math.floor(
+        Math.random() * (actor.shouts as Array<Shout>).length,
+      );
+      game.messages.push(
+        `{grey-fg}${(actor.shouts as Array<Shout>)[shout].shout}{/}`,
+      );
+    }
   }
 
   game.isScreenDirty = true;
