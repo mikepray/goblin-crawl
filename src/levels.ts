@@ -1,3 +1,4 @@
+import { allBranches } from "./branches";
 import { dungeonHeight, dungeonWidth } from "./game";
 import {
   Actor,
@@ -178,12 +179,25 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
 
   let playerTile;
   // place stairs
-  if (
-    game.currentBranchLevel.branch.name === "Dungeon" &&
-    nextBranchLevel.level === 1
-  ) {
-    // if the player is on the first level, don't show the upstairs and place the player randomly
-    playerTile = getRandomValidTile(game.tiles, game.actors);
+  if (nextBranchLevel.level === 1) {
+    if (game.currentBranchLevel.branch.name === "Dungeon") {
+      // if the player is on the first level of the Dungeon, don't show the upstairs and place the player randomly
+      playerTile = getRandomValidTile(game.tiles, game.actors);
+    } else {
+      // if the player is on the first level of a given branch, show the upstairs tile to the parent branch
+      let upstairsTile = getRandomValidTile(game.tiles);
+      const upstairs = {
+        ...upstairsTile,
+        glyph: "<",
+        name: "Upstairs",
+        description: `Stairs returning to the ${nextBranchLevel.branch.parentBranch}. Press < to ascend`,
+      } as Upstairs;
+      // set the player to that tile as if they had just come from upstairs
+      game.features.set(coordsToKey(upstairsTile), upstairs);
+      playerTile = upstairsTile;
+
+      game.messages.push(`Welcome to the ${nextBranchLevel.branch.name}!`);
+    }
   } else {
     // otherwise set the upstairs tile
     let upstairsTile = getRandomValidTile(game.tiles);
@@ -201,19 +215,20 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
   }
 
   // if it's the last level in the branch, spawn all child branch staircases
-  if (
-    game.currentBranchLevel.level === game.currentBranchLevel.branch.maxLevel
-  ) {
-    if (
-      game.currentBranchLevel.branch.childBranches &&
-      game.currentBranchLevel.branch.childBranches.length > 0
-    ) {
-      for (const branch of game.currentBranchLevel.branch.childBranches) {
+  if (nextBranchLevel.level === game.currentBranchLevel.branch.maxLevel) {
+    // find every branch with a parent branch name equal to the current branch name
+    const childBranches = allBranches.filter(
+      (b) => b.parentBranch?.name === game.currentBranchLevel.branch.name,
+    );
+
+    if (childBranches && childBranches.length > 0) {
+      for (const branch of childBranches) {
         let downstairsTile = getRandomValidTile(game.tiles, game.actors);
         const downstairs = {
           ...downstairsTile,
           glyph: ">",
           name: `Stairs to the ${branch.name}`,
+          toBranchName: branch.name,
           description: `Descending here will enter the ${branch.name} - ${branch.description}`,
         } as Downstairs;
         game.features.set(coordsToKey(downstairsTile), downstairs);

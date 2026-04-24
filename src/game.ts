@@ -9,6 +9,7 @@ import { coordsToKey, isTileInFieldOfVision } from "./utils";
 import { printInventoryScreen, printStatusScreen } from "./inventory";
 import { printLevelUpScreen } from "./levelUpScreen";
 import { levelUp } from "./player";
+import { allBranches, dungeon } from "./branches";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -86,26 +87,7 @@ function initGame(): Game {
   let items = loadItems();
   let features = loadFeatures();
   let messages = new Array<string>();
-  const branches = {
-    name: "Dungeon",
-    description:
-      "A sprawling system of caverns, mines, and tunnels. Full of things to eat, and which want to eat you",
-    maxLevel: 5,
-    childBranches: [
-      {
-        maxLevel: 3,
-        name: "Kobold Cave",
-        description:
-          "The Kobold Cave is home to scurrilous and treacherous kobolds. They are the sworm enemy of goblins!",
-      },
-      {
-        maxLevel: 3,
-        name: "Apostate Refuge",
-        description:
-          "The refuge of goblins who have fallen from the grace of Meggled",
-      },
-    ],
-  };
+
   let game: Game = {
     turnCount: 0,
     actors: new Map<string, Actor>(),
@@ -153,10 +135,10 @@ function initGame(): Game {
     dialogMode: "game",
     visibleActors: new Array<Actor>(),
     currentBranchLevel: {
-      branch: branches,
+      branch: dungeon,
       level: 0,
     },
-    allBranches: branches,
+    allBranches: allBranches,
   };
 
   return descend(game, {

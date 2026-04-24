@@ -99,7 +99,7 @@ export function initArenaMode(): Game {
     seenTiles: new Map<string, Coords>(),
     visibleActors: new Array<Actor>(),
     dialogMode: "game",
-    allBranches: branches,
+    allBranches: [branches],
   };
 
   const khopesh = items.find((i) => i.name === "khopesh");

@@ -1,3 +1,4 @@
+import { allBranches } from "./branches";
 import { meleeActor } from "./combat";
 import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
@@ -10,6 +11,7 @@ import {
   Coords,
   CoordsMap,
   Creature,
+  Downstairs,
   Game,
   InputKey,
   Item,
@@ -28,8 +30,8 @@ export function movePlayer(game: Game, nextInput: any) {
         // descend to other branch
         if (featureAtTile && featureAtTile.glyph === ">") {
           // look up branch by name on the feature (see descend code for name assignment to the feature)
-          const nextBranch = game.currentBranchLevel.branch.childBranches?.find(
-            (b) => b.name === featureAtTile.name,
+          const nextBranch = allBranches?.find(
+            (b) => b.name === (featureAtTile as Downstairs).toBranchName,
           );
           if (nextBranch) {
             return descend(game, {

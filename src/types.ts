@@ -22,7 +22,7 @@ export type Game = {
   seenTiles: CoordsMap;
   visibleActors: Array<Actor>;
   currentBranchLevel: BranchLevel;
-  allBranches: DungeonBranch;
+  allBranches: Array<DungeonBranch>;
 };
 
 export type DungeonBranch = {
@@ -30,8 +30,7 @@ export type DungeonBranch = {
   name: string;
   description: string;
   staircase?: Feature;
-  childBranches?: Array<DungeonBranch>;
-  parentBranch?: DungeonBranch; // TODO ?
+  parentBranch?: DungeonBranch;
 };
 
 export type LevelUpScreen = {};
@@ -179,6 +178,7 @@ export type Upstairs = Feature & {
 export type Downstairs = Feature & {
   glyph: ">";
   name: string;
+  toBranchName?: string;
 };
 
 export type BranchLevel = {
