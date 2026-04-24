@@ -1,39 +1,36 @@
 ---
 features:
   - name: altar to Meggled
-    description: An altar to Meggled. It's made of goblin bones
+    description: It's made of goblin bones
     glyph: ^
     color: "{#3bd457-fg}{black-bg}"
     spawnInfo:
       - branchName: Dungeon
         determinedSpawnLevel: 1
-        spawnRate: 100
         distribution: determined
-        mustSpawn: true
   - name: haunted shrine
     description: A shrine to a spirit long-since passed
     glyph: ^
     color: "{white-fg}{black-bg}"
     spawnInfo:
       - branchName: Dungeon
-        minLevel: 3
-        spawnRate: 20
-        distribution: late
+        minLevel: 1
+        spawnRate: 100
+        distribution: early
   - name: shadow shrine
     description: An altar dedicated to darkness
     glyph: ^
     color: "{black-fg}{white-bg"
     spawnInfo:
       - branchName: Dungeon
-        minLevel: 5
+        minLevel: 1
         spawnRate: 1
-        distribution: late
+        distribution: even
   - name: dragon shrine
     description: An altar dedicated to a draconic diety worshipped by kobolds
     glyph: ^
     color: "{#a440d6-fg}"
     spawnInfo:
-      - branchName: Dungeon
-        minLevel: 4
-        spawnRate: 10
-        distribution: mid
+      - branchName: Kobold Cave
+        determinedSpawnLevel: 4
+        distribution: determined

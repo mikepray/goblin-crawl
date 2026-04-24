@@ -234,7 +234,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
           glyph: ">",
           name: `Stairs to the ${branch.name}`,
           toBranchName: branch.name,
-          description: `Descending here will enter the ${branch.name} - ${branch.description}`,
+          description: `{bold-fg}Descending here will enter the ${branch.name} - ${branch.description}{/}`,
         } as Downstairs;
         game.features.set(coordsToKey(downstairsTile), downstairs);
         branch.staircase;

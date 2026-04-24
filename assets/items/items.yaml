@@ -5,12 +5,15 @@ items:
     glyph: o
     color: "{#78ad36-fg}"
     edible: true
+    eatActionType: heal
+    eatAction: 1d3
     spawnInfo:
       - branchName: Dungeon
         maxLevel: 5
         distribution: early
         spawnRate: 70
         mustSpawn: true
+
   - name: marbled egg
     description: A unique cave chicken egg
     glyph: o
@@ -22,6 +25,7 @@ items:
         spawnRate: 70
         mustSpawn: true
         unique: true
+
   - name: short sword
     description: A bronze short sword. This weapon rewards cunning heroes
     glyph: (
@@ -42,6 +46,7 @@ items:
         maxLevel: 5
         distribution: early
         spawnRate: 20
+
   - name: club
     description: A clumsy and savage weapon
     glyph: (
@@ -60,7 +65,8 @@ items:
     spawnInfo:
       - branchName: Dungeon
         distribution: early
-        spawnRate: 60
+        spawnRate: 40
+
   - name: dagger
     description: A bronze dagger. This weapon rewards cunning heroes
     glyph: (
@@ -129,11 +135,15 @@ items:
     glyph: )
     color: "{#d45f11-fg}"
     slot: head
-    armor: 2
+    armor: 1
     spawnInfo:
       - branchName: Dungeon
-        spawnRate: 30
+        spawnRate: 2
         distribution: even
+      - branchName: Kobold Cave
+        spawnRate: 5
+        distribution: even
+
   - name: leather armor
     description: Stiff cured leather bodice
     glyph: )
@@ -142,5 +152,22 @@ items:
     armor: 2
     spawnInfo:
       - branchName: Dungeon
-        spawnRate: 30
+        spawnRate: 3
+        distribution: late
+      - branchName: Kobold Cave
+        spawnRate: 4
+        distribution: even
+
+  - name: rags
+    description: Filthy rags. Provides the barest protection
+    glyph: )
+    color: "{#d19317-fg}"
+    slot: body
+    armor: 1
+    spawnInfo:
+      - branchName: Dungeon
+        spawnRate: 16
         distribution: early
+      - branchName: Kobold Cave
+        spawnRate: 4
+        distribution: even

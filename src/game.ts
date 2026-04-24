@@ -112,7 +112,7 @@ function initGame(): Game {
       savagery: 3,
       fortitude: 1,
       power: 1,
-      slots: {},
+      slots: { body: items.find((item) => item.name === "rags") },
       naturalWeapon: {
         name: "fists",
         attackBonus: 1,
@@ -139,6 +139,7 @@ function initGame(): Game {
       level: 0,
     },
     allBranches: allBranches,
+    altarsConquered: 0,
   };
 
   return descend(game, {

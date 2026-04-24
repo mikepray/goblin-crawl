@@ -1,7 +1,7 @@
 ---
 creatures:
   - name: Jark
-    glyph: J
+    glyph: G
     level: 1
     hitDie: 3
     color: "{#3bd457-fg}{bold}"
@@ -19,31 +19,32 @@ creatures:
         mustSpawn: true
         unique: true
     conversationBranches:
-      - creatureSpeaks: Eh? What do you want?
+      - creatureSpeaks: What do you want?
         conversationBranches:
-          - playerResponse: Where am I?
-            creatureSpeaks: Give me an egg and I'll tell you!
+          - playerResponse: What is this place?
+            creatureSpeaks: >
+              You are in the great dungeon, home to our goblin tribe and many other creatures. On this floor you will find other
+              friendly goblins and our cave chickens. Help yourself to eggs and any items you find to aid you in your quest.
+              The eggs are good to eat and will give you health. Wear and wield the items to protect yourself from the many dangers below.
+              Take care, because below this floor are dangerous creatures. We hate the kobolds the most!
             conversationBranches:
-              - playerResponse: No!
-                creatureSpeaks: Fine! Then scamper off!
-              - playerResponse: Ok, here you go
-                creatureSpeaks: Ah, thank you. You are in Meggled's great cave. Meggled loves  eggs
-                actionFailedBranch:
-                  playerResponse: I don't have an egg
-                  creatureSpeaks: Then find one!
-                actions:
-                  - takePlayerItems:
-                      - egg
+              - playerResponse: What's the point?
+                creatureSpeaks: Conquer the dungeon in Meggled's name! Slay the treacherous kobolds and claim their blasphemous altars in the name of Meggled!
+                conversationBranches:
+                  - playerResponse: Where are the kobolds?
+                    creatureSpeaks: You will find them in their various Kobold Caves. Each one is ruled by a kobold. Kill them and claim their altars!
+                  - playerResponse: How do I claim an altar?
+                    creatureSpeaks: Just pray over it. Meggled will send cleansing flame and turn it to his purpose.
+          - playerResponse: Who is Meggled?
+            creatureSpeaks: Meggled is the two-headed god of the goblins! One head speaks only secrets and the other speaks only lies! Drop an egg on his altar and pray over it to make a sacrifice.
+          - playerResponse: Who am I?
+            creatureSpeaks: >
+              *Jark looks at you funny* You are a goblin! And apparently a pretty stupid one.
           - playerResponse: Who are you?
-            creatureSpeaks: I am Jark, mightiest of the goblin shaman!
+            creatureSpeaks: I am Jark, the mightiest goblin shaman!
             conversationBranches:
               - playerResponse: Prove it.
-                creatureSpeaks: Feh! I shall turn thee into a roach! *Jark mutters under his breath while flailing his arms*
+                creatureSpeaks: Feh! I shall turn you into a roach! *Jark mutters under his breath while flailing his arms*
                 conversationBranches:
                   - playerResponse: ... I don't feel any different ...
                     creatureSpeaks: You're lucky this time! I'm out of roach legs for my spells...
-              - playerResponse: Tell me about Meggled, mighty shaman
-                creatureSpeaks: Ah, young gobline - Meggled is the mighty two-headed goblin god. One head speaks only secrets and the other speaks only lies!
-                conversationBranches:
-                  - playerResponse: What does Meggled want from goblinkind?
-                    gotoBranch: Give me an egg and I'll tell you!

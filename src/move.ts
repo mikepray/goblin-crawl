@@ -95,18 +95,33 @@ export function movePlayer(game: Game, nextInput: any) {
         playerMove.y++;
       } else if (nextInput === ".") {
         // wait one turn
-      } else if (nextInput === "^") {
+      } else if (nextInput === "^" || nextInput === "p") {
         let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
         if (featureAtTile && featureAtTile.glyph === "^") {
           game.messages.push("You pray to Meggled");
-          let item = removeLastItemFromFloorStack(game, { ...game.player });
-          if (item?.name === "egg") {
-            game.messages.push(
-              "{green-fg}The egg is engulfed in green flame. Meggled accepts your sacrifice!{/}",
+          if (featureAtTile.name === "altar to Meggled") {
+            let item = removeLastItemFromFloorStack(game, { ...game.player });
+            if (item?.name === "egg") {
+              game.messages.push(
+                "{green-fg}The egg is engulfed in green flame. Meggled accepts your sacrifice!{/}",
+              );
+            } else if (item) {
+              putItemOnFloorStack(game, item);
+              game.messages.push(
+                "Meggled does not accept this as a sacrifice!",
+              );
+            }
+          } else {
+            const meggledAltar = game.allFeatures.find(
+              (f) => f.name === "altar to Meggled",
             );
-          } else if (item) {
-            putItemOnFloorStack(game, item);
-            game.messages.push("Meggled does not accept this as a sacrifice!");
+            if (meggledAltar) {
+              game.features.set(coordsToKey({ ...game.player }), meggledAltar);
+              game.messages.push(
+                `{green-fg}{bold}You conquer the ${featureAtTile.name} in the name of Meggled! It is consumed in green flame!{/bold}{/green-fg}`,
+              );
+              game.altarsConquered++;
+            }
           }
         } else {
           game.messages.push(
@@ -125,7 +140,7 @@ export function movePlayer(game: Game, nextInput: any) {
           game.messages.push("There's nothing on the ground here...");
         }
         game.isScreenDirty = true;
-      } else if (nextInput === "i" || "\x09") {
+      } else if (nextInput === "i" || nextInput === "\x09") {
         game.dialogMode = "inventory";
         game.dialogPointer = 1;
         game.isScreenDirty = true;
@@ -264,7 +279,9 @@ export function movePlayer(game: Game, nextInput: any) {
         game.messages.push(out);
         game.isScreenDirty = true;
       } else if (featureAtTile) {
-        game.messages.push(`here: ${featureAtTile?.description}`);
+        game.messages.push(
+          `here: ${featureAtTile?.name}: ${featureAtTile?.description}`,
+        );
       }
 
       // iterate through the list of actors and move each one

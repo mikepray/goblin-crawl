@@ -100,6 +100,7 @@ export function initArenaMode(): Game {
     visibleActors: new Array<Actor>(),
     dialogMode: "game",
     allBranches: [branches],
+    altarsConquered: 0,
   };
 
   const khopesh = items.find((i) => i.name === "khopesh");

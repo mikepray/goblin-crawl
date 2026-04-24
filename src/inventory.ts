@@ -1,6 +1,7 @@
 import { Game, InputKey, Item, Creature } from "./types";
 import { putItemOnFloorStack } from "./move";
 import { dungeonHeight } from "./game";
+import { roll } from "./utils";
 
 export function printStatusScreen(game: Game, out: string): string {
   for (let i = 0; i < game.visibleActors.length; i++) {
@@ -30,8 +31,9 @@ export const printInventoryScreen = (game: Game, out: string): string => {
     `{bold}Lvl{/bold} ${game.player.level}\t{bold}XP{/bold} ${game.player.XP}\t`,
   );
   out = out.concat(
-    `${game.currentBranchLevel.branch.name}:${game.currentBranchLevel.level}`,
+    `${game.currentBranchLevel.branch.name}:${game.currentBranchLevel.level}\n`,
   );
+  out = out.concat(`Altars Conquered:${game.altarsConquered}`);
 
   out = out.concat(`\n\n{bold}Inventory{/}\n`);
   // extra 7 for slots
@@ -218,6 +220,17 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
         if (item.edible) {
           removeSelectedItemFromPlayerInventory(game);
           game.messages.push(`You ate the ${item.name}. Delicious!`);
+          if (item.eatActionType === "heal") {
+            const healRoll = roll(item.eatAction);
+            const heal = Math.min(
+              game.player.currentHp + healRoll,
+              game.player.maxHp,
+            );
+            game.player.currentHp = heal;
+            if (heal > 0) {
+              return `{green-fg}You heal ${heal}{/}`;
+            }
+          }
           game.turnCount++;
         } else {
           game.messages.push(`You cannot eat the ${item.name}!`);

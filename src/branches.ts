@@ -8,7 +8,7 @@ export const dungeon: DungeonBranch = {
 };
 
 const koboldCave: DungeonBranch = {
-  maxLevel: 3,
+  maxLevel: 4,
   name: "Kobold Cave",
   description:
     "The Kobold Cave is home to scurrilous and treacherous kobolds. They are the sworm enemy of goblins!",

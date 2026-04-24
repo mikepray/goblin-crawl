@@ -226,3 +226,15 @@ export const defaultSpawnInfo: SpawnInfo = {
   spawnRate: 0,
   mustSpawn: false,
 };
+
+// roll n k-sided dice in the string format of nDk
+// returns zero if anything is undefined or can't be parsed
+export function roll(ndk?: string) {
+  if (ndk) {
+    const nk = ndk.split("d");
+    if (nk[0] && parseInt(nk[0]) && nk[1] && parseInt(nk[1])) {
+      return nDk(parseInt(nk[0]), parseInt(nk[1]));
+    }
+  }
+  return 0;
+}

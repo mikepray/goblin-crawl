@@ -23,6 +23,7 @@ export type Game = {
   visibleActors: Array<Actor>;
   currentBranchLevel: BranchLevel;
   allBranches: Array<DungeonBranch>;
+  altarsConquered: number;
 };
 
 export type DungeonBranch = {
@@ -77,6 +78,8 @@ export type Item = Feature &
     slot?: "weapon" | "shield" | "head" | "neck" | "body" | "feet" | "hands";
     armorBonus?: number;
     dodgingBonus?: number;
+    eatActionType?: "heal";
+    eatAction?: string;
   };
 
 export type Bonuses = {
