@@ -1,3 +1,4 @@
+import { DungeonBranch } from "./types";
 import { loadItems, loadFeatures, loadCreatures } from "./loader";
 import { Game, Coords, Actor, Feature, Player, Level, Item } from "./types";
 import { coordsToKey } from "./utils";
@@ -48,10 +49,11 @@ export function initArenaMode(): Game {
     actors.set(coordsToKey({ x: 26, y: 10 }), { ...rat, x: 26, y: 10 });
     actors.set(coordsToKey({ x: 27, y: 10 }), { ...rat, x: 27, y: 10 });
   }
-  const branches = {
+  const branches: DungeonBranch = {
     name: "Arena",
     description: "The Arena",
     maxLevel: 1,
+    difficulty: 1,
   };
   let game: Game = {
     turnCount: 0,

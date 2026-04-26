@@ -32,6 +32,12 @@ export type DungeonBranch = {
   description: string;
   staircase?: Feature;
   parentBranch?: DungeonBranch;
+  glyphColor?: string;
+  difficulty: number;
+};
+
+export type KoboldCave = DungeonBranch & {
+  koboldName: string;
 };
 
 export type LevelUpScreen = {};

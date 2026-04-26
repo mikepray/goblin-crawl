@@ -234,20 +234,20 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
           glyph: ">",
           name: `Stairs to the ${branch.name}`,
           toBranchName: branch.name,
-          description: `{bold-fg}Descending here will enter the ${branch.name} - ${branch.description}{/}`,
+          color: branch.glyphColor,
+          description: `${branch.description}`,
         } as Downstairs;
         game.features.set(coordsToKey(downstairsTile), downstairs);
-        branch.staircase;
       }
     }
   } else {
-    // set the downstairs tile
+    // set the next level downstairs tile
     let downstairsTile = getRandomValidTile(game.tiles, game.actors);
     const downstairs = {
       ...downstairsTile,
       glyph: ">",
       name: "Downstairs",
-      description: `Stairs to the next level of the ${game.currentBranchLevel.branch.name}. Press > to descend`,
+      description: `Stairs to the next level of the ${nextBranchLevel.branch.name}. Press > to descend`,
     } as Downstairs;
     game.features.set(coordsToKey(downstairsTile), downstairs);
   }
@@ -263,6 +263,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     nextBranchLevel,
     game.tiles,
     new Map([...game.actors, ...game.features]), // union of actors and features
+    nextBranchLevel.branch.difficulty,
   );
   for (let i = 0; i < features.length; i++) {
     game.features.set(features[i].coords, features[i].thing);
@@ -274,6 +275,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     nextBranchLevel,
     game.tiles,
     game.actors,
+    nextBranchLevel.branch.difficulty,
   );
 
   for (let i = 0; i < creatures.length; i++) {
@@ -286,6 +288,7 @@ export function descend(game: Game, nextBranchLevel: BranchLevel) {
     nextBranchLevel,
     game.tiles,
     undefined,
+    nextBranchLevel.branch.difficulty,
   );
 
   // add flattened items to tile stack of items
@@ -364,13 +367,14 @@ function spawnThings(
   branchLevel: BranchLevel, // the branch level to spawn into
   tiles: CoordsMap, // the valid set of tiles in the current level
   deconflictWith: Map<string, Actor> | undefined, // things to deconflict with
+  difficulty: number,
 ) {
   const spawnedThings = new Array<{
     coords: string;
     thing: Creature | Item | Feature;
   }>();
   const thingsToSpawn = new Array<Creature | Item | Feature>();
-  const spawnIterations = Math.ceil(Math.random() * 3);
+  const spawnIterations = difficulty;
   for (let i = 0; i < spawnIterations; i++) {
     for (const thing of spawnableThings) {
       if (canThingSpawn(thing.spawnInfo, branchLevel)) {

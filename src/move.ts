@@ -1,4 +1,4 @@
-import { allBranches } from "./branches";
+import { allBranches, getRandomKoboldCave } from "./branches";
 import { meleeActor } from "./combat";
 import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
@@ -18,7 +18,13 @@ import {
   MovementDirection,
   Shout,
 } from "./types";
-import { branchLevelToKey, coordsToKey, CoordsUtil, getCorpse } from "./utils";
+import {
+  branchLevelToKey,
+  coordsToKey,
+  CoordsUtil,
+  getCorpse,
+  getRandomValidTile,
+} from "./utils";
 import { getKoboldPhrase } from "./words";
 
 export function movePlayer(game: Game, nextInput: any) {
@@ -121,11 +127,42 @@ export function movePlayer(game: Game, nextInput: any) {
                 `{green-fg}{bold}You conquer the ${featureAtTile.name} in the name of Meggled! It is consumed in green flame!{/bold}{/green-fg}`,
               );
               game.altarsConquered++;
+              game.player.XP += game.player.XP * 0.1;
+              // add a new kobold cave to the last level in the dungeon
+              // get dungeon
+              const dungeonBranch = allBranches.find(
+                (b) => b.name === "Dungeon",
+              );
+              const dungeonLevel = game.levels.get(
+                `Dungeon:${dungeonBranch?.maxLevel}`,
+              );
+              if (dungeonLevel && dungeonBranch) {
+                const koboldCave = getRandomKoboldCave(game.altarsConquered);
+                const downstairsTile = getRandomValidTile(
+                  dungeonLevel.tiles,
+                  dungeonLevel.actors,
+                );
+                const downstairs = {
+                  ...downstairsTile,
+                  glyph: ">",
+                  name: `Stairs to the ${koboldCave.name}`,
+                  toBranchName: koboldCave.name,
+                  color: koboldCave.glyphColor,
+                  description: `${koboldCave.description}`,
+                } as Downstairs;
+                dungeonLevel.features.set(
+                  coordsToKey(downstairsTile),
+                  downstairs,
+                );
+                game.messages.push(
+                  `{green-fg}{bold}Meggled opens a passage to the cave of ${koboldCave.koboldName}! Go forth and conquer!{/}`,
+                );
+              }
             }
           }
         } else {
           game.messages.push(
-            "There's no altar here. Press ^ to sacrifice and pray at altars",
+            `There's no altar here. Press {underline}p{/underline} to sacrifice and pray at altars`,
           );
           game.isScreenDirty = true;
           return game;
@@ -280,7 +317,7 @@ export function movePlayer(game: Game, nextInput: any) {
         game.isScreenDirty = true;
       } else if (featureAtTile) {
         game.messages.push(
-          `here: ${featureAtTile?.name}: ${featureAtTile?.description}`,
+          `here: ${featureAtTile.color ? featureAtTile.color : ""}${featureAtTile?.name}: ${featureAtTile?.description}{/}`,
         );
       }
 

@@ -22,7 +22,7 @@ export function printDialogScreen(game: Game, out: string) {
         "\nPress Number keys to answer or Escape to exit dialog...",
       );
     } else {
-      out = out.concat("\n\nPress Escape to exit dialog...");
+      out = out.concat("\n\n{grey-fg}Press Escape to exit dialog...{/}");
     }
   }
   return out;

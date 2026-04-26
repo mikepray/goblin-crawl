@@ -1,7 +1,7 @@
 ---
 features:
   - name: altar to Meggled
-    description: It's made of goblin bones
+    description: It's made of kobold bones
     glyph: ^
     color: "{#3bd457-fg}{black-bg}"
     spawnInfo:
@@ -20,7 +20,7 @@ features:
   - name: shadow shrine
     description: An altar dedicated to darkness
     glyph: ^
-    color: "{black-fg}{white-bg"
+    color: "{black-fg}{white-bg}"
     spawnInfo:
       - branchName: Dungeon
         minLevel: 1

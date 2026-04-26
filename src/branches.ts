@@ -1,26 +1,36 @@
-import { DungeonBranch } from "./types";
+import { DungeonBranch, KoboldCave } from "./types";
+import { nDk } from "./utils";
+import { getKoboldPhrase, getKoboldTitle, getKoboldWord } from "./words";
 
 export const dungeon: DungeonBranch = {
   name: "Dungeon",
+  difficulty: 1,
   description:
-    "A sprawling system of caverns, mines, and tunnels. Full of things to eat, and which want to eat you",
+    "A sprawling system of caverns, mines, and tunnels. Full of things to eat and or eat you",
   maxLevel: 3,
-};
-
-const koboldCave: DungeonBranch = {
-  maxLevel: 4,
-  name: "Kobold Cave",
-  description:
-    "The Kobold Cave is home to scurrilous and treacherous kobolds. They are the sworm enemy of goblins!",
-  parentBranch: dungeon,
 };
 
 const apostates: DungeonBranch = {
   maxLevel: 3,
   name: "Apostate Refuge",
+  difficulty: 1,
   description:
     "The refuge of goblins who have fallen from the grace of Meggled",
   parentBranch: dungeon,
 };
 
-export const allBranches = [dungeon, koboldCave, apostates];
+export function getRandomKoboldCave(difficulty: number) {
+  const title = getKoboldTitle();
+  const randomKoboldCave: KoboldCave = {
+    maxLevel: nDk(0 + difficulty, 3 + difficulty),
+    name: "Kobold Cave",
+    description: `The Cave of ${title}`,
+    koboldName: title,
+    glyphColor: "{#a440d6-fg}",
+    parentBranch: dungeon,
+    difficulty: difficulty,
+  };
+  return randomKoboldCave;
+}
+
+export const allBranches = [dungeon, getRandomKoboldCave(2), apostates];

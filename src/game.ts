@@ -96,8 +96,8 @@ function initGame(): Game {
     player: {
       x: 0,
       y: 0,
-      maxHp: 10,
-      currentHp: 10,
+      maxHp: 1000,
+      currentHp: 1000,
       level: 1,
       XP: 0,
       hitDie: 3,
