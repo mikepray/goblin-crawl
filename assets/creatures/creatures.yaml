@@ -11,7 +11,7 @@ creatures:
     isHostile: false
     status: AWAKE
     movementType: WANDERING
-    shoutChance: 7
+    shoutChance: 10
     armor: 1
     dodging: 3
     cunning: 3
@@ -50,7 +50,7 @@ creatures:
       - shout: the goblin suddenly farts
 
   - name: cave chicken
-    glyph: c
+    glyph: b
     level: 1
     hitDie: 2
     color: "{#78ad36-fg}"
@@ -76,8 +76,73 @@ creatures:
     spawnInfo:
       - branchName: Dungeon
         maxLevel: 3
-        spawnRate: 100
+        spawnRate: 80
         distribution: early
+        frequency: 6
+
+  - name: angry cave chicken
+    glyph: b
+    level: 1
+    hitDie: 2
+    color: "{#9e4c15-fg}"
+    description: >
+      a hostile featherless bird favored by goblinkind for its flesh and eggs
+    isHostile: true
+    status: AWAKE
+    movementType: WANDERING
+    armor: 1
+    dodging: 3
+    cunning: 0
+    savagery: 0
+    fortitude: 0
+    power: 0
+    currentHp: 2
+    maxHp: 2
+    naturalWeapon:
+      name: beak
+      attackBonus: 1
+      damageBonus: 1
+      damageDieNum: 1
+      damageDie: 2
+    spawnInfo:
+      - branchName: Dungeon
+        minLevel: 2
+        maxLevel: 5
+        spawnRate: 40
+        distribution: late
+      - branchName: Trash Heap
+        spawnRate: 40
+        distribution: even
+        frequency: 3
+
+  - name: headless cave chicken
+    glyph: b
+    level: 1
+    hitDie: 2
+    color: "{#9e4c15-fg}"
+    description: >
+      a headless cave chicken
+    isHostile: true
+    status: AWAKE
+    movementType: WANDERING
+    armor: 1
+    dodging: 3
+    cunning: 0
+    savagery: 0
+    fortitude: 2
+    power: 1
+    currentHp: 2
+    maxHp: 2
+    naturalWeapon:
+      name: claw
+      attackBonus: 1
+      damageBonus: 1
+      damageDieNum: 1
+      damageDie: 3
+    spawnInfo:
+      - branchName: Trash Heap
+        spawnRate: 40
+        distribution: even
 
   - name: rat
     glyph: r
@@ -108,6 +173,11 @@ creatures:
         minLevel: 3
         spawnRate: 50
         distribution: early
+        frequency: 5
+      - branchName: Trash Heap
+        spawnRate: 40
+        distribution: early
+        frequency: 4
     shoutChance: 5 # out of 1000
     shouts:
       - shout: <skitter>
@@ -141,6 +211,7 @@ creatures:
         minLevel: 1
         spawnRate: 50
         distribution: mid
+        frequency: 3
     shoutChance: 5 # out of 1000
     shouts:
       - shout: <skitter>
@@ -180,5 +251,103 @@ creatures:
         minLevel: 1
         spawnRate: 70
         distribution: even
+        frequency: 5
     shoutChance: 5
     shoutGenerator: kobold
+
+  - name: goblin apostate
+    glyph: g
+    level: 3
+    hitDie: 3
+    color: "{#3bd457-fg}"
+    description: >
+      a small greenish humanoid with long ears and large eyes.
+      it is fragile but cunning and well adapted to privation and darkness
+    isHostile: true
+    status: AWAKE
+    movementType: WANDERING
+    armor: 1
+    dodging: 3
+    cunning: 3
+    savagery: 1
+    fortitude: 1
+    power: 1
+    currentHp: 6
+    maxHp: 6
+    naturalWeapon:
+      name: fists
+      attackBonus: 1
+      damageBonus: 0
+      damageDieNum: 1
+      damageDie: 2
+    spawnInfo:
+      - branchName: Apostate Refuge
+        minLevel: 1
+        spawnRate: 40
+        distribution: mid
+        frequency: 5
+
+  - name: nilbog
+    glyph: g
+    level: 3
+    hitDie: 3
+    color: "{#3bd457-fg}"
+    description: >
+      a small greenish humanoid with long ears and large eyes.
+      it is fragile but cunning and well adapted to privation and darkness
+      Or is it?
+    isHostile: true
+    status: AWAKE
+    movementType: WANDERING
+    shoutChance: 10
+    armor: 1
+    dodging: 3
+    cunning: 3
+    savagery: 1
+    fortitude: 1
+    power: 1
+    currentHp: 6
+    maxHp: 6
+    naturalWeapon:
+      name: fists
+      attackBonus: 1
+      damageBonus: 0
+      damageDieNum: 1
+      damageDie: 2
+    spawnInfo:
+      - branchName: Apostate Refuge
+        minLevel: 1
+        spawnRate: 40
+        distribution: mid
+
+  - name: Forsaken of Meggled
+    glyph: g
+    level: 3
+    hitDie: 3
+    color: "{#3bd457-fg}"
+    description: >
+      a shaman forsaken by Meggled
+    isHostile: true
+    status: AWAKE
+    unique: true
+    movementType: WANDERING
+    shoutChance: 10
+    armor: 1
+    dodging: 3
+    cunning: 3
+    savagery: 1
+    fortitude: 1
+    power: 1
+    currentHp: 6
+    maxHp: 6
+    naturalWeapon:
+      name: fists
+      attackBonus: 1
+      damageBonus: 0
+      damageDieNum: 1
+      damageDie: 2
+    spawnInfo:
+      - branchName: Apostate Refuge
+        minLevel: 1
+        spawnRate: 40
+        distribution: mid

@@ -169,7 +169,9 @@ export type SpawnInfo = {
   mustSpawn: boolean; // if the thing must spawn somewhere
   unique: boolean; // if true, only one can ever be spawned.
   spawnedNum: number; // number of times the thing has spawned
-  // frequency?: number; // the frequency
+  // frequency that this can spawn. the spawn system rolls against the spawn rates
+  // this number of times
+  frequency: number; // default is 1 (see utils)
 };
 
 export enum MovementDirection {

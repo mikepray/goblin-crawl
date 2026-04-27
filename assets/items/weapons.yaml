@@ -1,0 +1,119 @@
+---
+items:
+  - name: short sword
+    description: A bronze short sword. This weapon rewards cunning heroes
+    glyph: (
+    color: "{#d45f11-fg}"
+    attackBonus: 2
+    damageDieNum: 1
+    damageDie: 6
+    slot: weapon
+    toHitSkillBonuses:
+      cunning: 2
+    toPenSkillBonuses:
+      cunning: 2
+    damageSkillBonuses:
+      cunning: 1
+      power: 1
+    spawnInfo:
+      - branchName: Dungeon
+        maxLevel: 5
+        distribution: early
+        spawnRate: 20
+
+  - name: club
+    description: A clumsy and savage weapon
+    glyph: (
+    attackBonus: 1
+    damageDieNum: 2
+    damageDie: 4
+    slot: weapon
+    color: "{#916649-fg}"
+    toHitSkillBonuses:
+      savagery: 2
+    toPenSkillBonuses:
+      savagery: 2
+    damageSkillBonuses:
+      savagery: 2
+      power: 1
+    spawnInfo:
+      - branchName: Dungeon
+        distribution: early
+        spawnRate: 40
+
+  - name: dagger
+    description: A bronze dagger. This weapon rewards cunning heroes
+    glyph: (
+    color: "{#d45f11-fg}"
+    attackBonus: 2
+    damageDieNum: 1
+    damageDie: 4
+    slot: weapon
+    toHitSkillBonuses:
+      cunning: 2
+    toPenSkillBonuses:
+      cunning: 3
+    damageSkillBonuses:
+      cunning: 2
+      power: 1
+    spawnInfo:
+      - branchName: Dungeon
+        spawnRate: 30
+        distribution: even
+      - branchName: Kobold Cave
+        spawnRate: 20
+        distribution: even
+      - branchName: Apostate Refuge
+        spawnRate: 20
+        distribution: even
+
+  - name: khopesh
+    description: A bronze sickle-shaped sword of masterwork quality. This elegant weapon is a well-balanced sidearm
+    glyph: (
+    color: "{#d45f11-fg}"
+    attackBonus: 3
+    damageDieNum: 2
+    damageDie: 4
+    slot: weapon
+    toHitSkillBonuses:
+      cunning: 2
+      savagery: 2
+    toPenSkillBonuses:
+      cunning: 2
+      savagery: 2
+    damageSkillBonuses:
+      cunning: 2
+      savagery: 2
+      power: 1
+    spawnInfo:
+      - branchName: Dungeon
+        spawnRate: 3
+        distribution: late
+      - branchName: Kobold Cave
+        spawnRate: 6
+        distribution: late
+  - name: palm axe
+    description: A vicious, savage weapon with an iron handle and bronze palm-shaped blade at the top
+    glyph: (
+    color: "{#d19317-fg}"
+    slot: weapon
+    attackBonus: 2
+    damageDieNum: 1
+    damageDie: 10
+    toHitSkillBonuses:
+      cunning: 1
+      savagery: 3
+    toPenSkillBonuses:
+      cunning: 1
+      savagery: 3
+    damageSkillBonuses:
+      cunning: 0
+      savagery: 4
+      power: 2
+    spawnInfo:
+      - branchName: Dungeon
+        spawnRate: 4
+        distribution: late
+      - branchName: Kobold Cave
+        spawnRate: 6
+        distribution: late

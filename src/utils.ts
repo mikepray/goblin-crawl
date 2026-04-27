@@ -212,6 +212,7 @@ export const getCorpse = (
         spawnedNum: 0,
         spawnRate: 0,
         mustSpawn: false,
+        frequency: 1,
       },
     ],
     ...defaultSkills,
@@ -225,6 +226,7 @@ export const defaultSpawnInfo: SpawnInfo = {
   spawnedNum: 0,
   spawnRate: 0,
   mustSpawn: false,
+  frequency: 1,
 };
 
 // roll n k-sided dice in the string format of nDk

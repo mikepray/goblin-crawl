@@ -1,0 +1,10 @@
+---
+features:
+  - name: trash
+    description: it's trash
+    glyph: \"
+    color: "{grey-fg}"
+    spawnInfo:
+      - branchName: Trash Heap
+        spawnRate: 100
+        distribution: even

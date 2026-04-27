@@ -1,0 +1,42 @@
+---
+- name: helmet
+  description: A bronze helmet
+  glyph: )
+  color: "{#d45f11-fg}"
+  slot: head
+  armor: 1
+  spawnInfo:
+    - branchName: Dungeon
+      spawnRate: 2
+      distribution: even
+    - branchName: Kobold Cave
+      spawnRate: 5
+      distribution: even
+
+- name: leather armor
+  description: Stiff cured leather bodice
+  glyph: )
+  color: "{#d19317-fg}"
+  slot: body
+  armor: 2
+  spawnInfo:
+    - branchName: Dungeon
+      spawnRate: 3
+      distribution: late
+    - branchName: Kobold Cave
+      spawnRate: 4
+      distribution: even
+
+- name: rags
+  description: Filthy rags. Provides the barest protection
+  glyph: )
+  color: "{#d19317-fg}"
+  slot: body
+  armor: 1
+  spawnInfo:
+    - branchName: Dungeon
+      spawnRate: 16
+      distribution: early
+    - branchName: Kobold Cave
+      spawnRate: 4
+      distribution: even
