@@ -4,7 +4,16 @@ import { handleDialogActions, printDialogScreen } from "./dialog";
 import { descend } from "./levels";
 import { loadCreatures, loadFeatures, loadItems } from "./loader";
 import { doGameTurn } from "./move";
-import { Actor, Coords, Feature, Game, Item, Level, Player } from "./types";
+import {
+  Actor,
+  Coords,
+  Creature,
+  Feature,
+  Game,
+  Item,
+  Level,
+  Player,
+} from "./types";
 import { coordsToKey, isTileInFieldOfVision } from "./utils";
 import {
   handleInventoryScreenAction,
@@ -66,7 +75,25 @@ function gameLoop() {
       }
       printScreen(game, view);
       const interval = setInterval(() => {
+        // rest
+        if (game.restTurns && game.restTurns > 0) {
+          if (game.visibleActors.some((a) => (a as Creature).isHostile)) {
+            game.messages.push("An enemy is in sight, stopping rest");
+            game.restTurns = 0;
+          } else {
+            game.restTurns--;
+            game.gameTurns++;
+            if (game.restTurns === 0) {
+              game.messages.push("Finished resting");
+            }
+          }
+        }
+
         if (inputBuffer.length > 0 && !game.gameOver) {
+          if (game.restTurns && game.restTurns > 0) {
+            game.messages.push("Keypress, stopping rest");
+            game.restTurns = 0;
+          }
           game.oldMessages = game.oldMessages.concat(game.messages);
           game.messages = new Array();
           const nextInput = inputBuffer.shift();

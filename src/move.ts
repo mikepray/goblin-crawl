@@ -142,6 +142,13 @@ export function doPlayerMove(game: Game, playerMove: Coords) {
 // move actors on the level
 export function doGameTurn(game: Game) {
   game.turnCount++;
+  // heal player for hp regen every 5 turns
+  if (game.turnCount % 5 === 0 && game.player.hpRegen) {
+    game.player.currentHp = Math.max(
+      game.player.maxHp,
+      game.player.currentHp + game.player.hpRegen,
+    );
+  }
   // iterate through the list of actors and move each one
   // uses an array ref of the game actors to prevent concurrent modifications
   // each actor should move atomically so that subsequent actors don't path through them

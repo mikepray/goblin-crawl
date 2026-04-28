@@ -25,6 +25,7 @@ export type Game = {
   allBranches: Array<DungeonBranch>;
   altarsConquered: number;
   gameTurns: number;
+  restTurns?: number;
 };
 
 export type DungeonBranch = {

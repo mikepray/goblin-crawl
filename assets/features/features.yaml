@@ -1,10 +1,20 @@
 ---
 features:
   - name: trash
-    description: it's trash
+    description: worthless garbage
     glyph: '"'
     color: "{grey-fg}"
     spawnInfo:
       - branchName: Trash Heap
-        spawnRate: 100
+        spawnRate: 90
         distribution: even
+        frequency: 40
+  - name: passage to the Darkunder
+    description: A one-way passage to the Darkunder. As long as this remains open, hostile creatures may enter the Dungeon
+    glyph: U
+    color: "{black-fg}{grey-bg}"
+    spawnInfo:
+      - branchName: Trash Heap
+        spawnRate: 90
+        distribution: even
+        frequency: 1

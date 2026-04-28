@@ -8,7 +8,7 @@ import {
   putItemOnFloorStack,
   removeLastItemFromFloorStack,
 } from "./move";
-import { Game, Coords, Downstairs, InputKey } from "./types";
+import { Game, Coords, Downstairs, InputKey, Creature } from "./types";
 import { coordsToKey, branchLevelToKey, getRandomValidTile } from "./utils";
 
 export function handlePlayerGameInput(game: Game, nextInput: any) {
@@ -24,7 +24,7 @@ export function handlePlayerGameInput(game: Game, nextInput: any) {
         (b) => b.name === (featureAtTile as Downstairs).toBranchName,
       );
       if (nextBranch) {
-        game.gameTurns++;
+        game.gameTurns += 2;
         return descend(game, {
           branch: nextBranch,
           level: 1,
@@ -32,7 +32,7 @@ export function handlePlayerGameInput(game: Game, nextInput: any) {
       }
       if (featureAtTile.name === "Downstairs") {
         // descend level in the same branch
-        game.gameTurns++;
+        game.gameTurns += 2;
         return descend(game, {
           branch: game.currentBranchLevel.branch,
           level: game.currentBranchLevel.level + 1,
@@ -168,9 +168,19 @@ export function handlePlayerGameInput(game: Game, nextInput: any) {
     // game.messages.push(
     //   "{underline}e{/underline}at, {underline}d{/underline}rop, {underline}w{/underline}ear or {underline}w{/underline}ield, esc to exit",
     // );
+  } else if (nextInput === "5") {
+    // rest
+    // can't rest if there are enemies visible
+    if (game.visibleActors.some((a) => (a as Creature).isHostile)) {
+      game.messages.push("You can't rest while there are enemies in sight!");
+    } else {
+      game.restTurns = 50;
+      game.gameTurns++;
+      game.messages.push("Resting...");
+    }
   } else if (nextInput === "?") {
     game.messages.push(
-      "You are the @ symbol, arrow keys and vim keys move, period waits one turn, < and > go up and down stairs. Move into other creatures to interact or attack\ni for inventory, g to interact with what's on the floor",
+      "You are the @ symbol, arrow keys and vim keys move, period waits one turn, < and > go up and down stairs. Move into other creatures to interact or attack\ni for inventory, g to interact with what's on the floor\n5 to rest to heal",
     );
   }
 
