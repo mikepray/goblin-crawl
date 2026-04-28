@@ -204,6 +204,7 @@ export const getCorpse = (
     currentHp: 0,
     maxHp: 0,
     hitDie: 0,
+    hpRegenEveryNTurns: 0,
     spawnInfo: [
       {
         branchName: "Dungeon",

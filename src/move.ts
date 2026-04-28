@@ -142,8 +142,11 @@ export function doPlayerMove(game: Game, playerMove: Coords) {
 // move actors on the level
 export function doGameTurn(game: Game) {
   game.turnCount++;
-  // heal player for hp regen every 5 turns
-  if (game.turnCount % 5 === 0 && game.player.hpRegen) {
+  // heal player for hp regen every some turns
+  if (
+    game.turnCount % game.player.hpRegenEveryNTurns === 0 &&
+    game.player.hpRegen
+  ) {
     game.player.currentHp = Math.min(
       game.player.maxHp,
       game.player.currentHp + game.player.hpRegen,
@@ -213,13 +216,50 @@ export function doGameTurn(game: Game) {
  * @param {Game} game - game board
  */
 export const actorDeath = (game: Game, actor: Actor) => {
+  const coords = coordsToKey({ ...actor });
+  // drop actor inventory
+  if (actor.inventory && actor.inventory.length > 0) {
+    for (const item of actor.inventory) {
+      putItemOnFloorStackByCoords(game, coords, item);
+    }
+  }
+  // drop actor slots
+  if (actor.slots) {
+    if (actor.slots.body) {
+      putItemOnFloorStackByCoords(game, coords, actor.slots.body);
+    }
+    if (actor.slots.feet) {
+      putItemOnFloorStackByCoords(game, coords, actor.slots.feet);
+    }
+    if (actor.slots.hands) {
+      putItemOnFloorStackByCoords(game, coords, actor.slots.hands);
+    }
+    if (actor.slots.head) {
+      putItemOnFloorStackByCoords(game, coords, actor.slots.head);
+    }
+    if (actor.slots.neck) {
+      putItemOnFloorStackByCoords(game, coords, actor.slots.neck);
+    }
+    if (actor.slots.shield) {
+      putItemOnFloorStackByCoords(game, coords, actor.slots.shield);
+    }
+    if (actor.slots.weapon) {
+      putItemOnFloorStackByCoords(game, coords, actor.slots.weapon);
+    }
+  }
   // remove actor
   game.messages.push(`The ${actor.name} dies`);
-  game.actors.delete(coordsToKey({ ...actor }));
-  // add corpse
-  game.features.set(coordsToKey({ ...actor }), {
-    ...getCorpse(actor.x, actor.y, actor.glyph, actor.name),
-  });
+  game.items.get(coords);
+  game.actors.delete(coords);
+  // add corpse only if no other feature
+  // (e.g., don't vaporize staircases)
+  if (!game.features.get(coords)) {
+    game.features.set(coords, {
+      ...getCorpse(actor.x, actor.y, actor.glyph, actor.name),
+    });
+  } else {
+    game.messages.push(`The corpse of the ${actor.name} vaporizes!`);
+  }
   // gain player xp
   game.player.XP += actor.level * 100;
 };
@@ -486,14 +526,22 @@ export function findConversationBranchByCreatureSpeaks(
   return undefined;
 }
 
-export function putItemOnFloorStack(game: Game, item: Item) {
+export function putItemOnFloorStackByCoords(
+  game: Game,
+  coords: string,
+  item: Item,
+) {
   // put the item on the floor in the tile stack
-  let itemStack = game.items.get(coordsToKey({ ...game.player }));
+  let itemStack = game.items.get(coords);
   if (!itemStack) {
     itemStack = new Array<Item>();
   }
   itemStack.push(item);
-  game.items.set(coordsToKey({ ...game.player }), itemStack);
+  game.items.set(coords, itemStack);
+}
+
+export function putItemOnFloorStack(game: Game, item: Item) {
+  putItemOnFloorStackByCoords(game, coordsToKey({ ...game.player }), item);
 }
 
 // attempts to remove the item and returns true if it did

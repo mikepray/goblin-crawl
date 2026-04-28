@@ -116,30 +116,35 @@ export function handlePlayerGameInput(game: Game, nextInput: any) {
           );
           game.altarsConquered++;
           game.player.XP += game.player.XP * 0.1;
-          // add a new kobold cave to the last level in the dungeon
-          // get dungeon
-          const dungeonBranch = allBranches.find((b) => b.name === "Dungeon");
-          const dungeonLevel = game.levels.get(
-            `Dungeon:${dungeonBranch?.maxLevel}`,
-          );
-          if (dungeonLevel && dungeonBranch) {
-            const koboldCave = getRandomKoboldCave(game.altarsConquered);
-            const downstairsTile = getRandomValidTile(
-              dungeonLevel.tiles,
-              dungeonLevel.actors,
+          if (featureAtTile.name === "dragon shrine") {
+            // add a new kobold cave to the last level in the dungeon
+            // get dungeon
+            const dungeonBranch = allBranches.find((b) => b.name === "Dungeon");
+            const dungeonLevel = game.levels.get(
+              `Dungeon:${dungeonBranch?.maxLevel}`,
             );
-            const downstairs = {
-              ...downstairsTile,
-              glyph: ">",
-              name: `Stairs to the ${koboldCave.name}`,
-              toBranchName: koboldCave.name,
-              color: koboldCave.glyphColor,
-              description: `${koboldCave.description}`,
-            } as Downstairs;
-            dungeonLevel.features.set(coordsToKey(downstairsTile), downstairs);
-            game.messages.push(
-              `{green-fg}{bold}Meggled opens a passage to the cave of ${koboldCave.koboldName}! Go forth and conquer!{/}`,
-            );
+            if (dungeonLevel && dungeonBranch) {
+              const koboldCave = getRandomKoboldCave(game.altarsConquered);
+              const downstairsTile = getRandomValidTile(
+                dungeonLevel.tiles,
+                dungeonLevel.actors,
+              );
+              const downstairs = {
+                ...downstairsTile,
+                glyph: ">",
+                name: `Stairs to the ${koboldCave.name}`,
+                toBranchName: koboldCave.name,
+                color: koboldCave.glyphColor,
+                description: `${koboldCave.description}`,
+              } as Downstairs;
+              dungeonLevel.features.set(
+                coordsToKey(downstairsTile),
+                downstairs,
+              );
+              game.messages.push(
+                `{green-fg}{bold}Meggled opens a passage to the cave of ${koboldCave.koboldName}! Go forth and conquer!{/}`,
+              );
+            }
           }
         }
       }

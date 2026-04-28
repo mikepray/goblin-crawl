@@ -1,28 +1,16 @@
 import { initArenaMode } from "./arenaMode";
-import { allBranches, dungeon } from "./branches";
 import { handleDialogActions, printDialogScreen } from "./dialog";
-import { initView, initGame, View, startScreen } from "./init";
+import { initGame, initView, startScreen, View } from "./init";
 import { handlePlayerGameInput } from "./input";
 import {
   handleInventoryScreenAction,
   printInventoryScreen,
   printStatusScreen,
 } from "./inventory";
-import { descend } from "./levels";
 import { handleLevelUpScreenAction, printLevelUpScreen } from "./levelUpScreen";
-import { loadCreatures, loadFeatures, loadItems } from "./loader";
 import { doGameTurn } from "./move";
 import { levelUp } from "./player";
-import {
-  Actor,
-  Coords,
-  Creature,
-  Feature,
-  Game,
-  Item,
-  Level,
-  Player,
-} from "./types";
+import { Creature, Game } from "./types";
 import { coordsToKey, isTileInFieldOfVision } from "./utils";
 
 export const dungeonWidth = 48;
@@ -91,7 +79,7 @@ function gameLoop() {
 
         if (inputBuffer.length > 0 && !game.gameOver) {
           if (game.restTurns && game.restTurns > 0) {
-            game.messages.push("Keypress, stopping rest");
+            game.messages.push("Key pressed, stopping rest");
             game.restTurns = 0;
           }
           game.oldMessages = game.oldMessages.concat(game.messages);

@@ -36,6 +36,7 @@ export function initGame(): Game {
       fortitude: 1,
       power: 1,
       hpRegen: 1,
+      hpRegenEveryNTurns: 15,
       slots: { body: items.find((item) => item.name === "rags") },
       naturalWeapon: {
         name: "fists",

@@ -58,6 +58,7 @@ export type Actor = Coords &
     maxHp: number;
     currentHp: number;
     hpRegen?: number; // hp regenerate per turn
+    hpRegenEveryNTurns: number;
     slots?: {
       weapon?: Weapon | Item;
       shield?: Item;
