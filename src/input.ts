@@ -1,15 +1,12 @@
 import { allBranches, getRandomKoboldCave } from "./branches";
-import { handleDialogActions } from "./dialog";
-import { handleInventoryScreenAction } from "./inventory";
-import { descend, ascend } from "./levels";
-import { handleLevelUpScreenAction } from "./levelUpScreen";
+import { ascend, descend } from "./levels";
 import {
   doPlayerMove,
   putItemOnFloorStack,
   removeLastItemFromFloorStack,
 } from "./move";
-import { Game, Coords, Downstairs, InputKey, Creature } from "./types";
-import { coordsToKey, branchLevelToKey, getRandomValidTile } from "./utils";
+import { Coords, Creature, Downstairs, Game, InputKey } from "./types";
+import { branchLevelToKey, coordsToKey, getRandomValidTile } from "./utils";
 
 export function handlePlayerGameInput(game: Game, nextInput: any) {
   let playerMove: Coords = { x: 0, y: 0 };

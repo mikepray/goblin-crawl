@@ -144,7 +144,7 @@ export function doGameTurn(game: Game) {
   game.turnCount++;
   // heal player for hp regen every 5 turns
   if (game.turnCount % 5 === 0 && game.player.hpRegen) {
-    game.player.currentHp = Math.max(
+    game.player.currentHp = Math.min(
       game.player.maxHp,
       game.player.currentHp + game.player.hpRegen,
     );

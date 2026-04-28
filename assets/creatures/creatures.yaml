@@ -351,3 +351,33 @@ creatures:
         minLevel: 1
         spawnRate: 40
         distribution: mid
+  - name: hook horror
+    glyph: m
+    level: 7
+    hitDie: 7
+    color: "{#3bd457-fg}"
+    description: >
+      a tall robed figure with a skeletal horse head and bony hooks for arms
+    isHostile: true
+    status: AWAKE
+    unique: false
+    movementType: WANDERING
+    armor: 5
+    dodging: 6
+    cunning: 6
+    savagery: 6
+    fortitude: 6
+    power: 6
+    currentHp: 40
+    maxHp: 40
+    naturalWeapon:
+      name: hooks
+      attackBonus: 10
+      damageBonus: 5
+      damageDieNum: 3
+      damageDie: 8
+    spawnInfo:
+      - branchName: Uhlbreen Mines
+        minLevel: 1
+        spawnRate: 40
+        distribution: mid

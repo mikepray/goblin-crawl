@@ -17,6 +17,7 @@ const trashHeap: DungeonBranch = {
   description:
     "A filthy crevice filled with the accumulated garbage of surface-dwellers",
   parentBranch: dungeon,
+  glyphColor: "{#B4D902-fg}",
 };
 
 const apostates: DungeonBranch = {
@@ -35,14 +36,17 @@ const uhlbreenMines: DungeonBranch = {
   description:
     "A vast and dangerous complex of mines maintained by the underground dwarves known as the Uhlbreen",
   parentBranch: apostates,
+  numRooms: 3 + nDk(2, 4),
 };
 
-const tekLabs: DungeonBranch = {
-  maxLevel: 3,
-  name: "TekLabs",
+const tekLab: DungeonBranch = {
+  maxLevel: 1,
+  name: "TekLab",
   difficulty: 1,
-  description: "Home of the Tek Doctor",
+  glyphColor: "{#27DAF5-fg}",
+  description: "Tekktor's Lab",
   parentBranch: dungeon,
+  numRooms: 2,
 };
 
 export function getRandomKoboldCave(difficulty: number) {
@@ -64,6 +68,6 @@ export const allBranches = [
   getRandomKoboldCave(2),
   apostates,
   uhlbreenMines,
-  tekLabs,
+  tekLab,
   trashHeap,
 ];

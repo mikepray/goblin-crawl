@@ -1,18 +1,18 @@
 ---
 creatures:
-  - name: Jark
+  - name: Tekktor
     glyph: G
     level: 1
     hitDie: 3
-    color: "{#3bd457-fg}{bold}"
+    color: "{#27DAF5-fg}{bold}"
     isHostile: false
     status: AWAKE
     maxHp: 5
     currentHp: 5
-    movementType: GUARDING
+    movementType: WANDERING
     useDefiniteArticle: false
     spawnInfo:
-      - branchName: Dungeon
+      - branchName: TekLab
         determinedSpawnLevel: 1
         spawnRate: 100
         distribution: determined
@@ -23,10 +23,7 @@ creatures:
         conversationBranches:
           - playerResponse: What is this place?
             creatureSpeaks: >
-              You are in the dungeon, home to our goblin tribe and many other creatures. On this floor you will find other
-              friendly goblins and our cave chickens. Help yourself to eggs and any items you find to aid you in your quest.
-              The eggs are good to eat and will give you health. Wear and wield the items to protect yourself from the many dangers below.
-              Take care, because below this floor are dangerous creatures. We hate the kobolds the most!
+              This is my lab
             conversationBranches:
               - playerResponse: What's the point?
                 creatureSpeaks: Conquer the dungeon in Meggled's name! Slay the treacherous kobolds and claim their blasphemous altars in the name of Meggled!
@@ -37,14 +34,43 @@ creatures:
                     creatureSpeaks: Just pray over it. Meggled will send cleansing flame and turn it to his purpose.
           - playerResponse: Who is Meggled?
             creatureSpeaks: Meggled is the two-headed god of the goblins! One head speaks only secrets and the other speaks only lies! Drop an egg on his altar and pray over it to make a sacrifice.
-          - playerResponse: Who am I?
-            creatureSpeaks: >
-              *Jark looks at you funny* You are a goblin! And apparently a pretty stupid one.
           - playerResponse: Who are you?
-            creatureSpeaks: I am Jark, the mightiest goblin shaman!
+            creatureSpeaks: I am the Tekktor.
             conversationBranches:
               - playerResponse: Prove it.
                 creatureSpeaks: Feh! I shall turn you into a roach! *Jark mutters under his breath while flailing his arms*
                 conversationBranches:
                   - playerResponse: ... I don't feel any different ...
                     creatureSpeaks: You're lucky this time! I'm out of roach legs for my spells...
+
+  - name: tekkyn
+    glyph: b
+    level: 1
+    hitDie: 3
+    color: "{#27DAF5-fg}"
+    description: >
+      a tek-enhanced chicken
+    isHostile: false
+    status: AWAKE
+    movementType: WANDERING
+    shoutChance: 10
+    armor: 1
+    dodging: 3
+    cunning: 3
+    savagery: 1
+    fortitude: 1
+    power: 1
+    currentHp: 6
+    maxHp: 6
+    naturalWeapon:
+      name: spark
+      attackBonus: 1
+      damageBonus: 0
+      damageDieNum: 1
+      damageDie: 3
+    spawnInfo:
+      - branchName: TekLab
+        spawnRate: 90
+        frequency: 2
+    shouts:
+      - shout: the tekkyn's circuits spark

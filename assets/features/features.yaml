@@ -9,6 +9,27 @@ features:
         spawnRate: 90
         distribution: even
         frequency: 40
+
+  - name: surgical table
+    description: a bloody table with surgical equipment
+    glyph: '"'
+    color: "{#589BA3-fg}"
+    spawnInfo:
+      - branchName: TekLab
+        spawnRate: 90
+        distribution: even
+        frequency: 4
+
+  - name: tekbox
+    description: A box of tek. It hums and sparks
+    glyph: '"'
+    color: "{#589BA3-fg}"
+    spawnInfo:
+      - branchName: TekLab
+        spawnRate: 90
+        distribution: even
+        frequency: 10
+
   - name: passage to the Darkunder
     description: A one-way passage to the Darkunder. As long as this remains open, hostile creatures may enter the Dungeon
     glyph: U

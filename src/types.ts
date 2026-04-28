@@ -36,6 +36,7 @@ export type DungeonBranch = {
   parentBranch?: DungeonBranch;
   glyphColor?: string;
   difficulty: number;
+  numRooms?: number;
 };
 
 export type KoboldCave = DungeonBranch & {

@@ -21,7 +21,7 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
   game.actors = new Map<string, Actor>();
   game.seenTiles = new Map<string, Coords>();
   game.items = new Map<string, Array<Item>>();
-  game.tiles = buildRoomsAndHallways();
+  game.tiles = buildRoomsAndHallways(nextBranchLevel.branch.numRooms);
   game.messages = new Array<string>();
 
   let playerTile;
@@ -62,10 +62,15 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
   }
 
   // if it's the last level in the branch, spawn all child branch staircases
-  if (nextBranchLevel.level === game.currentBranchLevel.branch.maxLevel) {
+  if (
+    (nextBranchLevel.branch.name !== game.currentBranchLevel.branch.name &&
+      nextBranchLevel.level === nextBranchLevel.branch.maxLevel) ||
+    (nextBranchLevel.branch.name === game.currentBranchLevel.branch.name &&
+      nextBranchLevel.level === game.currentBranchLevel.branch.maxLevel)
+  ) {
     // find every branch with a parent branch name equal to the current branch name
     const childBranches = allBranches.filter(
-      (b) => b.parentBranch?.name === game.currentBranchLevel.branch.name,
+      (b) => b.parentBranch?.name === nextBranchLevel.branch.name,
     );
 
     if (childBranches && childBranches.length > 0) {
@@ -263,13 +268,13 @@ function spawnThings(
   return spawnedThings;
 }
 
-export function buildRoomsAndHallways(): Map<string, Coords> {
+export function buildRoomsAndHallways(numRooms?: number): Map<string, Coords> {
   // a level consists of an unordered Map of (coordKey => coords) which represents the empty tiles
   let tiles = new Map<string, Coords>();
   let midpoints = new Array();
 
-  const numRooms = Math.floor(Math.random() * 3) + 5;
-  for (let i = 0; i < numRooms; i++) {
+  const nrooms = numRooms ? numRooms : Math.floor(Math.random() * 3) + 5;
+  for (let i = 0; i < nrooms; i++) {
     let room = buildRoom();
     midpoints.push(room.midpoint);
     tiles = new Map([...tiles, ...room.tiles]);
