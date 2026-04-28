@@ -1,303 +1,118 @@
-import { allBranches, getRandomKoboldCave } from "./branches";
 import { meleeActor } from "./combat";
-import { handleDialogActions } from "./dialog";
 import { dungeonHeight, dungeonWidth } from "./game";
-import { handleInventoryScreenAction } from "./inventory";
-import { handleLevelUpScreenAction } from "./levelUpScreen";
-import { ascend, descend } from "./levels";
 import {
   Actor,
   ConversationBranch,
   Coords,
   CoordsMap,
   Creature,
-  Downstairs,
   Game,
-  InputKey,
   Item,
   MovementDirection,
   Shout,
 } from "./types";
-import {
-  branchLevelToKey,
-  coordsToKey,
-  CoordsUtil,
-  getCorpse,
-  getRandomValidTile,
-} from "./utils";
+import { coordsToKey, CoordsUtil, getCorpse } from "./utils";
 import { getKoboldPhrase } from "./words";
 
-export function movePlayer(game: Game, nextInput: any) {
-  if (game.dialogMode === "game") {
-    let playerMove: Coords = { x: 0, y: 0 };
-    if (nextInput) {
-      if (nextInput === ">") {
-        // get feature at coords
-        let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
-        // descend to other branch
-        if (featureAtTile && featureAtTile.glyph === ">") {
-          // look up branch by name on the feature (see descend code for name assignment to the feature)
-          const nextBranch = allBranches?.find(
-            (b) => b.name === (featureAtTile as Downstairs).toBranchName,
-          );
-          if (nextBranch) {
-            return descend(game, {
-              branch: nextBranch,
-              level: 1,
-            });
-          }
-          if (featureAtTile.name === "Downstairs") {
-            // descend level in the same branch
-            return descend(game, {
-              branch: game.currentBranchLevel.branch,
-              level: game.currentBranchLevel.level + 1,
-            });
-          }
-        }
-      } else if (nextInput === "<") {
-        // get feature at coords
-        let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
-        if (featureAtTile && featureAtTile.name === "Upstairs") {
-          // ascend level
-          // get parent level
-          let parentBranch = game.levels.get(
-            branchLevelToKey(game.currentBranchLevel),
-          )?.parentLevel;
-          if (parentBranch) {
-            // take an extra turn
-            game.turnCount++;
-            return ascend(game, { ...parentBranch });
-          }
-        } else {
-          game.messages.push(
-            "Press < to go upstairs while standing on a < tile",
-          );
-          game.isScreenDirty = true;
-          return game;
-        }
-      } else if (nextInput === InputKey.UP || nextInput === "k") {
-        playerMove.y--;
-      } else if (nextInput === InputKey.DOWN || nextInput === "j") {
-        playerMove.y++;
-      } else if (nextInput === InputKey.LEFT || nextInput === "h") {
-        playerMove.x--;
-      } else if (nextInput === InputKey.RIGHT || nextInput === "l") {
-        playerMove.x++;
-      } else if (nextInput === "y") {
-        // diagonal up left
-        playerMove.x--;
-        playerMove.y--;
-      } else if (nextInput === "u") {
-        // diagonal up right
-        playerMove.x++;
-        playerMove.y--;
-      } else if (nextInput === "b") {
-        // diagonal down left
-        playerMove.x--;
-        playerMove.y++;
-      } else if (nextInput === "n") {
-        // diagonal down right
-        playerMove.x++;
-        playerMove.y++;
-      } else if (nextInput === ".") {
-        // wait one turn
-      } else if (nextInput === "^" || nextInput === "p") {
-        let featureAtTile = game.features.get(coordsToKey({ ...game.player }));
-        if (featureAtTile && featureAtTile.glyph === "^") {
-          game.messages.push("You pray to Meggled");
-          if (featureAtTile.name === "altar to Meggled") {
-            let item = removeLastItemFromFloorStack(game, { ...game.player });
-            if (item?.name === "egg") {
-              game.messages.push(
-                "{green-fg}The egg is engulfed in green flame. Meggled accepts your sacrifice!{/}",
-              );
-            } else if (item) {
-              putItemOnFloorStack(game, item);
-              game.messages.push(
-                "Meggled does not accept this as a sacrifice!",
-              );
-            }
-          } else {
-            const meggledAltar = game.allFeatures.find(
-              (f) => f.name === "altar to Meggled",
-            );
-            if (meggledAltar) {
-              game.features.set(coordsToKey({ ...game.player }), meggledAltar);
-              game.messages.push(
-                `{green-fg}{bold}You conquer the ${featureAtTile.name} in the name of Meggled! It is consumed in green flame!{/bold}{/green-fg}`,
-              );
-              game.altarsConquered++;
-              game.player.XP += game.player.XP * 0.1;
-              // add a new kobold cave to the last level in the dungeon
-              // get dungeon
-              const dungeonBranch = allBranches.find(
-                (b) => b.name === "Dungeon",
-              );
-              const dungeonLevel = game.levels.get(
-                `Dungeon:${dungeonBranch?.maxLevel}`,
-              );
-              if (dungeonLevel && dungeonBranch) {
-                const koboldCave = getRandomKoboldCave(game.altarsConquered);
-                const downstairsTile = getRandomValidTile(
-                  dungeonLevel.tiles,
-                  dungeonLevel.actors,
-                );
-                const downstairs = {
-                  ...downstairsTile,
-                  glyph: ">",
-                  name: `Stairs to the ${koboldCave.name}`,
-                  toBranchName: koboldCave.name,
-                  color: koboldCave.glyphColor,
-                  description: `${koboldCave.description}`,
-                } as Downstairs;
-                dungeonLevel.features.set(
-                  coordsToKey(downstairsTile),
-                  downstairs,
-                );
-                game.messages.push(
-                  `{green-fg}{bold}Meggled opens a passage to the cave of ${koboldCave.koboldName}! Go forth and conquer!{/}`,
-                );
-              }
-            }
-          }
-        } else {
-          game.messages.push(
-            `There's no altar here. Press {underline}p{/underline} to sacrifice and pray at altars`,
-          );
-          game.isScreenDirty = true;
-          return game;
-        }
-      } else if (nextInput === "g") {
-        let item = removeLastItemFromFloorStack(game, { ...game.player });
-        if (item) {
-          game.player.inventory?.push(item);
-          game.messages.push(`You pick up the ${item.name}`);
-          game.turnCount++;
-        } else if (!game.items.get(coordsToKey({ ...game.player }))) {
-          game.messages.push("There's nothing on the ground here...");
+export function doPlayerMove(game: Game, playerMove: Coords) {
+  if (playerMove.x !== 0 || playerMove.y !== 0) {
+    const previousPlayerPosition = { ...game.player };
+    const nextPosition = CoordsUtil.add(previousPlayerPosition, playerMove);
+    const nextPositionKey = coordsToKey(nextPosition);
+    const whatsAtNextPosition = game.actors.get(nextPositionKey);
+
+    // player and creature dialog activation and swap logic
+    if (
+      whatsAtNextPosition !== undefined &&
+      game.actors.has(nextPositionKey) &&
+      "isHostile" in whatsAtNextPosition
+    ) {
+      const subjectCreature = whatsAtNextPosition as Creature;
+      if (subjectCreature.isHostile) {
+        // attack
+        game = meleeActor(game, game.player, subjectCreature);
+        // check for dead enemies
+        if ((subjectCreature.currentHp || 0) <= 0) {
+          actorDeath(game, subjectCreature);
         }
         game.isScreenDirty = true;
-      } else if (nextInput === "i" || nextInput === "\x09") {
-        game.dialogMode = "inventory";
-        game.dialogPointer = 1;
-        game.isScreenDirty = true;
-        game.messages.push(
-          "{underline}e{/underline}at, {underline}d{/underline}rop, {underline}w{/underline}ear or {underline}w{/underline}ield, esc to exit",
-        );
-        return game;
-      } else if (nextInput === "?") {
-        game.messages.push(
-          "You are the @ symbol, arrow keys and vim keys move, period waits one turn, < and > go up and down stairs. Move into other creatures to interact or attack\ni for inventory, g to interact with what's on the floor",
-        );
-        game.isScreenDirty = true;
-        return game;
+        game.gameTurns++;
       } else {
-        // unrecognized command
+        // swap player and creature
+        if (subjectCreature.movementType !== "CANNOT_MOVE") {
+          let creatureX = subjectCreature.x;
+          let creatureY = subjectCreature.y;
+          game.actors.delete(coordsToKey({ x: creatureX, y: creatureY }));
+          game.actors.delete(coordsToKey(previousPlayerPosition));
+          subjectCreature.x = game.player.x;
+          subjectCreature.y = game.player.y;
+          game.player.x = creatureX;
+          game.player.y = creatureY;
+          subjectCreature.wasSwappedByPlayer = true;
+          game.actors.set(
+            coordsToKey({ x: game.player.x, y: game.player.y }),
+            game.player,
+          );
+          game.actors.set(
+            coordsToKey({ x: subjectCreature.x, y: subjectCreature.y }),
+            subjectCreature,
+          );
+
+          game.messages.push(
+            `You swap places with${
+              subjectCreature.useDefiniteArticle ? " the" : ""
+            } ${subjectCreature.name}`,
+          );
+          game.isScreenDirty = true;
+        } else {
+          game.messages.push(
+            `${subjectCreature.useDefiniteArticle ? "The " : ""}${
+              subjectCreature.name
+            } cannot move out of your way`,
+          );
+        }
+
+        if (subjectCreature.conversationBranches) {
+          const conversationBranch =
+            subjectCreature.conversationBranches[
+              Math.floor(
+                Math.random() * subjectCreature.conversationBranches.length,
+              )
+            ];
+          game.activeDialog = conversationBranch;
+          game.interactingActor = subjectCreature;
+          game.dialogMode = "dialog";
+        } else {
+          // creature doesn't speak
+        }
+      }
+    } else if (
+      whatsAtNextPosition === undefined ||
+      !game.actors.has(nextPositionKey)
+    ) {
+      // player move logic
+      // prevent move on boundary collision
+      if (
+        nextPosition.x > dungeonWidth - 1 ||
+        nextPosition.x < 0 ||
+        nextPosition.y > dungeonHeight - 1 ||
+        nextPosition.y < 0
+      ) {
+        return game;
+      }
+      // prevent move on wall collision
+      if (!game.tiles.has(nextPositionKey)) {
         return game;
       }
 
-      // move player
-      if (playerMove.x !== 0 || playerMove.y !== 0) {
-        const previousPlayerPosition = { ...game.player };
-        const nextPosition = CoordsUtil.add(previousPlayerPosition, playerMove);
-        const nextPositionKey = coordsToKey(nextPosition);
-        const whatsAtNextPosition = game.actors.get(nextPositionKey);
+      game.player.x = nextPosition.x;
+      game.player.y = nextPosition.y;
 
-        // player and creature dialog activation and swap logic
-        if (
-          whatsAtNextPosition !== undefined &&
-          game.actors.has(nextPositionKey) &&
-          "isHostile" in whatsAtNextPosition
-        ) {
-          const subjectCreature = whatsAtNextPosition as Creature;
-          if (subjectCreature.isHostile) {
-            // attack
-            game = meleeActor(game, game.player, subjectCreature);
-            // check for dead enemies
-            if ((subjectCreature.currentHp || 0) <= 0) {
-              actorDeath(game, subjectCreature);
-            }
+      game.actors.delete(coordsToKey(previousPlayerPosition));
+      game.actors.set(coordsToKey(nextPosition), game.player);
 
-            game.isScreenDirty = true;
-          } else {
-            // swap player and creature
-            if (subjectCreature.movementType !== "CANNOT_MOVE") {
-              let creatureX = subjectCreature.x;
-              let creatureY = subjectCreature.y;
-              game.actors.delete(coordsToKey({ x: creatureX, y: creatureY }));
-              game.actors.delete(coordsToKey(previousPlayerPosition));
-              subjectCreature.x = game.player.x;
-              subjectCreature.y = game.player.y;
-              game.player.x = creatureX;
-              game.player.y = creatureY;
-              subjectCreature.wasSwappedByPlayer = true;
-              game.actors.set(
-                coordsToKey({ x: game.player.x, y: game.player.y }),
-                game.player,
-              );
-              game.actors.set(
-                coordsToKey({ x: subjectCreature.x, y: subjectCreature.y }),
-                subjectCreature,
-              );
-
-              game.messages.push(
-                `You swap places with${
-                  subjectCreature.useDefiniteArticle ? " the" : ""
-                } ${subjectCreature.name}`,
-              );
-              game.turnCount++;
-              game.isScreenDirty = true;
-            } else {
-              game.messages.push(
-                `${subjectCreature.useDefiniteArticle ? "The " : ""}${
-                  subjectCreature.name
-                } cannot move out of your way`,
-              );
-            }
-
-            if (subjectCreature.conversationBranches) {
-              const conversationBranch =
-                subjectCreature.conversationBranches[
-                  Math.floor(
-                    Math.random() * subjectCreature.conversationBranches.length,
-                  )
-                ];
-              game.activeDialog = conversationBranch;
-              game.interactingActor = subjectCreature;
-              game.dialogMode = "dialog";
-            } else {
-              // creature doesn't speak
-            }
-          }
-        } else if (
-          whatsAtNextPosition === undefined ||
-          !game.actors.has(nextPositionKey)
-        ) {
-          // player move logic
-          // prevent move on boundary collision
-          if (
-            nextPosition.x > dungeonWidth - 1 ||
-            nextPosition.x < 0 ||
-            nextPosition.y > dungeonHeight - 1 ||
-            nextPosition.y < 0
-          ) {
-            return game;
-          }
-          // prevent move on wall collision
-          if (!game.tiles.has(nextPositionKey)) {
-            return game;
-          }
-
-          game.player.x = nextPosition.x;
-          game.player.y = nextPosition.y;
-
-          game.actors.delete(coordsToKey(previousPlayerPosition));
-          game.actors.set(coordsToKey(nextPosition), game.player);
-
-          game.turnCount++;
-          game.isScreenDirty = true;
-        }
-      }
+      game.isScreenDirty = true;
+      game.gameTurns++;
 
       // show what the player is standing on
       let itemsAtTile = game.items.get(coordsToKey({ ...game.player }));
@@ -320,75 +135,68 @@ export function movePlayer(game: Game, nextInput: any) {
           `here: ${featureAtTile.color ? featureAtTile.color : ""}${featureAtTile?.name}: ${featureAtTile?.description}{/}`,
         );
       }
+    }
+  }
+}
 
-      // iterate through the list of actors and move each one
-      // uses an array ref of the game actors to prevent concurrent modifications
-      // each actor should move atomically so that subsequent actors don't path through them
-      let actorsArrayRef = Array.from(game.actors.keys());
-      for (let i = 0; i < actorsArrayRef.length; i++) {
-        let actor = game.actors.get(actorsArrayRef[i]);
-        if (actor && actor.name !== "player") {
-          if ("movementType" in actor) {
-            const creature = actor as Creature;
-            if (creature.movementType === "WANDERING") {
-              if (!creature.isHostile) {
-                let moveDelta = { x: 0, y: 0 };
-                if (!creature.wasSwappedByPlayer) {
-                  moveDelta = getWanderingMoveDelta(creature);
-                } else {
-                  creature.wasSwappedByPlayer = false;
-                }
-                // check dead creature
-                // this is used for npcs attacking each other
-                if (
-                  creature.name !== "player" &&
-                  (creature.currentHp || 0) <= 0
-                ) {
-                  actorDeath(game, actor);
-                } else {
-                  game = moveActor(game, creature, moveDelta);
-                }
-              } else {
-                // creature is hostile, move to attack player
-                let deconflictWith = new Map<string, Actor>();
-                for (const [tileKey, actor] of game.actors) {
-                  // make a list of other creatures to avoid pathing through them.
-                  // allow player and current actor, (target and start tiles respectively)
-                  //  so that those tiles can be considered in the pathing algorithm
-                  if (
-                    tileKey !== coordsToKey({ ...game.player }) &&
-                    tileKey !== coordsToKey({ ...creature })
-                  ) {
-                    deconflictWith.set(tileKey, actor);
-                  }
-                }
-
-                game = moveActor(
-                  game,
-                  creature,
-                  undefined,
-                  getNextMoveToTarget(
-                    game.tiles,
-                    creature,
-                    game.player,
-                    deconflictWith,
-                  ),
-                );
+// move actors on the level
+export function doGameTurn(game: Game) {
+  game.turnCount++;
+  // iterate through the list of actors and move each one
+  // uses an array ref of the game actors to prevent concurrent modifications
+  // each actor should move atomically so that subsequent actors don't path through them
+  let actorsArrayRef = Array.from(game.actors.keys());
+  for (let i = 0; i < actorsArrayRef.length; i++) {
+    let actor = game.actors.get(actorsArrayRef[i]);
+    if (actor && actor.name !== "player") {
+      if ("movementType" in actor) {
+        const creature = actor as Creature;
+        if (creature.movementType === "WANDERING") {
+          if (!creature.isHostile) {
+            let moveDelta = { x: 0, y: 0 };
+            if (!creature.wasSwappedByPlayer) {
+              moveDelta = getWanderingMoveDelta(creature);
+            } else {
+              creature.wasSwappedByPlayer = false;
+            }
+            // check dead creature
+            // this is used for npcs attacking each other
+            if (creature.name !== "player" && (creature.currentHp || 0) <= 0) {
+              actorDeath(game, actor);
+            } else {
+              game = moveActor(game, creature, moveDelta);
+            }
+          } else {
+            // creature is hostile, move to attack player
+            let deconflictWith = new Map<string, Actor>();
+            for (const [tileKey, actor] of game.actors) {
+              // make a list of other creatures to avoid pathing through them.
+              // allow player and current actor, (target and start tiles respectively)
+              //  so that those tiles can be considered in the pathing algorithm
+              if (
+                tileKey !== coordsToKey({ ...game.player }) &&
+                tileKey !== coordsToKey({ ...creature })
+              ) {
+                deconflictWith.set(tileKey, actor);
               }
             }
+
+            game = moveActor(
+              game,
+              creature,
+              undefined,
+              getNextMoveToTarget(
+                game.tiles,
+                creature,
+                game.player,
+                deconflictWith,
+              ),
+            );
           }
         }
       }
     }
-  } else if (game.dialogMode === "dialog" && game.activeDialog) {
-    handleDialogActions(game, nextInput);
-  } else if (game.dialogMode === "inventory" && nextInput) {
-    handleInventoryScreenAction(game, nextInput);
-  } else if (game.dialogMode === "levelUp" && nextInput) {
-    handleLevelUpScreenAction(game, nextInput);
   }
-
-  return game;
 }
 
 /**
@@ -441,6 +249,8 @@ export const moveActor = (
         game.messages.push("You die...");
         game.gameOver = true;
       }
+      game.isScreenDirty = true;
+      return game;
     }
   }
 
@@ -711,7 +521,7 @@ export function removeItemFromCreatureInventory(
   );
 }
 
-function removeLastItemFromFloorStack(
+export function removeLastItemFromFloorStack(
   game: Game,
   coords: Coords,
 ): Item | undefined {

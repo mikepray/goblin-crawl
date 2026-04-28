@@ -31,7 +31,7 @@ Choose a skill to increase:
   return out;
 }
 
-export function handleLevelUpScreenAction(game: Game, nextInput: string) {
+export function handleLevelUpScreenAction(game: Game, nextInput: string): Game {
   let levelUpMessage = "";
   if (game.dialogMode === "levelUp") {
     if (nextInput === "1") {
@@ -56,7 +56,7 @@ export function handleLevelUpScreenAction(game: Game, nextInput: string) {
       levelUpMessage = levelUpMessage.concat(`You gained a rank in Dodging\n`);
     } else {
       game.messages.push("You must choose an option");
-      return;
+      return game;
     }
     game.player.level++;
     // add 1d(hit die) HP
@@ -105,4 +105,5 @@ export function handleLevelUpScreenAction(game: Game, nextInput: string) {
     game.messages.push(levelUpMessage);
     game.dialogMode = "game";
   }
+  return game;
 }

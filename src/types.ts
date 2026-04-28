@@ -24,6 +24,7 @@ export type Game = {
   currentBranchLevel: BranchLevel;
   allBranches: Array<DungeonBranch>;
   altarsConquered: number;
+  gameTurns: number;
 };
 
 export type DungeonBranch = {
@@ -230,6 +231,8 @@ export type MovementTypeValue =
   | "CANNOT_MOVE"
   | "GUARDING"
   | "WANDERING"
+  | "followingLeader"
+  | "followingPlayer"
   | "FLEEING";
 
 // Maps to store status and movement type data
@@ -250,4 +253,6 @@ export const MovementTypeMap = new Map<MovementTypeValue, any>([
   ["GUARDING", { id: 1, description: "Creature guards a specific area" }],
   ["WANDERING", { id: 2, description: "Creature wanders randomly" }],
   ["FLEEING", { id: 3, description: "Creature flees from threats" }],
+  ["followingLeader", { id: 4, description: "Creature follows a leader" }],
+  ["followingPlayer", { id: 5, description: "Creature follows the player" }],
 ]);

@@ -2,7 +2,7 @@
 features:
   - name: trash
     description: it's trash
-    glyph: \"
+    glyph: '"'
     color: "{grey-fg}"
     spawnInfo:
       - branchName: Trash Heap

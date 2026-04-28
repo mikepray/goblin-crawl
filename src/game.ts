@@ -1,15 +1,20 @@
 import blessed from "blessed";
 import { initArenaMode } from "./arenaMode";
-import { printDialogScreen } from "./dialog";
+import { handleDialogActions, printDialogScreen } from "./dialog";
 import { descend } from "./levels";
 import { loadCreatures, loadFeatures, loadItems } from "./loader";
-import { movePlayer } from "./move";
+import { doGameTurn } from "./move";
 import { Actor, Coords, Feature, Game, Item, Level, Player } from "./types";
 import { coordsToKey, isTileInFieldOfVision } from "./utils";
-import { printInventoryScreen, printStatusScreen } from "./inventory";
-import { printLevelUpScreen } from "./levelUpScreen";
+import {
+  handleInventoryScreenAction,
+  printInventoryScreen,
+  printStatusScreen,
+} from "./inventory";
+import { handleLevelUpScreenAction, printLevelUpScreen } from "./levelUpScreen";
 import { levelUp } from "./player";
 import { allBranches, dungeon } from "./branches";
+import { handlePlayerGameInput } from "./input";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
@@ -58,21 +63,35 @@ function gameLoop() {
       if (startupMessages.length > 0) {
         game.messages = startupMessages;
         startupMessages = [];
-        game.oldMessages = game.oldMessages.concat(game.messages);
       }
       printScreen(game, view);
       const interval = setInterval(() => {
         if (inputBuffer.length > 0 && !game.gameOver) {
-          // clear the new message buffer
-          game.messages = new Array();
-
-          // move player
-          game = movePlayer(game, inputBuffer.shift());
-
-          // add all new messages to history
           game.oldMessages = game.oldMessages.concat(game.messages);
+          game.messages = new Array();
+          const nextInput = inputBuffer.shift();
+          if (game.dialogMode === "game") {
+            game = handlePlayerGameInput(game, nextInput);
+          } else if (game.dialogMode === "dialog" && nextInput) {
+            game = handleDialogActions(game, nextInput);
+          } else if (game.dialogMode === "inventory" && nextInput) {
+            game = handleInventoryScreenAction(game, nextInput);
+          } else if (game.dialogMode === "levelUp" && nextInput) {
+            game = handleLevelUpScreenAction(game, nextInput);
+          }
+
+          levelUp(game);
+          if (game.gameTurns > 0) {
+            game.gameTurns--;
+            doGameTurn(game);
+          }
+        } else {
+          if (game.gameTurns > 0) {
+            game.gameTurns--;
+            doGameTurn(game);
+          }
         }
-        levelUp(game);
+
         printScreen(game, view);
 
         view.screen.render();
@@ -93,6 +112,7 @@ function initGame(): Game {
     actors: new Map<string, Actor>(),
     tiles: new Map<string, Coords>(),
     features: new Map<string, Feature>(),
+    gameTurns: 0,
     player: {
       x: 0,
       y: 0,
@@ -260,30 +280,24 @@ function printScreen(game: Game, view: View): Game {
     game.visibleActors = visibleActors;
   }
 
-  // messages
-  let logOut = "";
-  if (game.dialogMode === "game" || game.dialogMode === "inventory") {
-    // 5 most recent messages are shown in chronological order with the newest messages
-    // at the bottom of the view, and with the last turn's messages
-    // highlighted and older messages dimmed
-
-    for (
-      let i = Math.max(0, game.oldMessages.length - 5);
-      i < game.oldMessages.length;
-      i++
-    ) {
-      if (i >= game.oldMessages.length - game.messages.length) {
-        logOut = logOut.concat(`${game.oldMessages[i] || ""}\n`);
-      } else {
-        // Older messages are dimmed
-        logOut = logOut.concat(
-          `{grey-fg}${game.oldMessages[i] || ""}{/grey-fg}\n`,
-        );
-      }
+  // tail of last five messages, old and new combined with new messages highlighted and old messages dimmed
+  let showMessages = game.oldMessages
+    .concat(game.messages)
+    .slice(-Math.min(5, game.oldMessages.length + game.messages.length));
+  let stringMessages = "";
+  for (let i = 0; i < showMessages.length; i++) {
+    if (i >= showMessages.length - game.messages.length) {
+      stringMessages = stringMessages.concat(
+        `{white-fg}${showMessages[i]}{/}\n`,
+      );
+    } else {
+      stringMessages = stringMessages.concat(
+        `{grey-fg}${showMessages[i]}{/}\n`,
+      );
     }
   }
 
-  view.log.setContent(logOut);
+  view.log.setContent(stringMessages);
 
   return game;
 }
@@ -421,7 +435,9 @@ function startScreen(view: View) {
   const introBox = blessed.box({
     parent: view.gameContainer,
     style: {
-      bg: green3,
+      fg: "#000005",
+      bg: "#3bd457",
+      bold: true,
     },
     height: "95%",
     align: "center",
@@ -433,9 +449,9 @@ function startScreen(view: View) {
     top: "20%", // Position from top
     height: "60%", // Give it most of the space
     style: {
-      fg: "black",
+      fg: "#000005",
+      bg: "#3bd457",
       bold: true,
-      bg: green3,
     },
     align: "center",
     valign: "middle",
@@ -446,8 +462,8 @@ function startScreen(view: View) {
     top: "80%", // Position below the intro text
     height: "20%", // Take remaining space
     style: {
-      fg: "#000001",
-      bg: green3,
+      fg: "#000005",
+      bg: "#3bd457",
       bold: true,
     },
     align: "center",

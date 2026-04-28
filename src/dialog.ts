@@ -3,7 +3,7 @@ import {
   removeItemFromCreatureInventory,
   removeItemFromPlayerInventory,
 } from "./move";
-import { Action, Creature, Game, Item, InputKey } from "./types";
+import { Action, Creature, Game, InputKey, Item } from "./types";
 
 export function printDialogScreen(game: Game, out: string) {
   if (game.dialogMode === "dialog" && game.activeDialog) {
@@ -28,7 +28,7 @@ export function printDialogScreen(game: Game, out: string) {
   return out;
 }
 
-export function handleDialogActions(game: Game, nextInput: string) {
+export function handleDialogActions(game: Game, nextInput: string): Game {
   if (game.dialogMode === "dialog" && game.activeDialog) {
     if (nextInput === InputKey.ESCAPE) {
       game.dialogMode = "game";
@@ -125,4 +125,5 @@ export function handleDialogActions(game: Game, nextInput: string) {
       }
     }
   }
+  return game;
 }

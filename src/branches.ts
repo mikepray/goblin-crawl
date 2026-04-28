@@ -1,6 +1,6 @@
 import { DungeonBranch, KoboldCave } from "./types";
 import { nDk } from "./utils";
-import { getKoboldPhrase, getKoboldTitle, getKoboldWord } from "./words";
+import { getKoboldTitle } from "./words";
 
 export const dungeon: DungeonBranch = {
   name: "Dungeon",

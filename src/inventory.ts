@@ -89,7 +89,10 @@ export const printInventoryScreen = (game: Game, out: string): string => {
   return out;
 };
 
-export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
+export const handleInventoryScreenAction = (
+  game: Game,
+  nextInput: string,
+): Game => {
   if (
     game.dialogMode === "inventory" &&
     (nextInput === InputKey.ESCAPE || nextInput === InputKey.TAB)
@@ -153,54 +156,54 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
       } else {
         if (game.dialogPointer <= game.player.inventory.length) {
           // drop the inventory item
+          game.gameTurns++;
           let item = game.player.inventory[game.dialogPointer - 1];
           removeSelectedItemFromPlayerInventory(game);
           putItemOnFloorStack(game, item);
           game.messages.push(`You dropped the ${item.name}`);
-          game.turnCount++;
         } else if (game.player.slots) {
           const slotIndex = game.dialogPointer - game.player.inventory.length;
           if (slotIndex === 0 && game.player.slots.head) {
             const item = game.player.slots.head;
             game.player.slots.head = undefined;
             putItemOnFloorStack(game, item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 1 && game.player.slots.neck) {
             const item = game.player.slots.neck;
             game.player.slots.neck = undefined;
             putItemOnFloorStack(game, item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 2 && game.player.slots.body) {
             const item = game.player.slots.body;
             game.player.slots.body = undefined;
             putItemOnFloorStack(game, item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 3 && game.player.slots.feet) {
             const item = game.player.slots.feet;
             game.player.slots.feet = undefined;
             putItemOnFloorStack(game, item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 4 && game.player.slots.hands) {
             const item = game.player.slots.hands;
             game.player.slots.hands = undefined;
             putItemOnFloorStack(game, item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 5 && game.player.slots.neck) {
             const item = game.player.slots.neck;
             game.player.slots.neck = undefined;
             putItemOnFloorStack(game, item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 6 && game.player.slots.shield) {
             const item = game.player.slots.shield;
             game.player.slots.shield = undefined;
             putItemOnFloorStack(game, item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 7) {
             if (game.player.slots.weapon) {
               const item = game.player.slots.weapon;
               game.player.slots.weapon = undefined;
               putItemOnFloorStack(game, item);
-              game.turnCount++;
+              game.gameTurns++;
             } else {
               game.messages.push(
                 `You cannot drop your ${game.player.naturalWeapon?.name}!`,
@@ -228,10 +231,10 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
             );
             game.player.currentHp = heal;
             if (heal > 0) {
-              return `{green-fg}You heal ${heal}{/}`;
+              game.messages.push(`{green-fg}You heal ${heal}{/}`);
             }
           }
-          game.turnCount++;
+          game.gameTurns++;
         } else {
           game.messages.push(`You cannot eat the ${item.name}!`);
         }
@@ -265,6 +268,7 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
               } else {
                 game.messages.push(`You wear the ${item.name}`);
               }
+              game.gameTurns++;
             }
           }
         } else if (game.player.slots) {
@@ -274,43 +278,43 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
             const item = game.player.slots.head;
             game.player.slots.head = undefined;
             game.player.inventory?.push(item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 1 && game.player.slots.neck) {
             const item = game.player.slots.neck;
             game.player.slots.neck = undefined;
             game.player.inventory?.push(item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 2 && game.player.slots.body) {
             const item = game.player.slots.body;
             game.player.slots.body = undefined;
             game.player.inventory?.push(item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 3 && game.player.slots.feet) {
             const item = game.player.slots.feet;
             game.player.slots.feet = undefined;
             game.player.inventory?.push(item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 4 && game.player.slots.hands) {
             const item = game.player.slots.hands;
             game.player.slots.hands = undefined;
             game.player.inventory?.push(item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 5 && game.player.slots.neck) {
             const item = game.player.slots.neck;
             game.player.slots.neck = undefined;
             game.player.inventory?.push(item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 6 && game.player.slots.shield) {
             const item = game.player.slots.shield;
             game.player.slots.shield = undefined;
             putItemOnFloorStack(game, item);
-            game.turnCount++;
+            game.gameTurns++;
           } else if (slotIndex === 7)
             if (game.player.slots.weapon) {
               const item = game.player.slots.weapon;
               game.player.slots.weapon = undefined;
               game.player.inventory?.push(item);
-              game.turnCount++;
+              game.gameTurns++;
             } else {
               game.messages.push(
                 `You cannot unwield your ${game.player.naturalWeapon?.name}! Find a weapon to use`,
@@ -321,6 +325,7 @@ export const handleInventoryScreenAction = (game: Game, nextInput: string) => {
     }
   }
   game.isScreenDirty = true;
+  return game;
 };
 
 function removeSelectedItemFromPlayerInventory(game: Game) {
