@@ -26,6 +26,8 @@ export type Game = {
   altarsConquered: number;
   gameTurns: number;
   restTurns?: number;
+  xOffset: number;
+  yOffset: number;
 };
 
 export type DungeonBranch = {

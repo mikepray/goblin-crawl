@@ -9,6 +9,43 @@ import {
   SpawnInfo,
 } from "./types";
 
+const bresenhamLineKeys: string[] = [];
+
+/**
+ * Integer Bresenham line from (x0,y0) to (x1,y1), inclusive.
+ * Clears and fills `out` with coordsToKey-compatible strings in walk order.
+ */
+export function collectBresenhamLineKeys(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  out: string[],
+): void {
+  out.length = 0;
+  let x = x0;
+  let y = y0;
+  const dx = Math.abs(x1 - x0);
+  const sx = x0 < x1 ? 1 : -1;
+  const dy = -Math.abs(y1 - y0);
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx + dy;
+
+  while (true) {
+    out.push(`${x},${y}`);
+    if (x === x1 && y === y1) break;
+    const e2 = 2 * err;
+    if (e2 >= dy) {
+      err += dy;
+      x += sx;
+    }
+    if (e2 <= dx) {
+      err += dx;
+      y += sy;
+    }
+  }
+}
+
 export function isTileInFieldOfVision(
   testCoords: Coords,
   playerCoords: Coords,
@@ -24,55 +61,25 @@ export function isTileInFieldOfVision(
   ) {
     return false;
   }
-  // raycast using bresnham's algorithm
-  let line = getBresenhamsLine(
+  // raycast using Bresenham; reuse buffer to avoid Set + Coords allocations per ray
+  collectBresenhamLineKeys(
     playerCoords.x,
     playerCoords.y,
     testCoords.x,
     testCoords.y,
+    bresenhamLineKeys,
   );
 
-  let i = 0;
-  for (const tile of line) {
-    if (!gameTiles.has(coordsToKey(tile))) {
+  const line = bresenhamLineKeys;
+  for (let i = 0; i < line.length; i++) {
+    if (!gameTiles.has(line[i])) {
       // if the final point in the line is a wall, display the wall
-      return i === line.size - 1;
+      return i === line.length - 1;
     }
-    i++;
   }
   // if any tile in the resulting line does not exist in the tile set, then the tile is not in field of vision
 
   return true;
-}
-
-export function getBresenhamsLine(
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-) {
-  let lineCoords = new Set<Coords>();
-  let dx = Math.abs(x1 - x0);
-  let sx = x0 < x1 ? 1 : -1;
-  let dy = -Math.abs(y1 - y0);
-  let sy = y0 < y1 ? 1 : -1;
-  let error = dx + dy;
-  let error2;
-
-  while (true) {
-    lineCoords.add({ x: x0, y: y0 });
-    if (x0 === x1 && y0 === y1) break;
-    error2 = 2 * error;
-    if (error2 >= dy) {
-      error += dy;
-      x0 += sx;
-    }
-    if (error2 <= dx) {
-      error += dx;
-      y0 += sy;
-    }
-  }
-  return lineCoords;
 }
 
 export const d20 = () => {

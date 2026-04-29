@@ -59,6 +59,7 @@ export function getRandomKoboldCave(difficulty: number) {
     glyphColor: "{#a440d6-fg}",
     parentBranch: dungeon,
     difficulty: difficulty,
+    numRooms: nDk(3, 3),
   };
   return randomKoboldCave;
 }

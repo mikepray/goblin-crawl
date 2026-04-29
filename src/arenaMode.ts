@@ -104,6 +104,8 @@ export function initArenaMode(): Game {
     dialogMode: "game",
     allBranches: [branches],
     altarsConquered: 0,
+    xOffset: 0,
+    yOffset: 0,
   };
 
   const khopesh = items.find((i) => i.name === "khopesh");

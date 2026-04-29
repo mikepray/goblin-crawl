@@ -11,10 +11,23 @@ import { handleLevelUpScreenAction, printLevelUpScreen } from "./levelUpScreen";
 import { doGameTurn } from "./move";
 import { levelUp } from "./player";
 import { Creature, Game } from "./types";
-import { coordsToKey, isTileInFieldOfVision } from "./utils";
+import { isTileInFieldOfVision } from "./utils";
 
 export const dungeonWidth = 48;
 export const dungeonHeight = 24;
+/** Blessed map box width (matches init.ts map.width). */
+export const mapWidth = 70;
+/** Blessed map box height (matches init.ts map.height / dungeonHeight). */
+export const mapHeight = 24;
+
+/** Inner map content cells (line border in init.ts). */
+export const viewportCellWidth = mapWidth - 2;
+export const viewportCellHeight = mapHeight - 2;
+
+const mapBorderGame = { border: { fg: "white" as const } };
+const mapBorderDim = { border: { fg: "black" as const } };
+const statusBorderDim = mapBorderDim;
+const statusBorderBright = { border: { fg: "white" as const } };
 
 // Only set up stdin when not in test mode
 if (process.env.NODE_ENV !== "test") {
@@ -124,135 +137,125 @@ function printScreen(game: Game, view: View): Game {
 
   view.statusRight.setContent(printInventoryScreen(game, ""));
   view.statusLeft.setContent(printStatusScreen(game, ""));
-  if (game.dialogMode !== "inventory") {
-    view.statusContainer.style = {
-      border: {
-        fg: "black",
-      },
-    };
-  } else {
-    view.statusContainer.style = {
-      border: {
-        fg: "white",
-      },
-    };
-  }
+  view.statusContainer.style =
+    game.dialogMode !== "inventory" ? statusBorderDim : statusBorderBright;
 
   if (game.dialogMode === "dialog") {
     view.map.setContent(`{left}${printDialogScreen(game, "")}{/left}`);
   } else if (game.dialogMode === "levelUp") {
     view.map.setContent(`{left}${printLevelUpScreen(game, "")}{/left}`);
   } else {
-    let out = "";
-    let visibleActors = [];
+    const visibleActors = [];
+    const ylines = new Array<Array<string>>(dungeonHeight);
+    const player = game.player;
+    const branchGlyphColor = game.currentBranchLevel.branch.glyphColor;
+    const wallGlyphLit = branchGlyphColor
+      ? `${branchGlyphColor}#{/}`
+      : "{white-fg}#{/}";
+
     // dungeon screen
     for (let y = 0; y < dungeonHeight; y++) {
+      const xlines = new Array<string>(dungeonWidth);
       for (let x = 0; x < dungeonWidth; x++) {
+        const key = `${x},${y}`;
         // field of vision
-        if (
-          isTileInFieldOfVision(
-            { x: x, y: y },
-            { ...game.player },
-            8,
-            game.tiles,
-          )
-        ) {
+        if (isTileInFieldOfVision({ x, y }, player, 8, game.tiles)) {
           // add tile to seen tiles
-          game.seenTiles.set(coordsToKey({ x: x, y: y }), { x: x, y: y });
+          game.seenTiles.set(key, { x, y });
           // display order:
           // actors, features, items, tiles
-          const actor = game.actors.get(coordsToKey({ x: x, y: y }));
-          const feature = game.features.get(coordsToKey({ x: x, y: y }));
-          const itemsOnTile = game.items.get(coordsToKey({ x: x, y: y }));
+          const actor = game.actors.get(key);
+          const feature = game.features.get(key);
+          const itemsOnTile = game.items.get(key);
           if (actor) {
             if (actor.color) {
-              out = out.concat(`${actor.color}${actor.glyph}{/}`);
+              xlines[x] = `${actor.color}${actor.glyph}{/}`;
             } else {
-              out = out.concat(`{white-fg}${actor.glyph}{/}`);
+              xlines[x] = `{white-fg}${actor.glyph}{/}`;
             }
             visibleActors.push(actor);
           } else if (feature) {
             if (feature.color) {
-              out = out.concat(`${feature.color}${feature.glyph}{/}`);
+              xlines[x] = `${feature.color}${feature.glyph}{/}`;
             } else {
-              out = out.concat(`{white-fg}${feature.glyph}{/}`);
+              xlines[x] = `{white-fg}${feature.glyph}{/}`;
             }
-          } else if (itemsOnTile && itemsOnTile.length >= 0 && itemsOnTile[0]) {
-            // show the last item's glyph
-
-            if (itemsOnTile[0].color) {
-              out = out.concat(
-                `${itemsOnTile[0].color}${itemsOnTile[0].glyph}{/}`,
-              );
+          } else if (itemsOnTile?.[0]) {
+            const it = itemsOnTile[0];
+            if (it.color) {
+              xlines[x] = `${it.color}${it.glyph}{/}`;
             } else {
-              out = out.concat(`{white-fg}${itemsOnTile[0].glyph}{/}`);
+              xlines[x] = `{white-fg}${it.glyph}{/}`;
             }
-          } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-            out = out.concat(`{white-fg}.{/}`);
+          } else if (game.tiles.has(key)) {
+            xlines[x] = `{white-fg}.{/}`;
           } else {
-            if (game.currentBranchLevel.branch.glyphColor) {
-              out = out.concat(
-                `${game.currentBranchLevel.branch.glyphColor}#{/}`,
-              );
-            } else {
-              out = out.concat("{white-fg}#{/}");
-            }
+            xlines[x] = wallGlyphLit;
           }
         } else {
           // if not in field of vision, render the tile dimmer if the player has already seen it
-          if (game.seenTiles.has(coordsToKey({ x: x, y: y }))) {
-            if (game.features.has(coordsToKey({ x: x, y: y }))) {
+          if (game.seenTiles.has(key)) {
+            if (game.features.has(key)) {
               // show seen features first
-              const feature = game.features.get(coordsToKey({ x: x, y: y }));
-              out = out.concat(`{#858282-fg}${feature?.glyph}{/}`);
-            } else if (game.tiles.has(coordsToKey({ x: x, y: y }))) {
-              out = out.concat(`{#858282-fg}.{/}`);
+              const feature = game.features.get(key);
+              xlines[x] = `{#858282-fg}${feature?.glyph}{/}`;
+            } else if (game.tiles.has(key)) {
+              xlines[x] = `{#858282-fg}.{/}`;
             } else {
-              out = out.concat("{#858282-fg}#{/}");
+              xlines[x] = "{#858282-fg}#{/}";
             }
           } else {
-            out = out.concat("{black-bg} {/}");
+            xlines[x] = " ";
           }
         }
       }
-      out = out.concat("\n");
-      if (game.dialogMode !== "game") {
-        view.map.style = {
-          border: {
-            fg: "black",
-          },
-        };
-        view.map.setContent(`{center}${out}{/center}`);
-      } else {
-        view.map.style = {
-          border: {
-            fg: "white",
-          },
-        };
-        view.map.setContent(`{center}${out}{/center}`);
-      }
+      ylines[y] = xlines;
     }
     game.visibleActors = visibleActors;
+
+    view.map.style = game.dialogMode === "game" ? mapBorderGame : mapBorderDim;
+
+    const vw = viewportCellWidth;
+    const vh = viewportCellHeight;
+
+    const maxOriginX = Math.max(0, dungeonWidth - vw);
+    const maxOriginY = Math.max(0, dungeonHeight - vh);
+    const originX = Math.min(
+      Math.max(0, Math.floor(player.x - Math.floor(vw / 2))),
+      maxOriginX,
+    );
+    const originY = Math.min(
+      Math.max(0, Math.floor(player.y - Math.floor(vh / 2))),
+      maxOriginY,
+    );
+    game.xOffset = originX;
+    game.yOffset = originY;
+
+    const rows: string[] = new Array(vh);
+    for (let sy = 0; sy < vh; sy++) {
+      const dy = originY + sy;
+      const line = ylines[dy];
+      let row = "";
+      for (let sx = 0; sx < vw; sx++) {
+        const dx = originX + sx;
+        row += dx < dungeonWidth ? line[dx] : " ";
+      }
+      rows[sy] = row;
+    }
+
+    view.map.setContent(rows.join("\n"));
   }
 
   // tail of last five messages, old and new combined with new messages highlighted and old messages dimmed
-  let showMessages = game.oldMessages
-    .concat(game.messages)
-    .slice(-Math.min(5, game.oldMessages.length + game.messages.length));
-  let stringMessages = "";
+  const allMessages = game.oldMessages.concat(game.messages);
+  const showMessages = allMessages.slice(-Math.min(5, allMessages.length));
+  const newMsgCount = game.messages.length;
+  const logLines: string[] = new Array(showMessages.length);
   for (let i = 0; i < showMessages.length; i++) {
-    if (i >= showMessages.length - game.messages.length) {
-      stringMessages = stringMessages.concat(
-        `{white-fg}${showMessages[i]}{/}\n`,
-      );
-    } else {
-      stringMessages = stringMessages.concat(
-        `{grey-fg}${showMessages[i]}{/}\n`,
-      );
-    }
+    const tag = i >= showMessages.length - newMsgCount ? "white-fg" : "grey-fg";
+    logLines[i] = `{${tag}}${showMessages[i]}{/}\n`;
   }
-
-  view.log.setContent(stringMessages);
+  view.log.setContent(logLines.join(""));
 
   return game;
 }

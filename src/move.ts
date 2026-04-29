@@ -384,6 +384,8 @@ export const getWanderingMoveDelta = (creature: Creature): Coords => {
 type PathfindingNode = {
   coords: Coords;
   dist: number;
+  /** Diagonal steps taken while on the same row or column as the target (tie-breaker). */
+  alignedDiagPenalty: number;
   shortestPathAncestor?: PathfindingNode;
 };
 
@@ -411,12 +413,17 @@ export const getNextMoveToTarget = (
       // starting node is the creature's starting position
       if (tileCoordsKey === coordsToKey(startingTile)) {
         // set the distance of the starting node to zero
-        unvisitedTiles.set(tileCoordsKey, { coords: tileCoords, dist: 0 });
+        unvisitedTiles.set(tileCoordsKey, {
+          coords: tileCoords,
+          dist: 0,
+          alignedDiagPenalty: 0,
+        });
       } else {
         // otherwise set the distance to infinity
         unvisitedTiles.set(tileCoordsKey, {
           coords: tileCoords,
           dist: Infinity,
+          alignedDiagPenalty: 0,
         });
       }
     }
@@ -446,11 +453,22 @@ export const getNextMoveToTarget = (
           }),
         );
         if (neighbor) {
-          // all edges are length 1 because this is a grid-based game, so we don't need to check edge length
-          const prevNeighborDist = neighbor.dist;
-          neighbor.dist = Math.min(currentNode.dist + 1, neighbor.dist);
-          if (neighbor.dist !== prevNeighborDist) {
-            // update the neighbor's shortest path ancestor node if the neighbor was updated
+          const isDiagonal = i !== 0 && j !== 0;
+          const onSameRankAsTarget =
+            currentNode.coords.y === targetTile.y ||
+            currentNode.coords.x === targetTile.x;
+          const stepAlignedDiagPenalty =
+            isDiagonal && onSameRankAsTarget ? 1 : 0;
+          const candidateDist = currentNode.dist + 1;
+          const candidatePenalty =
+            currentNode.alignedDiagPenalty + stepAlignedDiagPenalty;
+          const betterPath =
+            candidateDist < neighbor.dist ||
+            (candidateDist === neighbor.dist &&
+              candidatePenalty < neighbor.alignedDiagPenalty);
+          if (betterPath) {
+            neighbor.dist = candidateDist;
+            neighbor.alignedDiagPenalty = candidatePenalty;
             neighbor.shortestPathAncestor = { ...currentNode };
           }
         }
@@ -492,15 +510,32 @@ export const getNextMoveToTarget = (
 export function getNodeWithLeastDistance(
   nodes: Map<string, PathfindingNode>,
 ): PathfindingNode | undefined {
-  let returnValue = undefined;
+  let best: PathfindingNode | undefined;
   let minDist = Infinity;
-  for (const [nodeCoords, coordsDist] of nodes) {
-    if (coordsDist.dist < minDist) {
-      returnValue = { ...coordsDist };
-      minDist = coordsDist.dist;
+  let minPenalty = Infinity;
+  let bestKey = "";
+
+  for (const [nodeCoords, node] of nodes) {
+    if (node.dist < minDist) {
+      minDist = node.dist;
+      minPenalty = node.alignedDiagPenalty;
+      bestKey = nodeCoords;
+      best = { ...node };
+    } else if (node.dist === minDist && node.dist < Infinity) {
+      if (node.alignedDiagPenalty < minPenalty) {
+        minPenalty = node.alignedDiagPenalty;
+        bestKey = nodeCoords;
+        best = { ...node };
+      } else if (
+        node.alignedDiagPenalty === minPenalty &&
+        (best === undefined || nodeCoords < bestKey)
+      ) {
+        bestKey = nodeCoords;
+        best = { ...node };
+      }
     }
   }
-  return returnValue;
+  return best;
 }
 
 // Depth-first search of conversation branch tree looking for a branch by the 'creatureSpeaks' string

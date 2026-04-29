@@ -12,19 +12,63 @@ describe('getNodeWithLeastDistance', () => {
 
   it('should return undefined when all nodes have Infinity distance', () => {
     const nodes = new Map();
-    nodes.set(coordsToKey({x: 0, y: 0}), { coords: {x: 0, y: 0}, dist: Infinity });
-    nodes.set(coordsToKey({x: 1, y: 1}), { coords: {x: 1, y: 1}, dist: Infinity });
+    nodes.set(coordsToKey({x: 0, y: 0}), {
+      coords: {x: 0, y: 0},
+      dist: Infinity,
+      alignedDiagPenalty: 0,
+    });
+    nodes.set(coordsToKey({x: 1, y: 1}), {
+      coords: {x: 1, y: 1},
+      dist: Infinity,
+      alignedDiagPenalty: 0,
+    });
     const result = getNodeWithLeastDistance(nodes);
     expect(result).toBeUndefined();
   });
 
   it('should return node with minimum distance', () => {
     const nodes = new Map();
-    nodes.set(coordsToKey({x: 0, y: 0}), { coords: {x: 0, y: 0}, dist: 3 });
-    nodes.set(coordsToKey({x: 1, y: 1}), { coords: {x: 1, y: 1}, dist: 4 });
-    nodes.set(coordsToKey({x: 2, y: 2}), { coords: {x: 2, y: 2}, dist: 1 });
+    nodes.set(coordsToKey({x: 0, y: 0}), {
+      coords: {x: 0, y: 0},
+      dist: 3,
+      alignedDiagPenalty: 0,
+    });
+    nodes.set(coordsToKey({x: 1, y: 1}), {
+      coords: {x: 1, y: 1},
+      dist: 4,
+      alignedDiagPenalty: 0,
+    });
+    nodes.set(coordsToKey({x: 2, y: 2}), {
+      coords: {x: 2, y: 2},
+      dist: 1,
+      alignedDiagPenalty: 0,
+    });
     const result = getNodeWithLeastDistance(nodes);
-    expect(result).toEqual({ coords: {x: 2, y: 2}, dist: 1 });
+    expect(result).toEqual({
+      coords: {x: 2, y: 2},
+      dist: 1,
+      alignedDiagPenalty: 0,
+    });
+  });
+
+  it('should break ties by minimum aligned diagonal penalty', () => {
+    const nodes = new Map();
+    nodes.set(coordsToKey({x: 0, y: 0}), {
+      coords: {x: 0, y: 0},
+      dist: 2,
+      alignedDiagPenalty: 1,
+    });
+    nodes.set(coordsToKey({x: 1, y: 0}), {
+      coords: {x: 1, y: 0},
+      dist: 2,
+      alignedDiagPenalty: 0,
+    });
+    const result = getNodeWithLeastDistance(nodes);
+    expect(result).toEqual({
+      coords: {x: 1, y: 0},
+      dist: 2,
+      alignedDiagPenalty: 0,
+    });
   });
 });
 
@@ -71,5 +115,27 @@ describe('getNextMoveToTarget', () => {
 
     const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 1, y: 0}, undefined);
     expect(result).toEqual({x: 1, y: 0});
+  });
+
+  it('should prefer same-rank moves when hop count ties (horizontal vs diagonal)', () => {
+    const tiles = new Map<string, Coords>();
+    tiles.set(coordsToKey({x: 0, y: 0}), {x: 0, y: 0});
+    tiles.set(coordsToKey({x: 1, y: 0}), {x: 1, y: 0});
+    tiles.set(coordsToKey({x: 2, y: 0}), {x: 2, y: 0});
+    tiles.set(coordsToKey({x: 1, y: 1}), {x: 1, y: 1});
+
+    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 2, y: 0}, undefined);
+    expect(result).toEqual({x: 1, y: 0});
+  });
+
+  it('should prefer same-column moves when hop count ties (vertical vs diagonal)', () => {
+    const tiles = new Map<string, Coords>();
+    tiles.set(coordsToKey({x: 0, y: 0}), {x: 0, y: 0});
+    tiles.set(coordsToKey({x: 0, y: 1}), {x: 0, y: 1});
+    tiles.set(coordsToKey({x: 0, y: 2}), {x: 0, y: 2});
+    tiles.set(coordsToKey({x: 1, y: 1}), {x: 1, y: 1});
+
+    const result = getNextMoveToTarget(tiles, {x: 0, y: 0}, {x: 0, y: 2}, undefined);
+    expect(result).toEqual({x: 0, y: 1});
   });
 }); 
