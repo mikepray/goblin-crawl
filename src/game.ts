@@ -13,8 +13,8 @@ import { levelUp } from "./player";
 import { Creature, Game } from "./types";
 import { isTileInFieldOfVision } from "./utils";
 
-export const dungeonWidth = 48;
-export const dungeonHeight = 24;
+export const dungeonWidth = 100;
+export const dungeonHeight = 100;
 /** Blessed map box width (matches init.ts map.width). */
 export const mapWidth = 70;
 /** Blessed map box height (matches init.ts map.height / dungeonHeight). */
@@ -218,27 +218,29 @@ function printScreen(game: Game, view: View): Game {
     const vw = viewportCellWidth;
     const vh = viewportCellHeight;
 
-    const maxOriginX = Math.max(0, dungeonWidth - vw);
-    const maxOriginY = Math.max(0, dungeonHeight - vh);
-    const originX = Math.min(
-      Math.max(0, Math.floor(player.x - Math.floor(vw / 2))),
-      maxOriginX,
-    );
-    const originY = Math.min(
-      Math.max(0, Math.floor(player.y - Math.floor(vh / 2))),
-      maxOriginY,
-    );
+    const centerSx = Math.floor(vw / 2);
+    const centerSy = Math.floor(vh / 2);
+    const originX = Math.floor(player.x - centerSx);
+    const originY = Math.floor(player.y - centerSy);
     game.xOffset = originX;
     game.yOffset = originY;
 
     const rows: string[] = new Array(vh);
     for (let sy = 0; sy < vh; sy++) {
       const dy = originY + sy;
-      const line = ylines[dy];
       let row = "";
       for (let sx = 0; sx < vw; sx++) {
         const dx = originX + sx;
-        row += dx < dungeonWidth ? line[dx] : " ";
+        if (
+          dx < 0 ||
+          dx >= dungeonWidth ||
+          dy < 0 ||
+          dy >= dungeonHeight
+        ) {
+          row += " ";
+        } else {
+          row += ylines[dy][dx];
+        }
       }
       rows[sy] = row;
     }

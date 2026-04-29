@@ -1,6 +1,6 @@
 import blessed from "blessed";
 import { dungeon, allBranches } from "./branches";
-import { dungeonHeight } from "./game";
+import { dungeonHeight, mapHeight } from "./game";
 import { descend } from "./levels";
 import { loadItems, loadFeatures, loadCreatures } from "./loader";
 import { Game, Actor, Coords, Feature, Player, Level, Item } from "./types";
@@ -116,7 +116,7 @@ export function initView(): View {
     parent: screen,
     top: 3,
     left: 0,
-    height: dungeonHeight,
+    height: mapHeight,
     tags: true,
   });
 
@@ -124,7 +124,7 @@ export function initView(): View {
     parent: mainGameContainer,
     top: 0,
     left: 0,
-    height: dungeonHeight,
+    height: mapHeight,
     width: 70,
     border: {
       type: "line",
@@ -143,7 +143,7 @@ export function initView(): View {
     parent: mainGameContainer,
     top: 0,
     left: 70,
-    height: dungeonHeight,
+    height: mapHeight,
     border: {
       type: "line",
     },
@@ -161,7 +161,7 @@ export function initView(): View {
     parent: statusContainer,
     top: 0,
     left: 0,
-    height: dungeonHeight - 2,
+    height: mapHeight - 2,
     tags: true,
   });
 
@@ -169,14 +169,14 @@ export function initView(): View {
     parent: statusContainer,
     top: 0,
     left: 30,
-    height: dungeonHeight - 2,
+    height: mapHeight - 2,
 
     tags: true,
   });
 
   const log = blessed.box({
     parent: screen,
-    top: dungeonHeight + 3,
+    top: mapHeight + 3,
     left: 0,
     width: "100%",
     height: 7,

@@ -8,6 +8,7 @@ export const dungeon: DungeonBranch = {
   description:
     "A sprawling system of caverns, mines, and tunnels. Full of things to eat and or eat you",
   maxLevel: 3,
+  numRooms: 15,
 };
 
 const trashHeap: DungeonBranch = {
