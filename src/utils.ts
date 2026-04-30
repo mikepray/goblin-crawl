@@ -92,10 +92,6 @@ export function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// function getRandomArbitrary(min, max) {
-//   return Math.random() * (max - min) + min;
-// }
-
 // dice roller. rolls k-sided dice n times
 export const nDk = (n: number, k: number) => {
   let sum = 0;

@@ -27,8 +27,18 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
   game.actors = new Map<string, Actor>();
   game.seenTiles = new Map<string, Coords>();
   game.items = new Map<string, Array<Item>>();
-  //nextBranchLevel.branch.layoutConfigs[getRandomArbitrary(0, nextBranchLevel.branch.layoutConfigs?.length - 1)]
-  game.tiles = buildRoomsAndHallways();
+
+  // get a random layout config from the branch config
+  if (nextBranchLevel.branch.layoutConfigs) {
+    game.tiles = buildRoomsAndHallways(
+      nextBranchLevel.branch.layoutConfigs[
+        getRandomInt(0, nextBranchLevel.branch.layoutConfigs?.length - 1)
+      ],
+    );
+  } else {
+    // else use default
+    game.tiles = buildRoomsAndHallways();
+  }
   game.messages = new Array<string>();
 
   let playerTile;
