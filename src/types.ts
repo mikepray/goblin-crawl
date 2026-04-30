@@ -37,8 +37,20 @@ export type DungeonBranch = {
   staircase?: Feature;
   parentBranch?: DungeonBranch;
   glyphColor?: string;
-  difficulty: number;
-  numRooms?: number;
+  layoutConfigs?: Array<RoomsAndHallwaysConfig>; // array of level configs that can be randomly chosen
+};
+
+export type RoomsAndHallwaysConfig = {
+  minRooms: number;
+  maxRooms: number;
+  minWidth: number;
+  maxWidth: number;
+  minHeight: number;
+  maxHeight: number;
+  minRoomWidth: number;
+  maxRoomWidth: number;
+  minRoomHeight: number;
+  maxRoomHeight: number;
 };
 
 export type KoboldCave = DungeonBranch & {

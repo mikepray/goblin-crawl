@@ -83,14 +83,24 @@ export function isTileInFieldOfVision(
 }
 
 export const d20 = () => {
-  return Math.floor(Math.random() * 20);
+  return getRandomInt(0, 20);
 };
+
+export function getRandomInt(min: number, max: number) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// function getRandomArbitrary(min, max) {
+//   return Math.random() * (max - min) + min;
+// }
 
 // dice roller. rolls k-sided dice n times
 export const nDk = (n: number, k: number) => {
   let sum = 0;
   for (let i = 0; i < n; i++) {
-    sum += Math.floor(Math.random() * k) + 1;
+    sum += getRandomInt(1, k);
   }
   return sum;
 };
@@ -129,11 +139,10 @@ export function getRandomValidTile(
         return !deconflictWith.has(tile);
       },
     );
-    key =
-      deconflictedTiles[Math.floor(Math.random() * deconflictedTiles.length)];
+    key = deconflictedTiles[getRandomInt(0, deconflictedTiles.length)];
   } else {
     // if nothing to deconflict with, just use the base tile map
-    key = Array.from(tiles.keys()).at(Math.floor(Math.random() * tiles.size));
+    key = Array.from(tiles.keys()).at(getRandomInt(0, tiles.size));
   }
 
   // get a random valid tile key

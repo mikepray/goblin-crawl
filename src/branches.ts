@@ -1,22 +1,19 @@
-import { DungeonBranch, KoboldCave } from "./types";
+import { DungeonBranch, KoboldCave, RoomsAndHallwaysConfig } from "./types";
 import { nDk } from "./utils";
 import { getKoboldTitle } from "./words";
 
 export const dungeon: DungeonBranch = {
   name: "Dungeon",
-  difficulty: 1,
   description:
-    "A sprawling system of caverns, mines, and tunnels. Full of things to eat and or eat you",
+    "A sprawling system of caverns, mines, and tunnels. Full of things eat or will eat you",
   maxLevel: 3,
-  numRooms: 15,
 };
 
 const trashHeap: DungeonBranch = {
   maxLevel: 3,
   name: "Trash Heap",
-  difficulty: 1,
   description:
-    "A filthy crevice filled with the accumulated garbage of surface-dwellers",
+    "A filthy crevice filled with the accumulated garbage of surface-dwellers and dungeon dwellers alike",
   parentBranch: dungeon,
   glyphColor: "{#B4D902-fg}",
 };
@@ -24,7 +21,6 @@ const trashHeap: DungeonBranch = {
 const apostates: DungeonBranch = {
   maxLevel: 3,
   name: "Apostate Refuge",
-  difficulty: 1,
   description:
     "The refuge of goblins who have fallen from the grace of Meggled",
   parentBranch: dungeon,
@@ -33,21 +29,24 @@ const apostates: DungeonBranch = {
 const uhlbreenMines: DungeonBranch = {
   maxLevel: nDk(2, 8) + 5,
   name: "Uhlbreen Mines",
-  difficulty: 4,
   description:
     "A vast and dangerous complex of mines maintained by the underground dwarves known as the Uhlbreen",
   parentBranch: apostates,
-  numRooms: 3 + nDk(2, 4),
 };
 
 const tekLab: DungeonBranch = {
   maxLevel: 1,
   name: "TekLab",
-  difficulty: 1,
   glyphColor: "{#27DAF5-fg}",
   description: "Tekktor's Lab",
   parentBranch: dungeon,
-  numRooms: 2,
+};
+
+const prismOfYorlaxoph: DungeonBranch = {
+  maxLevel: 10,
+  name: "Prism of Yorlaxoph",
+  description: "The prism dimension holding the Ninefold Lichking Yorlaxoph",
+  glyphColor: "{#610C1A",
 };
 
 export function getRandomKoboldCave(difficulty: number) {
@@ -59,8 +58,6 @@ export function getRandomKoboldCave(difficulty: number) {
     koboldName: title,
     glyphColor: "{#a440d6-fg}",
     parentBranch: dungeon,
-    difficulty: difficulty,
-    numRooms: nDk(3, 3),
   };
   return randomKoboldCave;
 }
@@ -73,3 +70,16 @@ export const allBranches = [
   tekLab,
   trashHeap,
 ];
+
+export const defaultRoomsAndHallways: RoomsAndHallwaysConfig = {
+  minRooms: 5,
+  maxRooms: 8,
+  minWidth: 50,
+  maxWidth: 50,
+  minHeight: 24,
+  maxHeight: 24,
+  minRoomWidth: 6,
+  maxRoomWidth: 15,
+  minRoomHeight: 6,
+  maxRoomHeight: 15,
+};

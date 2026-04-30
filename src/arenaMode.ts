@@ -53,7 +53,6 @@ export function initArenaMode(): Game {
     name: "Arena",
     description: "The Arena",
     maxLevel: 1,
-    difficulty: 1,
   };
   let game: Game = {
     turnCount: 0,

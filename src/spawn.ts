@@ -1,5 +1,6 @@
 import { allBranches } from "./branches";
 import { dungeonHeight, dungeonWidth } from "./game";
+import { buildRoomsAndHallways } from "./layouts/roomsAndHallways";
 import {
   Actor,
   BranchLevel,
@@ -13,7 +14,12 @@ import {
   SpawnInfo,
   Upstairs,
 } from "./types";
-import { branchLevelToKey, coordsToKey, getRandomValidTile } from "./utils";
+import {
+  branchLevelToKey,
+  coordsToKey,
+  getRandomInt,
+  getRandomValidTile,
+} from "./utils";
 
 export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
   // clear current level's features, actors, etc
@@ -21,7 +27,8 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
   game.actors = new Map<string, Actor>();
   game.seenTiles = new Map<string, Coords>();
   game.items = new Map<string, Array<Item>>();
-  game.tiles = buildRoomsAndHallways(nextBranchLevel.branch.numRooms);
+  //nextBranchLevel.branch.layoutConfigs[getRandomArbitrary(0, nextBranchLevel.branch.layoutConfigs?.length - 1)]
+  game.tiles = buildRoomsAndHallways();
   game.messages = new Array<string>();
 
   let playerTile;
@@ -110,7 +117,6 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
     nextBranchLevel,
     game.tiles,
     new Map([...game.actors, ...game.features]), // union of actors and features
-    nextBranchLevel.branch.difficulty,
   );
   for (let i = 0; i < features.length; i++) {
     game.features.set(features[i].coords, features[i].thing);
@@ -122,7 +128,6 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
     nextBranchLevel,
     game.tiles,
     game.actors,
-    nextBranchLevel.branch.difficulty,
   );
 
   for (let i = 0; i < creatures.length; i++) {
@@ -135,7 +140,6 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
     nextBranchLevel,
     game.tiles,
     undefined,
-    nextBranchLevel.branch.difficulty,
   );
 
   // add flattened items to tile stack of items
@@ -164,7 +168,7 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
 
 function chanceToSpawn(thing: SpawnInfo, branchLevel: BranchLevel) {
   const maxLevel = branchLevel.branch.maxLevel;
-  const t = Math.ceil(Math.random() * 100);
+  const t = getRandomInt(0, 100);
   let spawnRateWeight = 0;
   if (thing.distribution === "early") {
     // reduce spawn chance by the bigger level numbers
@@ -214,7 +218,6 @@ function spawnThings(
   branchLevel: BranchLevel, // the branch level to spawn into
   tiles: CoordsMap, // the valid set of tiles in the current level
   deconflictWith: Map<string, Actor> | undefined, // things to deconflict with
-  difficulty: number,
 ) {
   const spawnedThings = new Array<{
     coords: string;
@@ -266,80 +269,4 @@ function spawnThings(
   }
 
   return spawnedThings;
-}
-
-export function buildRoomsAndHallways(numRooms?: number): Map<string, Coords> {
-  // a level consists of an unordered Map of (coordKey => coords) which represents the empty tiles
-  let tiles = new Map<string, Coords>();
-  let midpoints = new Array();
-
-  const nrooms = numRooms ? numRooms : Math.floor(Math.random() * 3) + 5;
-  for (let i = 0; i < nrooms; i++) {
-    let room = buildRoom();
-    midpoints.push(room.midpoint);
-    tiles = new Map([...tiles, ...room.tiles]);
-  }
-
-  // draw hallways between midpoints
-  for (let i = 0; i < midpoints.length; i++) {
-    for (let j = 0; j < midpoints.length; j++) {
-      if (i === j) continue;
-      let midpoint1 = midpoints[i];
-      let midpoint2 = midpoints[j];
-
-      // find the midpoint with the least x coord, start iterating from there to the next midpoint adding tiles
-      // then iterate from that midpoint's Y to the next midpoint's Y
-      let midpointWithLeastX =
-        midpoint1.x < midpoint2.x ? midpoint1 : midpoint2;
-      let leastX = midpoint1.x < midpoint2.x ? midpoint1.x : midpoint2.x;
-      let greatestX = midpoint1.x < midpoint2.x ? midpoint2.x : midpoint1.x;
-      let leastY = midpoint1.y < midpoint2.y ? midpoint1.y : midpoint2.y;
-      let greatestY = midpoint1.y < midpoint2.y ? midpoint2.y : midpoint1.y;
-
-      for (let k = 1; leastX + k <= greatestX; k++) {
-        tiles.set(coordsToKey({ x: leastX + k, y: midpointWithLeastX.y }), {
-          x: leastX + k,
-          y: midpointWithLeastX.y,
-        });
-      }
-
-      for (let k = 1; leastY + k <= greatestY; k++) {
-        tiles.set(coordsToKey({ x: greatestX, y: leastY + k }), {
-          x: greatestX,
-          y: leastY + k,
-        });
-      }
-    }
-  }
-
-  return tiles;
-}
-
-export function buildRoom() {
-  let tiles = new Map<string, Coords>();
-
-  let w = Math.floor(Math.random() * 7) + 6;
-  let h = Math.floor(Math.random() * 7) + 6;
-
-  // randomly generate origin point of room (top left)
-  let originX = Math.floor(Math.random() * (dungeonWidth - w - 2));
-  let originY = Math.floor(Math.random() * (dungeonHeight - h - 2));
-
-  // add room to tile set
-  for (let i = 1; i < h; i++) {
-    for (let j = 2; j < w; j++) {
-      tiles.set(coordsToKey({ x: originX + j, y: originY + i }), {
-        x: originX + j,
-        y: originY + i,
-      });
-    }
-  }
-
-  let midpoint = {
-    x: Math.floor(originX + w / 2),
-    y: Math.floor(originY + h / 2),
-  };
-
-  // place them by adding their coords to the set
-  return { tiles: tiles, midpoint: midpoint };
 }

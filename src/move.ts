@@ -11,7 +11,7 @@ import {
   MovementDirection,
   Shout,
 } from "./types";
-import { coordsToKey, CoordsUtil, getCorpse } from "./utils";
+import { coordsToKey, CoordsUtil, getCorpse, getRandomInt } from "./utils";
 import { getKoboldPhrase } from "./words";
 
 export function doPlayerMove(game: Game, playerMove: Coords) {
@@ -75,9 +75,7 @@ export function doPlayerMove(game: Game, playerMove: Coords) {
         if (subjectCreature.conversationBranches) {
           const conversationBranch =
             subjectCreature.conversationBranches[
-              Math.floor(
-                Math.random() * subjectCreature.conversationBranches.length,
-              )
+              getRandomInt(0, subjectCreature.conversationBranches.length)
             ];
           game.activeDialog = conversationBranch;
           game.interactingActor = subjectCreature;
@@ -328,16 +326,14 @@ export const moveActor = (
   if (
     "shoutChance" in actor &&
     "shouts" in actor &&
-    Math.floor(Math.random() * 1000) <= (actor.shoutChance as number)
+    getRandomInt(1, 1000) <= (actor.shoutChance as number)
   ) {
     if ("shoutGenerator" in actor && actor.shoutGenerator) {
       if (actor.shoutGenerator === "kobold") {
         game.messages.push(`{grey-fg}${getKoboldPhrase()}{/}`);
       }
     } else {
-      const shout = Math.floor(
-        Math.random() * (actor.shouts as Array<Shout>).length,
-      );
+      const shout = getRandomInt(0, (actor.shouts as Array<Shout>).length);
       game.messages.push(
         `{grey-fg}${(actor.shouts as Array<Shout>)[shout].shout}{/}`,
       );
@@ -356,7 +352,7 @@ export const getWanderingMoveDelta = (creature: Creature): Coords => {
   }
 
   if (!creature.wanderingDirection || Math.random() < 0.2) {
-    const randomDirection = Math.floor(Math.random() * 5);
+    const randomDirection = getRandomInt(0, 5);
     creature.wanderingDirection = randomDirection as MovementDirection;
   }
 

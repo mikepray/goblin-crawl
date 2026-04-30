@@ -1,3 +1,5 @@
+import { getRandomInt } from "./utils";
+
 export const koboldSyllables = new Map<string, number>([
   ["ik", 6],
   ["awk", 4],
@@ -73,7 +75,7 @@ function rouletteWheel(map: Map<string, number>) {
 }
 
 function random(arr: string[]) {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[getRandomInt(0, arr.length - 1)];
 }
 
 export function getKoboldTitle() {
@@ -86,7 +88,7 @@ export function getKoboldTitle() {
 export function getKoboldWord() {
   const arr = rouletteWheel(koboldSyllables);
 
-  const wordSize = Math.ceil(Math.random() * 3);
+  const wordSize = getRandomInt(1, 3);
   let word = "";
   for (let i = 0; i < wordSize; i++) {
     let w = random(arr);
@@ -107,7 +109,7 @@ export function getKoboldPhrase(
   punctuate?: boolean,
 ) {
   const phraseWords =
-    (minLen ? minLen : 2) + Math.floor(Math.random() * (maxLen ? maxLen : 4));
+    (minLen ? minLen : 2) + getRandomInt(1, maxLen ? maxLen : 4);
   let phrase = "";
   for (let i = 0; i < phraseWords; i++) {
     if (i > 0) {
