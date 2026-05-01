@@ -63,7 +63,7 @@ items:
       - branchName: Kobold Cave
         spawnRate: 20
         distribution: even
-      - branchName: Apostate Refuge
+      - branchName: Exile of Apostates
         spawnRate: 20
         distribution: even
 

@@ -60,6 +60,7 @@ export function initArenaMode(): Game {
     tiles: tiles,
     features: new Map<string, Feature>(),
     gameTurns: 0,
+    seeAllTiles: true,
     player: {
       x: 2,
       y: 2,

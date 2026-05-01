@@ -1,74 +1,83 @@
 import blessed from "blessed";
-import { dungeon, allBranches } from "./branches";
-import { dungeonHeight, mapHeight } from "./game";
+import { allBranches, dungeon } from "./branches";
+
 import { descend } from "./levels";
-import { loadItems, loadFeatures, loadCreatures } from "./loader";
-import { Game, Actor, Coords, Feature, Player, Level, Item } from "./types";
+import { loadCreatures, loadFeatures, loadItems } from "./loader";
+import { Actor, Coords, Feature, Game, Item, Level, Player } from "./types";
+import { dungeonHeight, dungeonWidth, mapHeight } from "./printScreen";
+
+export const defaultGame: Game = {
+  turnCount: 0,
+  actors: new Map<string, Actor>(),
+  tiles: new Map<string, Coords>(),
+  features: new Map<string, Feature>(),
+  gameTurns: 0,
+  player: {
+    x: 0,
+    y: 0,
+    maxHp: 10,
+    currentHp: 7,
+    level: 1,
+    XP: 0,
+    hitDie: 3,
+    glyph: "@",
+    color: "{white-fg}{bold}",
+    name: "player",
+    description: "It's you",
+    armor: 1,
+    dodging: 3,
+    cunning: 3,
+    savagery: 3,
+    fortitude: 1,
+    power: 1,
+    hpRegen: 1,
+    hpRegenEveryNTurns: 15,
+    naturalWeapon: {
+      name: "fists",
+      attackBonus: 1,
+      damageBonus: 0,
+      damageDieNum: 1,
+      damageDie: 3,
+    },
+  } as Player,
+  seeAllTiles: false,
+  gameOver: false,
+  isScreenDirty: true,
+  dialogPointer: 0,
+  allFeatures: [],
+  allCreatures: [],
+  allItems: [],
+  messages: [],
+  oldMessages: new Array<string>(),
+  levels: new Map<string, Level>(),
+  items: new Map<string, Array<Item>>(),
+  seenTiles: new Map<string, Coords>(),
+  dialogMode: "game",
+  visibleActors: new Array<Actor>(),
+  currentBranchLevel: {
+    branch: dungeon,
+    level: 0,
+  },
+  allBranches: allBranches,
+  altarsConquered: 0,
+  xOffset: 0,
+  yOffset: 0,
+};
 
 export function initGame(): Game {
-  let items = loadItems();
-  let features = loadFeatures();
-  let messages = new Array<string>();
-
-  let game: Game = {
-    turnCount: 0,
-    actors: new Map<string, Actor>(),
-    tiles: new Map<string, Coords>(),
-    features: new Map<string, Feature>(),
-    gameTurns: 0,
-    player: {
-      x: 0,
-      y: 0,
-      maxHp: 10,
-      currentHp: 7,
-      level: 1,
-      XP: 0,
-      hitDie: 3,
-      inventory: [items.find((item) => item.name === "egg")],
-      glyph: "@",
-      color: "{white-fg}{bold}",
-      name: "player",
-      description: "It's you",
-      armor: 1,
-      dodging: 3,
-      cunning: 3,
-      savagery: 3,
-      fortitude: 1,
-      power: 1,
-      hpRegen: 1,
-      hpRegenEveryNTurns: 15,
-      slots: { body: items.find((item) => item.name === "rags") },
-      naturalWeapon: {
-        name: "fists",
-        attackBonus: 1,
-        damageBonus: 0,
-        damageDieNum: 1,
-        damageDie: 3,
-      },
-    } as Player,
-    gameOver: false,
-    isScreenDirty: true,
-    dialogPointer: 0,
-    allFeatures: features,
-    allCreatures: loadCreatures(),
-    allItems: items,
-    messages: messages,
-    oldMessages: new Array<string>(),
-    levels: new Map<string, Level>(),
-    items: new Map<string, Array<Item>>(),
-    seenTiles: new Map<string, Coords>(),
-    dialogMode: "game",
-    visibleActors: new Array<Actor>(),
-    currentBranchLevel: {
-      branch: dungeon,
-      level: 0,
-    },
-    allBranches: allBranches,
-    altarsConquered: 0,
-    xOffset: 0,
-    yOffset: 0,
+  let game = defaultGame;
+  game.allItems = loadItems();
+  game.allFeatures = loadFeatures();
+  game.allCreatures = loadCreatures();
+  game.messages = new Array<string>();
+  const egg = game.allItems.find((item) => item.name === "egg");
+  game.player.inventory = new Array<Item>();
+  if (egg) {
+    game.player.inventory?.push(egg);
+  }
+  game.player.slots = {
+    body: game.allItems.find((item) => item.name === "rags"),
   };
-
   return descend(game, {
     branch: game.currentBranchLevel.branch,
     level: game.currentBranchLevel.level + 1,
@@ -84,10 +93,12 @@ export type View = {
   statusRight: blessed.Widgets.BoxElement;
   statusLeft: blessed.Widgets.BoxElement;
   log: blessed.Widgets.BoxElement;
+  layoutViewr: blessed.Widgets.BoxElement;
 };
 
 export function initView(): View {
   const screen = blessed.screen({
+    // terminal: "xterm",
     smartCSR: true, // Optimize for rendering
     title: "GoblinCrawl",
     tags: true,
@@ -191,6 +202,25 @@ export function initView(): View {
     tags: true,
     scrollable: true,
   });
+
+  const layoutViewer = blessed.box({
+    parent: screen,
+    top: 0,
+    left: 0,
+    height: dungeonHeight + 2,
+    width: dungeonWidth + 2,
+    border: {
+      type: "line",
+    },
+    style: {
+      border: {
+        fg: "blue",
+      },
+      bg: "black",
+      fg: "white",
+    },
+    tags: true,
+  });
   return {
     topbar: topbar,
     screen: screen,
@@ -200,6 +230,7 @@ export function initView(): View {
     statusLeft: statusLeft,
     statusRight: statusRight,
     log: log,
+    layoutViewr: layoutViewer,
   };
 }
 

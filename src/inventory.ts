@@ -1,6 +1,6 @@
-import { Game, InputKey, Item, Creature } from "./types";
 import { putItemOnFloorStack } from "./move";
-import { dungeonHeight } from "./game";
+import { dungeonHeight } from "./printScreen";
+import { Creature, Game, InputKey, Item } from "./types";
 import { roll } from "./utils";
 
 export function printStatusScreen(game: Game, out: string): string {

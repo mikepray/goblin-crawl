@@ -1,6 +1,7 @@
 import { allBranches } from "./branches";
-import { dungeonHeight, dungeonWidth } from "./game";
+
 import { buildRoomsAndHallways } from "./layouts/roomsAndHallways";
+import { buildRoomsAndHallwaysOnePath } from "./layouts/roomsAndHallwaysOnePath";
 import {
   Actor,
   BranchLevel,
@@ -11,6 +12,7 @@ import {
   Feature,
   Game,
   Item,
+  RoomsAndHallwaysConfig,
   SpawnInfo,
   Upstairs,
 } from "./types";
@@ -29,12 +31,14 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
   game.items = new Map<string, Array<Item>>();
 
   // get a random layout config from the branch config
-  if (nextBranchLevel.branch.layoutConfigs) {
-    game.tiles = buildRoomsAndHallways(
-      nextBranchLevel.branch.layoutConfigs[
-        getRandomInt(0, nextBranchLevel.branch.layoutConfigs?.length - 1)
-      ],
-    );
+  const branchLayouts = nextBranchLevel.branch.layouts;
+  if (branchLayouts?.length) {
+    const layout = branchLayouts[getRandomInt(0, branchLayouts.length - 1)];
+    if (layout.type === "RoomsAndHallwaysOnePath") {
+      game.tiles = buildRoomsAndHallwaysOnePath(layout.config);
+    } else {
+      game.tiles = buildRoomsAndHallways(layout.config);
+    }
   } else {
     // else use default
     game.tiles = buildRoomsAndHallways();

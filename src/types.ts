@@ -28,6 +28,7 @@ export type Game = {
   restTurns?: number;
   xOffset: number;
   yOffset: number;
+  seeAllTiles: boolean;
 };
 
 export type DungeonBranch = {
@@ -37,7 +38,7 @@ export type DungeonBranch = {
   staircase?: Feature;
   parentBranch?: DungeonBranch;
   glyphColor?: string;
-  layoutConfigs?: Array<RoomsAndHallwaysConfig>; // array of level configs that can be randomly chosen
+  layouts?: Array<Layout>;
 };
 
 export type RoomsAndHallwaysConfig = {
@@ -51,6 +52,11 @@ export type RoomsAndHallwaysConfig = {
   maxRoomWidth: number;
   minRoomHeight: number;
   maxRoomHeight: number;
+};
+
+export type Layout = {
+  type: "RoomsAndHallwaysOverlap" | "RoomsAndHallwaysOnePath";
+  config: RoomsAndHallwaysConfig;
 };
 
 export type KoboldCave = DungeonBranch & {
@@ -199,6 +205,62 @@ export enum MovementDirection {
   E,
   W,
 }
+
+export const N: Direction = {
+  name: "N",
+  xMod: 0,
+  yMod: -1,
+};
+
+export const S: Direction = {
+  name: "S",
+  xMod: 0,
+  yMod: 1,
+};
+
+export const E: Direction = {
+  name: "E",
+  xMod: 1,
+  yMod: 0,
+};
+
+export const W: Direction = {
+  name: "W",
+  xMod: -1,
+  yMod: 0,
+};
+
+export const NW: Direction = {
+  name: "NW",
+  xMod: -1,
+  yMod: -1,
+};
+
+export const NE: Direction = {
+  name: "NE",
+  xMod: 1,
+  yMod: -1,
+};
+
+export const SE: Direction = {
+  name: "SE",
+  xMod: 1,
+  yMod: 1,
+};
+
+export const SW: Direction = {
+  name: "SW",
+  xMod: -1,
+  yMod: 1,
+};
+
+export const DIRECTIONS: Array<Direction> = [NW, N, NE, E, SE, S, SW, W];
+
+export type Direction = {
+  name: string;
+  xMod: number;
+  yMod: number;
+};
 
 export type Upstairs = Feature & {
   glyph: "<";

@@ -24,6 +24,17 @@
       "sourceMaps": true,
     },
     {
+      "name": "Debug Zed Layout",
+      "type": "node",
+      "request": "launch",
+      "args": ["src/game.ts", "--layout"],
+      "runtimeExecutable": "/Users/mike.pray/.nvm/versions/node/v22.17.0/bin/node",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "cwd": "/Users/mike.pray/repos/goblin-crawl",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+    },
+    {
       "name": "Debug Words",
       "type": "node",
       "request": "launch",

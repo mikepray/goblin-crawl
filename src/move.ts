@@ -1,5 +1,5 @@
 import { meleeActor } from "./combat";
-import { dungeonHeight, dungeonWidth } from "./game";
+import { dungeonHeight, dungeonWidth } from "./printScreen";
 import {
   Actor,
   ConversationBranch,
@@ -72,11 +72,10 @@ export function doPlayerMove(game: Game, playerMove: Coords) {
           );
         }
 
-        if (subjectCreature.conversationBranches) {
+        if (subjectCreature.conversationBranches?.length) {
+          const branches = subjectCreature.conversationBranches;
           const conversationBranch =
-            subjectCreature.conversationBranches[
-              getRandomInt(0, subjectCreature.conversationBranches.length)
-            ];
+            branches[getRandomInt(0, branches.length - 1)];
           game.activeDialog = conversationBranch;
           game.interactingActor = subjectCreature;
           game.dialogMode = "dialog";
@@ -333,10 +332,11 @@ export const moveActor = (
         game.messages.push(`{grey-fg}${getKoboldPhrase()}{/}`);
       }
     } else {
-      const shout = getRandomInt(0, (actor.shouts as Array<Shout>).length);
-      game.messages.push(
-        `{grey-fg}${(actor.shouts as Array<Shout>)[shout].shout}{/}`,
-      );
+      const shouts = actor.shouts as Array<Shout>;
+      if (shouts.length > 0) {
+        const shoutIdx = getRandomInt(0, shouts.length - 1);
+        game.messages.push(`{grey-fg}${shouts[shoutIdx].shout}{/}`);
+      }
     }
   }
 
@@ -352,7 +352,10 @@ export const getWanderingMoveDelta = (creature: Creature): Coords => {
   }
 
   if (!creature.wanderingDirection || Math.random() < 0.2) {
-    const randomDirection = getRandomInt(0, 5);
+    const randomDirection = getRandomInt(
+      MovementDirection.STATIONARY,
+      MovementDirection.W,
+    );
     creature.wanderingDirection = randomDirection as MovementDirection;
   }
 

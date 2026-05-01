@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/game.js",
     "dev": "tsc -w",
-    "arena": "npm run build && node dist/game.js --arena"
+    "arena": "npm run build && node dist/game.js --arena",
+    "layout": "npm run build && node dist/game.js --layout"
   },
   "author": "mike pray",
   "license": "ISC",

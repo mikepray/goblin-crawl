@@ -1,8 +1,12 @@
 import { defaultRoomsAndHallways } from "../branches";
-import { dungeonWidth, dungeonHeight } from "../game";
 import { Coords, RoomsAndHallwaysConfig } from "../types";
 import { coordsToKey, getRandomInt } from "../utils";
 
+// Builds a dunegon tile set built from several large rooms with hallways connecting each room to every other room using
+// the midpoint of the rooms as the origin of the hallways. hallways are right angles
+// in small map sizes, tends to build a big lumpy open room
+// there's no guarantee that the rooms won't overlap
+// the maps generated are guaranteed to be valid (no inaccessible tiles)
 export function buildRoomsAndHallways(
   config?: RoomsAndHallwaysConfig,
 ): Map<string, Coords> {
@@ -19,7 +23,10 @@ export function buildRoomsAndHallways(
   let midpoints = new Array();
 
   for (let i = 0; i < numRooms; i++) {
-    let room = buildRoom(width, height, config);
+    // randomly generate origin point of room (top left)
+    const originX = getRandomInt(1, width - 2);
+    const originY = getRandomInt(1, height - 2);
+    let room = buildRoom(config, originX, originY);
     midpoints.push(room.midpoint);
     tiles = new Map([...tiles, ...room.tiles]);
   }
@@ -60,18 +67,14 @@ export function buildRoomsAndHallways(
 }
 
 function buildRoom(
-  width: number,
-  height: number,
   config: RoomsAndHallwaysConfig,
+  originX: number,
+  originY: number,
 ) {
   let tiles = new Map<string, Coords>();
 
   const w = getRandomInt(config.minRoomWidth, config.maxRoomWidth);
   const h = getRandomInt(config.minRoomHeight, config.maxRoomHeight);
-
-  // randomly generate origin point of room (top left)
-  const originX = getRandomInt(1, width - 2);
-  const originY = getRandomInt(1, height - 2);
 
   // add room to tile set
   for (let i = 1; i < h; i++) {

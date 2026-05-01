@@ -281,7 +281,7 @@ creatures:
       damageDieNum: 1
       damageDie: 2
     spawnInfo:
-      - branchName: Apostate Refuge
+      - branchName: Exile of Apostates
         minLevel: 1
         spawnRate: 40
         distribution: mid
@@ -315,7 +315,7 @@ creatures:
       damageDieNum: 1
       damageDie: 2
     spawnInfo:
-      - branchName: Apostate Refuge
+      - branchName: Exile of Apostates
         minLevel: 1
         spawnRate: 40
         distribution: mid
@@ -347,7 +347,7 @@ creatures:
       damageDieNum: 1
       damageDie: 2
     spawnInfo:
-      - branchName: Apostate Refuge
+      - branchName: Exile of Apostates
         minLevel: 1
         spawnRate: 40
         distribution: mid

@@ -83,9 +83,18 @@ export function isTileInFieldOfVision(
 }
 
 export const d20 = () => {
-  return getRandomInt(0, 20);
+  return getRandomInt(1, 20);
 };
 
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ * The value is no lower than min (or the next integer greater than min
+ * if min isn't an integer) and no greater than max (or the next integer
+ * lower than max if max isn't an integer).
+ * Using Math.round() will give you a non-uniform distribution!
+ *
+ * https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range/1527820#1527820
+ */
 export function getRandomInt(min: number, max: number) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -126,19 +135,29 @@ export function getRandomValidTile(
   tiles: Map<string, Coords>,
   deconflictWith?: Map<string, Coords>,
 ): Coords {
-  let key;
+  let key: string | undefined;
 
   if (deconflictWith) {
+    if (tiles.size === 0) {
+      throw new Error("getRandomValidTile: tile map is empty");
+    }
     // subtract deconfliction tiles from tiles
     let deconflictedTiles: Array<string> = Array.from(tiles.keys()).filter(
       (tile) => {
         return !deconflictWith.has(tile);
       },
     );
-    key = deconflictedTiles[getRandomInt(0, deconflictedTiles.length)];
+    if (deconflictedTiles.length === 0) {
+      throw new Error("getRandomValidTile: no tiles left after deconflict");
+    }
+    key = deconflictedTiles[getRandomInt(0, deconflictedTiles.length - 1)];
   } else {
     // if nothing to deconflict with, just use the base tile map
-    key = Array.from(tiles.keys()).at(getRandomInt(0, tiles.size));
+    if (tiles.size === 0) {
+      throw new Error("getRandomValidTile: tile map is empty");
+    }
+    const keys = Array.from(tiles.keys());
+    key = keys[getRandomInt(0, keys.length - 1)];
   }
 
   // get a random valid tile key

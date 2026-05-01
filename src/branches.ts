@@ -2,11 +2,34 @@ import { DungeonBranch, KoboldCave, RoomsAndHallwaysConfig } from "./types";
 import { nDk } from "./utils";
 import { getKoboldTitle } from "./words";
 
+export const defaultRoomsAndHallways: RoomsAndHallwaysConfig = {
+  minRooms: 5,
+  maxRooms: 8,
+  minWidth: 50,
+  maxWidth: 50,
+  minHeight: 24,
+  maxHeight: 24,
+  minRoomWidth: 6,
+  maxRoomWidth: 15,
+  minRoomHeight: 6,
+  maxRoomHeight: 15,
+};
+
 export const dungeon: DungeonBranch = {
   name: "Dungeon",
   description:
-    "A sprawling system of caverns, mines, and tunnels. Full of things eat or will eat you",
+    "A sprawling system of caverns, mines, and tunnels. Full of things to eat or which will eat you",
   maxLevel: 3,
+  layouts: [
+    {
+      type: "RoomsAndHallwaysOverlap",
+      config: defaultRoomsAndHallways,
+    },
+    {
+      type: "RoomsAndHallwaysOnePath",
+      config: { ...defaultRoomsAndHallways, minRooms: 3, maxRooms: 5 },
+    },
+  ],
 };
 
 const trashHeap: DungeonBranch = {
@@ -20,7 +43,7 @@ const trashHeap: DungeonBranch = {
 
 const apostates: DungeonBranch = {
   maxLevel: 3,
-  name: "Apostate Refuge",
+  name: "Exile of Apostates",
   description:
     "The refuge of goblins who have fallen from the grace of Meggled",
   parentBranch: dungeon,
@@ -40,13 +63,19 @@ const tekLab: DungeonBranch = {
   glyphColor: "{#27DAF5-fg}",
   description: "Tekktor's Lab",
   parentBranch: dungeon,
+  layouts: [
+    {
+      type: "RoomsAndHallwaysOnePath",
+      config: { ...defaultRoomsAndHallways, minRooms: 2, maxRooms: 2 },
+    },
+  ],
 };
 
 const prismOfYorlaxoph: DungeonBranch = {
   maxLevel: 10,
   name: "Prism of Yorlaxoph",
   description: "The prism dimension holding the Ninefold Lichking Yorlaxoph",
-  glyphColor: "{#610C1A",
+  glyphColor: "{#610C1A}",
 };
 
 export function getRandomKoboldCave(difficulty: number) {
@@ -58,6 +87,16 @@ export function getRandomKoboldCave(difficulty: number) {
     koboldName: title,
     glyphColor: "{#a440d6-fg}",
     parentBranch: dungeon,
+    layouts: [
+      {
+        type: "RoomsAndHallwaysOverlap",
+        config: defaultRoomsAndHallways,
+      },
+      {
+        type: "RoomsAndHallwaysOnePath",
+        config: { ...defaultRoomsAndHallways, minRooms: 3, maxRooms: 5 },
+      },
+    ],
   };
   return randomKoboldCave;
 }
@@ -70,16 +109,3 @@ export const allBranches = [
   tekLab,
   trashHeap,
 ];
-
-export const defaultRoomsAndHallways: RoomsAndHallwaysConfig = {
-  minRooms: 5,
-  maxRooms: 8,
-  minWidth: 50,
-  maxWidth: 50,
-  minHeight: 24,
-  maxHeight: 24,
-  minRoomWidth: 6,
-  maxRoomWidth: 15,
-  minRoomHeight: 6,
-  maxRoomHeight: 15,
-};
