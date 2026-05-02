@@ -272,3 +272,7 @@ export function roll(ndk?: string) {
   }
   return 0;
 }
+
+export function random(arr: any[]) {
+  return arr[getRandomInt(0, arr.length - 1)];
+}

@@ -39,6 +39,16 @@ const trashHeap: DungeonBranch = {
     "A filthy crevice filled with the accumulated garbage of surface-dwellers and dungeon dwellers alike",
   parentBranch: dungeon,
   glyphColor: "{#B4D902-fg}",
+  layouts: [
+    {
+      type: "ChasmEmpty",
+      config: { ...defaultRoomsAndHallways },
+    },
+    {
+      type: "Chasm",
+      config: { ...defaultRoomsAndHallways },
+    },
+  ],
 };
 
 const apostates: DungeonBranch = {

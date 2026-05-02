@@ -55,7 +55,11 @@ export type RoomsAndHallwaysConfig = {
 };
 
 export type Layout = {
-  type: "RoomsAndHallwaysOverlap" | "RoomsAndHallwaysOnePath";
+  type:
+    | "RoomsAndHallwaysOverlap"
+    | "RoomsAndHallwaysOnePath"
+    | "Chasm"
+    | "ChasmEmpty";
   config: RoomsAndHallwaysConfig;
 };
 

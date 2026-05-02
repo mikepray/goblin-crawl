@@ -1,4 +1,6 @@
 import { allBranches } from "./branches";
+import { buildChasm } from "./layouts/chasm";
+import { buildChasmEmpty } from "./layouts/chasmEmpty";
 
 import { buildRoomsAndHallways } from "./layouts/roomsAndHallways";
 import { buildRoomsAndHallwaysOnePath } from "./layouts/roomsAndHallwaysOnePath";
@@ -23,6 +25,30 @@ import {
   getRandomValidTile,
 } from "./utils";
 
+function normalizeToOrigin(tiles: CoordsMap): CoordsMap {
+  if (tiles.size === 0) {
+    return new Map();
+  }
+  let minX = Infinity;
+  let minY = Infinity;
+  for (const c of tiles.values()) {
+    minX = Math.min(minX, c.x);
+    minY = Math.min(minY, c.y);
+  }
+  const dx = minX < 0 ? -minX : 0;
+  const dy = minY < 0 ? -minY : 0;
+  if (dx === 0 && dy === 0) {
+    return tiles;
+  }
+  const shifted = new Map<string, Coords>();
+  for (const c of tiles.values()) {
+    const nx = c.x + dx;
+    const ny = c.y + dy;
+    shifted.set(coordsToKey({ x: nx, y: ny }), { ...c, x: nx, y: ny });
+  }
+  return shifted;
+}
+
 export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
   // clear current level's features, actors, etc
   game.features = new Map<string, Feature>();
@@ -36,6 +62,10 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
     const layout = branchLayouts[getRandomInt(0, branchLayouts.length - 1)];
     if (layout.type === "RoomsAndHallwaysOnePath") {
       game.tiles = buildRoomsAndHallwaysOnePath(layout.config);
+    } else if (layout.type === "Chasm") {
+      game.tiles = buildChasm(layout.config);
+    } else if (layout.type === "ChasmEmpty") {
+      game.tiles = buildChasmEmpty(layout.config);
     } else {
       game.tiles = buildRoomsAndHallways(layout.config);
     }
@@ -43,6 +73,8 @@ export function spawnLevel(game: Game, nextBranchLevel: BranchLevel) {
     // else use default
     game.tiles = buildRoomsAndHallways();
   }
+  // game.tiles = normalizeToOrigin(game.tiles);
+
   game.messages = new Array<string>();
 
   let playerTile;

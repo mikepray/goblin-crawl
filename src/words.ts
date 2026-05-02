@@ -1,4 +1,4 @@
-import { getRandomInt } from "./utils";
+import { getRandomInt, random } from "./utils";
 
 export const koboldSyllables = new Map<string, number>([
   ["ik", 6],
@@ -72,10 +72,6 @@ function rouletteWheel(map: Map<string, number>) {
     }
   }
   return arr;
-}
-
-function random(arr: string[]) {
-  return arr[getRandomInt(0, arr.length - 1)];
 }
 
 export function getKoboldTitle() {

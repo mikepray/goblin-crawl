@@ -22,8 +22,8 @@ describe('getNodeWithLeastDistance', () => {
       dist: Infinity,
       alignedDiagPenalty: 0,
     });
-    const result = getNodeWithLeastDistance(nodes);
-    expect(result).toBeUndefined();
+    const picked = getNodeWithLeastDistance(nodes);
+    expect(picked).toBeUndefined();
   });
 
   it('should return node with minimum distance', () => {
@@ -43,8 +43,8 @@ describe('getNodeWithLeastDistance', () => {
       dist: 1,
       alignedDiagPenalty: 0,
     });
-    const result = getNodeWithLeastDistance(nodes);
-    expect(result).toEqual({
+    const picked = getNodeWithLeastDistance(nodes);
+    expect(picked?.node).toEqual({
       coords: {x: 2, y: 2},
       dist: 1,
       alignedDiagPenalty: 0,
@@ -63,8 +63,8 @@ describe('getNodeWithLeastDistance', () => {
       dist: 2,
       alignedDiagPenalty: 0,
     });
-    const result = getNodeWithLeastDistance(nodes);
-    expect(result).toEqual({
+    const picked = getNodeWithLeastDistance(nodes);
+    expect(picked?.node).toEqual({
       coords: {x: 1, y: 0},
       dist: 2,
       alignedDiagPenalty: 0,

@@ -1,5 +1,5 @@
 import { meleeActor } from "./combat";
-import { dungeonHeight, dungeonWidth } from "./printScreen";
+import { getLogicalDungeonSize } from "./printScreen";
 import {
   Actor,
   ConversationBranch,
@@ -89,10 +89,14 @@ export function doPlayerMove(game: Game, playerMove: Coords) {
     ) {
       // player move logic
       // prevent move on boundary collision
+      const { width: levelW, height: levelH } = getLogicalDungeonSize(
+        game.tiles,
+        game.player,
+      );
       if (
-        nextPosition.x > dungeonWidth - 1 ||
+        nextPosition.x > levelW - 1 ||
         nextPosition.x < 0 ||
-        nextPosition.y > dungeonHeight - 1 ||
+        nextPosition.y > levelH - 1 ||
         nextPosition.y < 0
       ) {
         return game;
@@ -299,10 +303,14 @@ export const moveActor = (
   }
 
   // prevent move on boundary collision
+  const { width: levelW, height: levelH } = getLogicalDungeonSize(
+    game.tiles,
+    game.player,
+  );
   if (
-    nextPosition.x > dungeonWidth - 1 ||
+    nextPosition.x > levelW - 1 ||
     nextPosition.x < 0 ||
-    nextPosition.y > dungeonHeight - 1 ||
+    nextPosition.y > levelH - 1 ||
     nextPosition.y < 0
   ) {
     return game;
@@ -428,14 +436,16 @@ export const getNextMoveToTarget = (
     }
   }
 
-  let currentNode;
+  let currentNode: PathfindingNode | undefined;
   while (unvisitedTiles.size > 0) {
     // find node with smallest distance
     // if there are no unvisited nodes or if all nodes have distance of infinity, the target is unreachable
-    currentNode = getNodeWithLeastDistance(unvisitedTiles);
-    if (currentNode === undefined) {
+    const picked = getNodeWithLeastDistance(unvisitedTiles);
+    if (picked === undefined) {
       break;
-    } else if (CoordsUtil.equals(currentNode.coords, targetTile)) {
+    }
+    currentNode = picked.node;
+    if (CoordsUtil.equals(currentNode.coords, targetTile)) {
       // target found
       break;
     }
@@ -474,8 +484,8 @@ export const getNextMoveToTarget = (
       }
     }
 
-    // delete the current node from the unvisited tile map
-    unvisitedTiles.delete(coordsToKey(currentNode.coords));
+    // delete by the map key we selected (must match tile map keys even if node.coords were ever stale)
+    unvisitedTiles.delete(picked.key);
   }
 
   if (!currentNode || !CoordsUtil.equals(currentNode.coords, targetTile)) {
@@ -508,7 +518,7 @@ export const getNextMoveToTarget = (
 // this would be more optimal as a heap/priority queue
 export function getNodeWithLeastDistance(
   nodes: Map<string, PathfindingNode>,
-): PathfindingNode | undefined {
+): { key: string; node: PathfindingNode } | undefined {
   let best: PathfindingNode | undefined;
   let minDist = Infinity;
   let minPenalty = Infinity;
@@ -534,7 +544,10 @@ export function getNodeWithLeastDistance(
       }
     }
   }
-  return best;
+  if (best === undefined) {
+    return undefined;
+  }
+  return { key: bestKey, node: best };
 }
 
 // Depth-first search of conversation branch tree looking for a branch by the 'creatureSpeaks' string

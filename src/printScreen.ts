@@ -3,7 +3,7 @@ import { printDialogScreen } from "./dialog";
 import { View } from "./init";
 import { printInventoryScreen, printStatusScreen } from "./inventory";
 import { printLevelUpScreen } from "./levelUpScreen";
-import { Game } from "./types";
+import { Coords, CoordsMap, Game } from "./types";
 import { isTileInFieldOfVision } from "./utils";
 
 export const dungeonWidth = 100;
@@ -17,13 +17,40 @@ export const mapHeight = 24;
 export const viewportCellWidth = mapWidth - 2;
 export const viewportCellHeight = mapHeight - 2;
 
+/**
+ * World grid size for rendering and movement. Layouts can exceed the legacy
+ * 100×100 constants; the viewport also samples cells up to roughly
+ * player + viewportCellWidth/Height, so the grid must cover tile extents and
+ * that window.
+ */
+export function getLogicalDungeonSize(
+  tiles: CoordsMap,
+  player: Coords,
+): { width: number; height: number } {
+  let maxX = -1;
+  let maxY = -1;
+  for (const c of tiles.values()) {
+    maxX = Math.max(maxX, c.x);
+    maxY = Math.max(maxY, c.y);
+  }
+  if (tiles.size === 0) {
+    return { width: dungeonWidth, height: dungeonHeight };
+  }
+  maxX = Math.max(maxX, player.x + viewportCellWidth);
+  maxY = Math.max(maxY, player.y + viewportCellHeight);
+  return {
+    width: Math.max(dungeonWidth, maxX + 1),
+    height: Math.max(dungeonHeight, maxY + 1),
+  };
+}
+
 const mapBorderGame = { border: { fg: "white" as const } };
 const mapBorderDim = { border: { fg: "black" as const } };
 const statusBorderDim = mapBorderDim;
 const statusBorderBright = { border: { fg: "white" as const } };
 
 export function viewportPrintScreen(game: Game, view: View): Game {
-  let topbarContent = `{bold}GoblinCrawl{/bold} > ${game.dialogMode}\n`;
+  let topbarContent = `{bold}GoblinCrawl{/bold} > ${game.dialogMode} {x: ${game.player.x}, y: ${game.player.y}}\n`;
 
   view.topbar.setContent(topbarContent);
 
@@ -44,6 +71,10 @@ export function viewportPrintScreen(game: Game, view: View): Game {
 
     const vw = viewportCellWidth;
     const vh = viewportCellHeight;
+    const { width: worldW, height: worldH } = getLogicalDungeonSize(
+      game.tiles,
+      player,
+    );
 
     const centerSx = Math.floor(vw / 2);
     const centerSy = Math.floor(vh / 2);
@@ -58,7 +89,7 @@ export function viewportPrintScreen(game: Game, view: View): Game {
       let row = "";
       for (let sx = 0; sx < vw; sx++) {
         const dx = originX + sx;
-        if (dx < 0 || dx >= dungeonWidth || dy < 0 || dy >= dungeonHeight) {
+        if (dx < 0 || dx >= worldW || dy < 0 || dy >= worldH) {
           row += " ";
         } else {
           row += ylines[dy][dx];
@@ -86,17 +117,18 @@ export function viewportPrintScreen(game: Game, view: View): Game {
 
 export function printDungeonScreen(game: Game) {
   const visibleActors = [];
-  const ylines = new Array<Array<string>>(dungeonHeight);
   const player = game.player;
+  const { width, height } = getLogicalDungeonSize(game.tiles, player);
+  const ylines = new Array<Array<string>>(height);
   const branchGlyphColor = game.currentBranchLevel.branch.glyphColor;
   const wallGlyphLit = branchGlyphColor
     ? `${branchGlyphColor}#{/}`
     : "{white-fg}#{/}";
 
   // dungeon screen
-  for (let y = 0; y < dungeonHeight; y++) {
-    const xlines = new Array<string>(dungeonWidth);
-    for (let x = 0; x < dungeonWidth; x++) {
+  for (let y = 0; y < height; y++) {
+    const xlines = new Array<string>(width);
+    for (let x = 0; x < width; x++) {
       const key = `${x},${y}`;
       // field of vision
       if (

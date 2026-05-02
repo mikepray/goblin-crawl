@@ -28,11 +28,13 @@ export const printInventoryScreen = (game: Game, out: string): string => {
     `{bold}HP{/bold} ${game.player.currentHp}/${game.player.maxHp}\t`,
   );
   out = out.concat(
-    `{bold}Lvl{/bold} ${game.player.level}\t{bold}XP{/bold} ${game.player.XP}\t`,
+    `{bold}Lvl{/bold} ${game.player.level}\t{bold}XP{/bold} ${game.player.XP}\n`,
   );
+
   out = out.concat(
     `${game.currentBranchLevel.branch.name}:${game.currentBranchLevel.level}\n`,
   );
+  out = out.concat(`${game.currentBranchLevel.branch.description}\n`);
   out = out.concat(`Altars Conquered:${game.altarsConquered}`);
 
   out = out.concat(`\n\n{bold}Inventory{/}\n`);

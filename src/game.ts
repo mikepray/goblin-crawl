@@ -3,7 +3,7 @@ import { handleDialogActions } from "./dialog";
 import { defaultGame, initGame, initView, startScreen } from "./init";
 import { handlePlayerGameInput } from "./input";
 import { handleInventoryScreenAction } from "./inventory";
-import { buildRoomsAndHallwaysOnePath } from "./layouts/roomsAndHallwaysOnePath";
+import { buildChasmEmpty } from "./layouts/chasmEmpty";
 import { handleLevelUpScreenAction } from "./levelUpScreen";
 import { doGameTurn } from "./move";
 import { levelUp } from "./player";
@@ -41,7 +41,7 @@ const isLayoutViewer = process.argv.includes("--layout");
 if (isLayoutViewer) {
   const game = defaultGame;
   // game.tiles = buildRoomsAndHallways();
-  game.tiles = buildRoomsAndHallwaysOnePath();
+  game.tiles = buildChasmEmpty();
   game.seeAllTiles = true;
   const { ylines } = printDungeonScreen(game);
   view.layoutViewr.setContent(
